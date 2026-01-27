@@ -8,8 +8,6 @@ import { usersRouter } from "./routes/users";
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   JWT_SECRET: z.string().min(10),
-
-  // lista separada por vírgula
   CORS_ORIGIN: z
     .string()
     .default("http://localhost:5173,https://portaldoaluno.santos-tech.com"),
@@ -29,12 +27,25 @@ app.use(
 
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
-  res.json({ ok: true });
-});
+app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
+// ===== ROTAS SEM PREFIXO (local / simples) =====
 app.use("/auth", authRouter(env.JWT_SECRET));
 app.use(usersRouter(env.JWT_SECRET));
+
+// ===== ROTAS COM /api (pra prod/proxy) =====
+app.use("/api/auth", authRouter(env.JWT_SECRET));
+app.use("/api", usersRouter(env.JWT_SECRET)); 
+// (se usersRouter registra /users, vira /api/users)
+
+// handler de 404 (pra você enxergar rota errada rápido)
+app.use((req, res) => {
+  res.status(404).json({
+    message: "Not Found",
+    path: req.path,
+  });
+});
 
 app.use(
   (
@@ -49,5 +60,5 @@ app.use(
 );
 
 app.listen(env.PORT, "0.0.0.0", () => {
-  console.log(`API rodando em http://localhost:${env.PORT}`);
+  console.log(`API rodando na porta ${env.PORT}`);
 });

@@ -6,4 +6,5 @@ if (!connectionString) {
   throw new Error("DATABASE_URL não configurado");
 }
 
+
 export const pool = new Pool({ connectionString });

@@ -2,41 +2,18 @@ import { Router } from "express";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { pool } from "../db";
 
 export type Role = "admin" | "professor" | "aluno";
 
-export type User = {
+type DbUserRow = {
   id: string;
   usuario: string;
   nome: string;
-  senhaHash: string;
+  senha_hash: string;
   role: Role;
+  ativo: boolean;
 };
-
-// Usuários fake (pra testar AGORA)
-export const users: User[] = [
-  {
-    id: "1",
-    usuario: "admin",
-    nome: "Administrador",
-    senhaHash: bcrypt.hashSync("admin123", 10),
-    role: "admin",
-  },
-  {
-    id: "2",
-    usuario: "prof",
-    nome: "Professor",
-    senhaHash: bcrypt.hashSync("prof123", 10),
-    role: "professor",
-  },
-  {
-    id: "3",
-    nome: "Guilherme",
-    usuario: "aluno",
-    senhaHash: bcrypt.hashSync("aluno123", 10),
-    role: "aluno",
-  },
-];
 
 const loginSchema = z.object({
   usuario: z.string().min(1, "Usuário obrigatório"),
@@ -57,32 +34,45 @@ export function authRouter(jwtSecret: string) {
 
     const { usuario, senha } = parsed.data;
 
-    const user = users.find((u) => u.usuario === usuario);
-    if (!user) {
-      return res.status(401).json({ message: "Usuário ou senha inválidos" });
+    try {
+      const result = await pool.query<DbUserRow>(
+        `SELECT id, usuario, nome, senha_hash, role, ativo
+         FROM users
+         WHERE usuario = $1
+         LIMIT 1`,
+        [usuario]
+      );
+
+      const user = result.rows[0];
+      if (!user || user.ativo === false) {
+        return res.status(401).json({ message: "Usuário ou senha inválidos" });
+      }
+
+      const ok = await bcrypt.compare(senha, user.senha_hash);
+      if (!ok) {
+        return res.status(401).json({ message: "Usuário ou senha inválidos" });
+      }
+
+      const token = jwt.sign(
+        { sub: user.id, usuario: user.usuario, role: user.role },
+        jwtSecret,
+        { expiresIn: "2h" }
+      );
+
+      return res.status(200).json({
+        message: "Login realizado com sucesso!",
+        token,
+        user: {
+          id: user.id,
+          usuario: user.usuario,
+          nome: user.nome,
+          role: user.role,
+        },
+      });
+    } catch (err) {
+      console.error(err);
+      return res.status(500).json({ message: "Erro interno" });
     }
-
-    const senhaValida = await bcrypt.compare(senha, user.senhaHash);
-    if (!senhaValida) {
-      return res.status(401).json({ message: "Usuário ou senha inválidos" });
-    }
-
-    const token = jwt.sign(
-      { sub: user.id, usuario: user.usuario, role: user.role },
-      jwtSecret,
-      { expiresIn: "2h" }
-    );
-
-    return res.status(200).json({
-      message: "Login realizado com sucesso!",
-      token,
-      user: {
-        id: user.id,
-        usuario: user.usuario,
-        nome: user.nome,
-        role: user.role,
-      },
-    });
   });
 
   return router;
