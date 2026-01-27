@@ -1,20 +1,8 @@
 import React from "react";
-import { apiFetch } from "../services/api";
+import { criarExercicio, listarExercicios, getRole, type Exercicio } from "../services/api";
 
-type Role = "admin" | "professor" | "aluno";
-
-type Exercicio = {
-  id: string;
-  titulo: string;
-  descricao: string;
-  modulo: string;
-  tema: string | null;
-  prazo: string | null;
-  createdAt: string;
-};
-
-export default function Exercises() {
-  const role = (localStorage.getItem("role") as Role) || "aluno";
+export default function ExerciciosPage() {
+  const role = getRole() ?? "aluno";
   const canCreate = role === "admin" || role === "professor";
 
   const [items, setItems] = React.useState<Exercicio[]>([]);
@@ -26,14 +14,15 @@ export default function Exercises() {
   const [descricao, setDescricao] = React.useState("");
   const [modulo, setModulo] = React.useState("");
   const [tema, setTema] = React.useState("");
-  const [prazo, setPrazo] = React.useState<string>("");
+  const [prazo, setPrazo] = React.useState(""); // datetime-local
   const [saving, setSaving] = React.useState(false);
+  const [okMsg, setOkMsg] = React.useState<string | null>(null);
 
   async function load() {
     try {
       setLoading(true);
       setErro(null);
-      const data = await apiFetch<Exercicio[]>("/exercicios");
+      const data = await listarExercicios();
       setItems(data);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao carregar exercícios");
@@ -46,23 +35,22 @@ export default function Exercises() {
     load();
   }, []);
 
-  async function create() {
+  async function handleCreate() {
     try {
       setSaving(true);
       setErro(null);
+      setOkMsg(null);
 
-      await apiFetch<{ exercicio: unknown }>("/exercicios", {
-        method: "POST",
-        body: JSON.stringify({
-          titulo: titulo.trim(),
-          descricao: descricao.trim(),
-          modulo: modulo.trim(),
-          tema: tema.trim() || null,
-          prazo: prazo ? new Date(prazo).toISOString() : null,
-          publicado: true,
-        }),
+      await criarExercicio({
+        titulo: titulo.trim(),
+        descricao: descricao.trim(),
+        modulo: modulo.trim(),
+        tema: tema.trim() ? tema.trim() : null,
+        prazo: prazo ? new Date(prazo).toISOString() : null,
+        publicado: true,
       });
 
+      setOkMsg("Exercício criado!");
       setTitulo("");
       setDescricao("");
       setModulo("");
@@ -76,6 +64,12 @@ export default function Exercises() {
       setSaving(false);
     }
   }
+
+  const disabled =
+    saving ||
+    titulo.trim().length < 2 ||
+    descricao.trim().length < 2 ||
+    modulo.trim().length < 1;
 
   return (
     <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}>
@@ -92,22 +86,55 @@ export default function Exercises() {
         </div>
       )}
 
+      {okMsg && (
+        <div style={{ marginTop: 12, color: "green", fontWeight: 700 }}>
+          {okMsg}
+        </div>
+      )}
+
       {canCreate && (
-        <div style={{ marginTop: 16, border: "1px solid #ddd", borderRadius: 12, padding: 12 }}>
+        <div
+          style={{
+            marginTop: 16,
+            border: "1px solid #ddd",
+            borderRadius: 12,
+            padding: 12,
+            background: "#fff",
+          }}
+        >
           <h2 style={{ marginTop: 0 }}>Criar exercício</h2>
 
           <div style={{ display: "grid", gap: 10 }}>
-            <input placeholder="Título" value={titulo} onChange={(e) => setTitulo(e.target.value)} />
+            <input
+              placeholder="Título"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+            />
+
             <textarea
               placeholder="Descrição"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
               rows={4}
             />
+
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <input style={{ flex: 1 }} placeholder="Módulo" value={modulo} onChange={(e) => setModulo(e.target.value)} />
-              <input style={{ flex: 1 }} placeholder="Tema (opcional)" value={tema} onChange={(e) => setTema(e.target.value)} />
               <input
+                style={{ flex: 1, minWidth: 180 }}
+                placeholder="Módulo"
+                value={modulo}
+                onChange={(e) => setModulo(e.target.value)}
+              />
+
+              <input
+                style={{ flex: 1, minWidth: 180 }}
+                placeholder="Tema (opcional)"
+                value={tema}
+                onChange={(e) => setTema(e.target.value)}
+              />
+
+              <input
+                style={{ minWidth: 220 }}
                 type="datetime-local"
                 value={prazo}
                 onChange={(e) => setPrazo(e.target.value)}
@@ -115,24 +142,32 @@ export default function Exercises() {
               />
             </div>
 
-            <button
-              onClick={create}
-              disabled={
-                saving ||
-                titulo.trim().length < 2 ||
-                descricao.trim().length < 2 ||
-                modulo.trim().length < 1
-              }
-            >
+            <button onClick={handleCreate} disabled={disabled}>
               {saving ? "Salvando..." : "Publicar"}
             </button>
+
+            <div style={{ fontSize: 12, opacity: 0.7 }}>
+              Obs: se você não tiver token/role no localStorage, o backend vai bloquear o POST com 401/403.
+            </div>
           </div>
         </div>
       )}
 
       <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
+        {!loading && items.length === 0 && (
+          <div>Nenhum exercício publicado ainda.</div>
+        )}
+
         {items.map((ex) => (
-          <div key={ex.id} style={{ border: "1px solid #ddd", borderRadius: 12, padding: 12 }}>
+          <div
+            key={ex.id}
+            style={{
+              border: "1px solid #ddd",
+              borderRadius: 12,
+              padding: 12,
+              background: "#fff",
+            }}
+          >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 16 }}>{ex.titulo}</div>
@@ -141,6 +176,7 @@ export default function Exercises() {
                   {ex.tema ? ` • ${ex.tema}` : ""}
                 </div>
               </div>
+
               <div style={{ textAlign: "right", opacity: 0.8 }}>
                 {ex.prazo ? `Prazo: ${new Date(ex.prazo).toLocaleString()}` : "Sem prazo"}
               </div>
@@ -149,8 +185,6 @@ export default function Exercises() {
             <div style={{ marginTop: 10, whiteSpace: "pre-wrap" }}>{ex.descricao}</div>
           </div>
         ))}
-
-        {!loading && items.length === 0 && <div>Nenhum exercício publicado ainda.</div>}
       </div>
     </div>
   );

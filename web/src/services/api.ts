@@ -1,10 +1,8 @@
 // src/services/api.ts
 type Role = "admin" | "professor" | "aluno";
 
-// 1) Se você configurar VITE_API_URL, ele manda
-// 2) Senão, escolhe conforme o ambiente do Vite
 const DEFAULT_PROD = "https://portaldoaluno.santos-tech.com/api";
-const DEFAULT_DEV = "http://localhost:3000";
+const DEFAULT_DEV = "http://localhost:3000/api";
 
 export const API_BASE_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ||
@@ -23,14 +21,14 @@ export async function login(dados: { usuario: string; senha: string }) {
   });
 
   if (!res.ok) throw new Error(await parseError(res));
-  return res.json();
+  return res.json() as Promise<{
+    message: string;
+    token: string;
+    user: { id: string; usuario: string; nome: string; role: Role };
+  }>;
 }
 
-// helper genérico pra requests autenticados
-export async function apiFetch<T>(
-  path: string,
-  options: RequestInit = {}
-): Promise<T> {
+export async function apiFetch<T>(path: string, options: RequestInit = {}) {
   const token = localStorage.getItem("token");
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
@@ -43,31 +41,29 @@ export async function apiFetch<T>(
   });
 
   if (!res.ok) throw new Error(await parseError(res));
-  return res.json() as Promise<T>;
+  return (await res.json()) as T;
 }
 
-// exemplo: pegar exercícios públicos
+export type Exercicio = {
+  id: string;
+  titulo: string;
+  descricao: string;
+  modulo: string;
+  tema: string | null;
+  prazo: string | null;
+  createdAt: string;
+};
+
 export async function listarExercicios() {
-  return apiFetch<
-    Array<{
-      id: string;
-      titulo: string;
-      descricao: string;
-      modulo: string;
-      tema: string | null;
-      prazo: string | null;
-      createdAt: string;
-    }>
-  >("/exercicios");
+  return apiFetch<Exercicio[]>("/exercicios");
 }
 
-// exemplo: criar exercício (admin/professor)
 export async function criarExercicio(dados: {
   titulo: string;
   descricao: string;
   modulo: string;
   tema?: string | null;
-  prazo?: string | null; // ISO string
+  prazo?: string | null; // ISO string ou null
   publicado?: boolean;
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>("/exercicios", {
@@ -77,7 +73,6 @@ export async function criarExercicio(dados: {
 }
 
 export function getRole(): Role | null {
-  const role = localStorage.getItem("role");
-  if (role === "admin" || role === "professor" || role === "aluno") return role;
-  return null;
+  const r = localStorage.getItem("role");
+  return r === "admin" || r === "professor" || r === "aluno" ? r : null;
 }
