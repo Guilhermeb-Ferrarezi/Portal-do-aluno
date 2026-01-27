@@ -16,9 +16,6 @@ FROM node:20-alpine AS runtime
 WORKDIR /app
 ENV NODE_ENV=production
 
-# opcional: se seu app usa timezone/Intl, pode instalar tzdata
-# RUN apk add --no-cache tzdata
-
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev && npm cache clean --force
 
@@ -26,5 +23,4 @@ COPY --from=build /app/dist ./dist
 
 EXPOSE 3000
 
-# roda Node direto (melhor para sinais/healthcheck)
 CMD ["node", "dist/server.js"]
