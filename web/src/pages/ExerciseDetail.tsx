@@ -29,7 +29,6 @@ export default function ExerciseDetail() {
 
   // Minhas tentativas
   const [submissoes, setSubmissoes] = React.useState<Submissao[]>([]);
-  const [loadingSubs, setLoadingSubs] = React.useState(false);
 
   // Carregar exercício
   React.useEffect(() => {
@@ -54,13 +53,10 @@ export default function ExerciseDetail() {
 
     (async () => {
       try {
-        setLoadingSubs(true);
         const data = await minhasSubmissoes(id);
         setSubmissoes(data);
       } catch (error) {
         console.error("Erro ao carregar submissões:", error);
-      } finally {
-        setLoadingSubs(false);
       }
     })();
   }, [id, exercicio]);
@@ -131,7 +127,6 @@ export default function ExerciseDetail() {
   const prazoVencido = prazoData && prazoData < new Date();
   const temaTema = exercicio.tema || "Sem tema";
   const tipoExercicio = exercicio.tipoExercicio || "texto";
-  const ultimaTentativa = submissoes[0];
 
   return (
     <DashboardLayout

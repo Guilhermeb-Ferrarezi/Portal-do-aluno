@@ -1,5 +1,5 @@
 import React from "react";
-import Editor, { type EditorProps } from "@monaco-editor/react";
+import Editor from "@monaco-editor/react";
 
 interface MonacoEditorProps {
   value: string;
