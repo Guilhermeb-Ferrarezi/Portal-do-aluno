@@ -2,6 +2,7 @@
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "./DashboardLayout";
 import { getName } from "../../auth/auth";
+import { listarExercicios, type Exercicio } from "../../services/api";
 
 type Task = {
   title: string;
@@ -37,7 +38,37 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const user = getName() ?? "Aluno";
 
+  // Estado para exercícios
+  const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
+  const [loadingExercicios, setLoadingExercicios] = React.useState(true);
+  const [erroExercicios, setErroExercicios] = React.useState<string | null>(null);
+
+  // Carregar exercícios
+  React.useEffect(() => {
+    (async () => {
+      try {
+        setLoadingExercicios(true);
+        setErroExercicios(null);
+        const data = await listarExercicios();
+        setExercicios(data);
+      } catch (e) {
+        setErroExercicios(e instanceof Error ? e.message : "Erro ao carregar");
+      } finally {
+        setLoadingExercicios(false);
+      }
+    })();
+  }, []);
+
   const goToExercicios = () => navigate("/dashboard/exercicios");
+
+  // Transformar exercícios em tarefas
+  const tarefasDosDados = exercicios
+    .slice(0, 3)
+    .map((ex) => ({
+      title: ex.titulo,
+      due: ex.prazo ? `Entrega: ${new Date(ex.prazo).toLocaleDateString("pt-BR")}` : "Sem prazo",
+      status: ex.prazo && new Date(ex.prazo) < new Date() ? ("red" as const) : ("gray" as const),
+    }));
 
   const progress = {
     overall: 68,
@@ -55,19 +86,23 @@ export default function Dashboard() {
 
   const streakDays = 12;
 
-  const nextTask = {
+  // Primeiro exercício para a seção "Continue de onde parou"
+  const primeiroExercicio = exercicios[0];
+  const nextTask = primeiroExercicio ? {
     tag: "CONTINUE DE ONDE PAROU",
-    title: "Exercício 15.3: Layout Responsivo",
-    subtitle: "Crie um layout responsivo usando Flexbox e Media Queries",
+    title: primeiroExercicio.titulo,
+    subtitle: primeiroExercicio.descricao,
     metaLeft: "20–30 min",
-    metaMid: "Intermediário",
+    metaMid: primeiroExercicio.tema || "Sem tema",
+  } : {
+    tag: "CONTINUE DE ONDE PAROU",
+    title: "Nenhum exercício disponível",
+    subtitle: "Você em dia com os exercícios!",
+    metaLeft: "—",
+    metaMid: "—",
   };
 
-  const tasks: Task[] = [
-    { title: "Exercício 15.4", due: "Entrega: 28 Jan", status: "red" },
-    { title: "Exercício 15.5", due: "Entrega: 30 Jan", status: "red" },
-    { title: "Avaliação Módulo 4", due: "Entrega: 05 Fev", status: "gray" },
-  ];
+  const tasks: Task[] = tarefasDosDados;
 
   const notices: Notice[] = [
     {
@@ -202,26 +237,36 @@ export default function Dashboard() {
           </div>
 
           <div className="taskList">
-            {tasks.map((t, idx) => (
-              <div
-                className="taskRow"
-                key={idx}
-                onClick={goToExercicios}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") goToExercicios();
-                }}
-                style={{ cursor: "pointer" }}
-                title="Abrir exercícios"
-              >
-                <span className={`taskDot ${t.status}`} aria-hidden="true" />
-                <div className="taskText">
-                  <div className="taskTitle">{t.title}</div>
-                  <div className="mutedSmall">{t.due}</div>
-                </div>
+            {loadingExercicios ? (
+              <div style={{ padding: "12px", opacity: 0.6 }}>Carregando exercícios...</div>
+            ) : erroExercicios ? (
+              <div style={{ padding: "12px", color: "var(--red)", opacity: 0.8 }}>
+                Erro ao carregar exercícios
               </div>
-            ))}
+            ) : tasks.length === 0 ? (
+              <div style={{ padding: "12px", opacity: 0.6 }}>Nenhum exercício disponível</div>
+            ) : (
+              tasks.map((t, idx) => (
+                <div
+                  className="taskRow"
+                  key={idx}
+                  onClick={goToExercicios}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") goToExercicios();
+                  }}
+                  style={{ cursor: "pointer" }}
+                  title="Abrir exercícios"
+                >
+                  <span className={`taskDot ${t.status}`} aria-hidden="true" />
+                  <div className="taskText">
+                    <div className="taskTitle">{t.title}</div>
+                    <div className="mutedSmall">{t.due}</div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

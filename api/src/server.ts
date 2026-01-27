@@ -4,6 +4,7 @@ import cors from "cors";
 import { z } from "zod";
 import { authRouter } from "./routes/auth";
 import { usersRouter } from "./routes/users";
+import { exerciciosRouter } from "./routes/exercicios.route";
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
@@ -33,11 +34,14 @@ app.get("/api/health", (_req, res) => res.json({ ok: true }));
 // ===== ROTAS SEM PREFIXO (local / simples) =====
 app.use("/auth", authRouter(env.JWT_SECRET));
 app.use(usersRouter(env.JWT_SECRET));
+app.use(exerciciosRouter(env.JWT_SECRET));
 
 // ===== ROTAS COM /api (pra prod/proxy) =====
 app.use("/api/auth", authRouter(env.JWT_SECRET));
-app.use("/api", usersRouter(env.JWT_SECRET)); 
+app.use("/api", usersRouter(env.JWT_SECRET));
 // (se usersRouter registra /users, vira /api/users)
+app.use("/api", exerciciosRouter(env.JWT_SECRET));
+// (se exerciciosRouter registra /exercicios, vira /api/exercicios)
 
 // handler de 404 (pra você enxergar rota errada rápido)
 app.use((req, res) => {

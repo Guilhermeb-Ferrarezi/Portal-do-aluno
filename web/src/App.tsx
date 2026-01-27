@@ -12,16 +12,17 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
-
+        {/* logado */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
 
-
+          {/* ✅ exercícios: qualquer logado (admin/prof/aluno) */}
           <Route path="/dashboard/exercicios" element={<ExerciciosPage />} />
           <Route
             path="/exercicios"
             element={<Navigate to="/dashboard/exercicios" replace />}
           />
+
 
           <Route element={<ProtectedRoute allowedRoles={["admin", "professor"]} />}>
             <Route path="/dashboard/criar-usuario" element={<CreateUser />} />
