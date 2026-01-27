@@ -1,10 +1,9 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useRef, useState, useEffect } from "react";
 import "./Login.css";
 import { login } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 
 function EyeIcon() {
-  // olho (senha escondida -> mostrar)
   return (
     <svg
       className="login-icon"
@@ -30,7 +29,6 @@ function EyeIcon() {
 }
 
 function EyeOffIcon() {
-  // olho cortado (senha visível -> ocultar)
   return (
     <svg
       className="login-icon"
@@ -76,43 +74,72 @@ function EyeOffIcon() {
 
 export default function Login() {
   const navigate = useNavigate();
+
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
   const [loading, setLoading] = useState(false);
-
   const [sucesso, setSucesso] = useState<string | null>(null);
   const [erro, setErro] = useState<string | null>(null);
-  const [segundos, setSegundos] = useState<number | null>(null);
 
+  // countdown
+  const [segundos, setSegundos] = useState<number | null>(null);
   const intervalRef = useRef<number | null>(null);
+
+  // evita setState depois do unmount
+  const mountedRef = useRef(true);
 
   const podeEntrar = useMemo(() => {
     return usuario.trim().length > 0 && senha.trim().length > 0 && !loading;
   }, [usuario, senha, loading]);
 
+  function clearCountdown() {
+    if (intervalRef.current !== null) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+    setSegundos(null);
+  }
+
   useEffect(() => {
+    mountedRef.current = true;
+
     return () => {
-      if (intervalRef.current) {
+      mountedRef.current = false;
+      if (intervalRef.current !== null) {
         clearInterval(intervalRef.current);
+        intervalRef.current = null;
       }
     };
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setErro(null);
-    setLoading(true);
-    try {
-      setErro(null);
-      setSucesso(null);
 
+    if (!podeEntrar) return;
+
+    // reseta mensagens/contagem
+    setErro(null);
+    setSucesso(null);
+    clearCountdown();
+
+    setLoading(true);
+
+    try {
       const data = await login({ usuario: usuario.trim(), senha });
 
-      setSucesso(data.message);
+      if (!mountedRef.current) return;
+
+      // salva auth
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("nome", data.user?.nome ?? "");
+      localStorage.setItem("role", data.user?.role ?? "aluno");
+
+      setSucesso(data.message ?? "Login realizado!");
       setErro(null);
-      
+
+      // inicia contagem 2s e depois navega
       setSegundos(2);
 
       intervalRef.current = window.setInterval(() => {
@@ -120,8 +147,14 @@ export default function Login() {
           if (prev === null) return null;
 
           if (prev <= 1) {
-            clearInterval(intervalRef.current!);
-            navigate("/Home");
+            if (intervalRef.current !== null) {
+              clearInterval(intervalRef.current);
+              intervalRef.current = null;
+            }
+
+            // ✅ navega fora do render: aqui é callback de intervalo
+            // troca "/dashboard" se tua rota for "/Home"
+            navigate("/dashboard", { replace: true });
             return 0;
           }
 
@@ -129,8 +162,11 @@ export default function Login() {
         });
       }, 1000);
     } catch (err) {
+      if (!mountedRef.current) return;
+
       setErro(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {
+      if (!mountedRef.current) return;
       setLoading(false);
     }
   }
@@ -142,7 +178,7 @@ export default function Login() {
           <div className="login-logo" aria-hidden>
             <img
               className="login-logo-img"
-              src="../../logoPreta.png"
+              src="/logoPreta.png"
               alt="Santos Tech"
             />
           </div>
@@ -183,7 +219,6 @@ export default function Login() {
                 title={mostrarSenha ? "Ocultar senha" : "Mostrar senha"}
                 aria-pressed={mostrarSenha}
               >
-                {/* ícones invertidos do jeito “padrão” de UI: visível = olho cortado */}
                 {mostrarSenha ? <EyeOffIcon /> : <EyeIcon />}
               </button>
             </div>
@@ -194,17 +229,21 @@ export default function Login() {
               type="button"
               className="login-link-btn"
               onClick={() => console.log("Esqueci senha")}
+              disabled={loading}
             >
               Esqueci minha senha
             </button>
           </div>
+
           {sucesso && segundos !== null && (
             <div className="login-success">
               {sucesso} <br />
               Redirecionando em {segundos}s
             </div>
           )}
+
           {erro && <div className="login-error">{erro}</div>}
+
           <button
             type="submit"
             className="login-primary-btn"

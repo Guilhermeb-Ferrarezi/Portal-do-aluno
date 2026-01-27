@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import { z } from "zod";
 import { authRouter } from "./routes/auth";
+import { usersRouter } from "./routes/users";
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
@@ -28,6 +29,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRouter(env.JWT_SECRET));
+app.use(usersRouter(env.JWT_SECRET));
 
 app.use((err: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error(err);
