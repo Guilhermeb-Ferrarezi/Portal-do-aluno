@@ -74,7 +74,7 @@ export default function ExerciciosPage() {
 
   return (
     <DashboardLayout title="Exercícios" subtitle="Veja e pratique os exercícios disponíveis">
-      <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}>
+      <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}/>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
           <h1 style={{ margin: 0, display: "none" }}>Exercícios</h1>
           <button onClick={load} disabled={loading}>
