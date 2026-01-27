@@ -51,6 +51,22 @@ export type Exercicio = {
   modulo: string;
   tema: string | null;
   prazo: string | null;
+  tipoExercicio?: "codigo" | "texto" | null;
+  createdAt: string;
+};
+
+export type TipoExercicio = "codigo" | "texto";
+
+export type Submissao = {
+  id: string;
+  exercicioId: string;
+  alunoId: string;
+  resposta: string;
+  tipoResposta: TipoExercicio;
+  linguagem: string | null;
+  nota: number | null;
+  corrigida: boolean;
+  feedbackProfessor: string | null;
   createdAt: string;
 };
 
@@ -58,18 +74,65 @@ export async function listarExercicios() {
   return apiFetch<Exercicio[]>("/exercicios");
 }
 
+export async function obterExercicio(id: string) {
+  return apiFetch<Exercicio>(`/exercicios/${id}`);
+}
+
 export async function criarExercicio(dados: {
   titulo: string;
   descricao: string;
   modulo: string;
   tema?: string | null;
-  prazo?: string | null; // ISO string ou null
+  prazo?: string | null;
   publicado?: boolean;
+  gabarito?: string | null;
+  linguagem_esperada?: string | null;
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>("/exercicios", {
     method: "POST",
     body: JSON.stringify(dados),
   });
+}
+
+export async function enviarSubmissao(exercicioId: string, dados: {
+  resposta: string;
+  tipo_resposta: TipoExercicio;
+  linguagem?: string;
+}) {
+  return apiFetch<{ message: string; submissao: Submissao }>(
+    `/exercicios/${exercicioId}/submissoes`,
+    {
+      method: "POST",
+      body: JSON.stringify(dados),
+    }
+  );
+}
+
+export async function minhasSubmissoes(exercicioId: string) {
+  return apiFetch<Submissao[]>(`/exercicios/${exercicioId}/minhas-submissoes`);
+}
+
+export async function todasMinhasSubmissoes() {
+  return apiFetch<Submissao[]>("/minhas-submissoes");
+}
+
+export async function listarSubmissoesExercicio(exercicioId: string) {
+  return apiFetch<Array<Submissao & { alunoNome: string; alunoUsuario: string }>>(
+    `/exercicios/${exercicioId}/submissoes`
+  );
+}
+
+export async function corrigirSubmissao(submissaoId: string, dados: {
+  nota: number;
+  feedback?: string;
+}) {
+  return apiFetch<{ message: string; submissao: Submissao }>(
+    `/submissoes/${submissaoId}/corrigir`,
+    {
+      method: "PUT",
+      body: JSON.stringify(dados),
+    }
+  );
 }
 
 export function getRole(): Role | null {

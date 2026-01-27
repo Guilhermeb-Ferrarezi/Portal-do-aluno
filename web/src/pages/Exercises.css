@@ -390,6 +390,53 @@
   to { transform: rotate(360deg); }
 }
 
+/* MONACO EDITOR STYLES */
+.monacoEditorContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.monacoEditorHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  background: #fafbfc;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+.monacoLanguageLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.monacoLanguageSelect {
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: white;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.monacoLanguageSelect:hover {
+  border-color: var(--red);
+}
+
+.monacoLanguageSelect:focus {
+  outline: 0;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
+}
+
 /* RESPONSIVO */
 @media (max-width: 768px) {
   .exercisesContainer {
@@ -419,5 +466,10 @@
 
   .exerciseTitle {
     font-size: 16px;
+  }
+
+  .monacoEditorHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

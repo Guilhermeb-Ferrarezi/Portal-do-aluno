@@ -6,6 +6,7 @@ import { requireRole } from "../middlewares/requireRole";
 import type { AuthRequest } from "../middlewares/auth";
 
 type DBDate = string | Date;
+type TipoExercicio = "codigo" | "texto";
 
 type ExercicioRow = {
   id: string;
@@ -16,9 +17,66 @@ type ExercicioRow = {
   prazo: DBDate | null;
   publicado: boolean;
   created_by: string | null;
+  tipo_exercicio: TipoExercicio | null;
+  gabarito: string | null;
+  linguagem_esperada: string | null;
   created_at: DBDate;
   updated_at: DBDate;
 };
+
+function detectarTipoExercicio(titulo: string, descricao: string): TipoExercicio {
+  const texto = `${titulo} ${descricao}`.toLowerCase();
+
+  const palavrasCodigo = [
+    "código",
+    "codigo",
+    "programar",
+    "implementar",
+    "função",
+    "funcao",
+    "algoritmo",
+    "script",
+    "class",
+    "def",
+    "function",
+    "const",
+    "let",
+    "var",
+    "criar um programa",
+    "escrever um código",
+    "escrever codigo",
+  ];
+
+  const palavrasTexto = [
+    "dissertação",
+    "dissertacao",
+    "redação",
+    "redacao",
+    "escrever sobre",
+    "descrever",
+    "explicar",
+    "argumento",
+    "opinião",
+    "opiniao",
+    "análise",
+    "analise",
+    "resumo",
+    "resenha",
+    "texto",
+    "redação",
+  ];
+
+  const scoreCodigo = palavrasCodigo.filter((p) => texto.includes(p)).length;
+  const scoreTexto = palavrasTexto.filter((p) => texto.includes(p)).length;
+
+  if (scoreCodigo > scoreTexto) return "codigo";
+  if (scoreTexto > scoreCodigo) return "texto";
+
+  // Default: se tem símbolos de código, considera código
+  if (/[{}<>=;()\[\]]/.test(texto)) return "codigo";
+
+  return "texto"; // fallback padrão
+}
 
 const createSchema = z.object({
   titulo: z.string().min(2, "Título obrigatório"),
@@ -27,15 +85,17 @@ const createSchema = z.object({
   tema: z.string().optional().nullable(),
   prazo: z.coerce.date().optional().nullable(),
   publicado: z.boolean().optional(),
+  gabarito: z.string().optional().nullable(),
+  linguagem_esperada: z.string().optional().nullable(),
 });
 
 export function exerciciosRouter(jwtSecret: string) {
   const router = Router();
 
-  // Público: qualquer um pode ver
+  // GET /exercicios - Listar todos os exercícios públicos
   router.get("/exercicios", async (_req, res) => {
     const r = await pool.query<ExercicioRow>(
-      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, created_by, created_at, updated_at
+      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
        FROM exercicios
        WHERE publicado = true
        ORDER BY created_at DESC`
@@ -49,9 +109,42 @@ export function exerciciosRouter(jwtSecret: string) {
         modulo: row.modulo,
         tema: row.tema,
         prazo: row.prazo,
+        tipoExercicio: row.tipo_exercicio,
         createdAt: row.created_at,
       }))
     );
+  });
+
+  // GET /exercicios/:id - Pegar detalhes de um exercício específico
+  router.get("/exercicios/:id", async (req, res) => {
+    const { id } = req.params;
+
+    const r = await pool.query<ExercicioRow>(
+      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
+       FROM exercicios
+       WHERE id = $1 AND publicado = true`,
+      [id]
+    );
+
+    if (r.rows.length === 0) {
+      return res.status(404).json({ message: "Exercício não encontrado" });
+    }
+
+    const row = r.rows[0];
+    return res.json({
+      id: row.id,
+      titulo: row.titulo,
+      descricao: row.descricao,
+      modulo: row.modulo,
+      tema: row.tema,
+      prazo: row.prazo,
+      publicado: row.publicado,
+      tipoExercicio: row.tipo_exercicio,
+      gabarito: row.gabarito, // Não retornar gabarito para alunos? Considerar isso
+      linguagemEsperada: row.linguagem_esperada,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    });
   });
 
   // Protegido: só admin/professor cria
@@ -68,12 +161,15 @@ export function exerciciosRouter(jwtSecret: string) {
         });
       }
 
-      const { titulo, descricao, modulo, tema, prazo, publicado } = parsed.data;
+      const { titulo, descricao, modulo, tema, prazo, publicado, gabarito, linguagem_esperada } = parsed.data;
+
+      // Detectar tipo automaticamente
+      const tipoExercicio = detectarTipoExercicio(titulo, descricao);
 
       const created = await pool.query<ExercicioRow>(
-        `INSERT INTO exercicios (titulo, descricao, modulo, tema, prazo, publicado, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)
-         RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, created_at, updated_at`,
+        `INSERT INTO exercicios (titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at`,
         [
           titulo,
           descricao,
@@ -82,6 +178,9 @@ export function exerciciosRouter(jwtSecret: string) {
           prazo ?? null,
           publicado ?? true,
           req.user?.sub ?? null,
+          tipoExercicio,
+          gabarito ?? null,
+          linguagem_esperada ?? null,
         ]
       );
 
@@ -96,6 +195,9 @@ export function exerciciosRouter(jwtSecret: string) {
           tema: row.tema,
           prazo: row.prazo,
           publicado: row.publicado,
+          tipoExercicio: row.tipo_exercicio,
+          gabarito: row.gabarito,
+          linguagemEsperada: row.linguagem_esperada,
           createdAt: row.created_at,
         },
       });

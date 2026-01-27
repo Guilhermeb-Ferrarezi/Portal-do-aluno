@@ -5,6 +5,7 @@ import Login from "./components/Login/Login";
 import Dashboard from "./components/Dashboard/Dashboard";
 import CreateUser from "./components/Dashboard/Sidebar/CreateUser/CreateUser";
 import ExerciciosPage from "./pages/Exercises";
+import ExerciseDetail from "./pages/ExerciseDetail";
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
 
           {/* ✅ exercícios: qualquer logado (admin/prof/aluno) */}
           <Route path="/dashboard/exercicios" element={<ExerciciosPage />} />
+          <Route path="/dashboard/exercicios/:id" element={<ExerciseDetail />} />
           <Route
             path="/exercicios"
             element={<Navigate to="/dashboard/exercicios" replace />}

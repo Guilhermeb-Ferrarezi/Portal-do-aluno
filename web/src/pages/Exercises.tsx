@@ -1,9 +1,11 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import { criarExercicio, listarExercicios, getRole, type Exercicio } from "../services/api";
 import "./Exercises.css";
 
 export default function ExerciciosPage() {
+  const navigate = useNavigate();
   const role = getRole() ?? "aluno";
   const canCreate = role === "admin" || role === "professor";
 
@@ -198,10 +200,28 @@ export default function ExerciciosPage() {
           ) : (
             <div className="exercisesList">
               {items.map((ex) => (
-                <div key={ex.id} className="exerciseCard">
+                <div
+                  key={ex.id}
+                  className="exerciseCard"
+                  onClick={() => navigate(`/dashboard/exercicios/${ex.id}`)}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      navigate(`/dashboard/exercicios/${ex.id}`);
+                    }
+                  }}
+                >
                   <div className="exerciseHeader">
                     <div className="exerciseInfo">
-                      <h3 className="exerciseTitle">{ex.titulo}</h3>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <h3 className="exerciseTitle">{ex.titulo}</h3>
+                        {ex.tipoExercicio && (
+                          <span className="exerciseBadge" title={ex.tipoExercicio === "codigo" ? "Exercício de código" : "Exercício de digitação"}>
+                            {ex.tipoExercicio === "codigo" ? "💻" : "✍️"}
+                          </span>
+                        )}
+                      </div>
                       <div className="exerciseModule">
                         {ex.modulo}
                         {ex.tema && (
