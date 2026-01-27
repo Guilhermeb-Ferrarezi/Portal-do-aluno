@@ -1,6 +1,7 @@
 import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import { criarExercicio, listarExercicios, getRole, type Exercicio } from "../services/api";
+import "./Exercises.css";
 
 export default function ExerciciosPage() {
   const role = getRole() ?? "aluno";
@@ -74,128 +75,163 @@ export default function ExerciciosPage() {
 
   return (
     <DashboardLayout title="Exercícios" subtitle="Veja e pratique os exercícios disponíveis">
-      <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}/>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-          <h1 style={{ margin: 0, display: "none" }}>Exercícios</h1>
-          <button onClick={load} disabled={loading}>
-            {loading ? "Carregando..." : "Atualizar"}
+      <div className="exercisesContainer">
+        {/* HEADER COM BOTÃO */}
+        <div className="exercisesHeader">
+          <div />
+          <button className="refreshBtn" onClick={load} disabled={loading}>
+            {loading ? "⏳ Carregando..." : "🔄 Atualizar"}
           </button>
         </div>
 
-      {erro && (
-        <div style={{ marginTop: 12, color: "crimson", fontWeight: 700 }}>
-          {erro}
-        </div>
-      )}
-
-      {okMsg && (
-        <div style={{ marginTop: 12, color: "green", fontWeight: 700 }}>
-          {okMsg}
-        </div>
-      )}
-
-      {!canCreate && (
-        <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: "#f5f5f5", borderLeft: "4px solid var(--red)" }}>
-          <div style={{ fontWeight: 600 }}>Você não tem permissão para criar exercícios</div>
-          <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>
-            Apenas professores e administradores podem criar exercícios.
+        {/* MENSAGENS */}
+        {erro && (
+          <div className="exMessage error">
+            <span>❌</span>
+            <span>{erro}</span>
           </div>
-        </div>
-      )}
-
-      {canCreate && (
-        <div
-          style={{
-            marginTop: 16,
-            border: "1px solid #ddd",
-            borderRadius: 12,
-            padding: 12,
-            background: "#fff",
-          }}
-        >
-          <h2 style={{ marginTop: 0 }}>Criar exercício</h2>
-
-          <div style={{ display: "grid", gap: 10 }}>
-            <input
-              placeholder="Título"
-              value={titulo}
-              onChange={(e) => setTitulo(e.target.value)}
-            />
-
-            <textarea
-              placeholder="Descrição"
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              rows={4}
-            />
-
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <input
-                style={{ flex: 1, minWidth: 180 }}
-                placeholder="Módulo"
-                value={modulo}
-                onChange={(e) => setModulo(e.target.value)}
-              />
-
-              <input
-                style={{ flex: 1, minWidth: 180 }}
-                placeholder="Tema (opcional)"
-                value={tema}
-                onChange={(e) => setTema(e.target.value)}
-              />
-
-              <input
-                style={{ minWidth: 220 }}
-                type="datetime-local"
-                value={prazo}
-                onChange={(e) => setPrazo(e.target.value)}
-                title="Prazo (opcional)"
-              />
-            </div>
-
-            <button onClick={handleCreate} disabled={disabled}>
-              {saving ? "Salvando..." : "Publicar"}
-            </button>
-
-            <div style={{ fontSize: 12, opacity: 0.7 }}>
-              Obs: exercícios criados com publicado=true ficam visíveis para todos os alunos.
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div style={{ marginTop: 16, display: "grid", gap: 12 }}>
-        {!loading && items.length === 0 && (
-          <div>Nenhum exercício publicado ainda.</div>
         )}
 
-        {items.map((ex) => (
-          <div
-            key={ex.id}
-            style={{
-              border: "1px solid #ddd",
-              borderRadius: 12,
-              padding: 12,
-              background: "#fff",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
-              <div>
-                <div style={{ fontWeight: 800, fontSize: 16 }}>{ex.titulo}</div>
-                <div style={{ opacity: 0.8 }}>
-                  {ex.modulo}
-                  {ex.tema ? ` • ${ex.tema}` : ""}
+        {okMsg && (
+          <div className="exMessage success">
+            <span>✅</span>
+            <span>{okMsg}</span>
+          </div>
+        )}
+
+        {!canCreate && (
+          <div className="exMessage warning">
+            <span>🔒</span>
+            <div>
+              <div style={{ fontWeight: 700 }}>Você não tem permissão para criar exercícios</div>
+              <div style={{ fontSize: 13, marginTop: 2, opacity: 0.9 }}>
+                Apenas professores e administradores podem criar exercícios.
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* SEÇÃO DE CRIAR */}
+        {canCreate && (
+          <div className="createExerciseCard">
+            <h2 className="exFormTitle">Criar novo exercício</h2>
+
+            <div className="exFormGrid">
+              <div className="exInputGroup">
+                <label className="exLabel">Título *</label>
+                <input
+                  className="exInput"
+                  placeholder="ex: Exercício 15.3: Layout Responsivo"
+                  value={titulo}
+                  onChange={(e) => setTitulo(e.target.value)}
+                />
+              </div>
+
+              <div className="exInputGroup">
+                <label className="exLabel">Descrição *</label>
+                <textarea
+                  className="exTextarea"
+                  placeholder="Descreva o exercício em detalhes..."
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                />
+              </div>
+
+              <div className="exInputRow">
+                <div className="exInputGroup">
+                  <label className="exLabel">Módulo *</label>
+                  <input
+                    className="exInput"
+                    placeholder="ex: MÓDULO 4"
+                    value={modulo}
+                    onChange={(e) => setModulo(e.target.value)}
+                  />
+                </div>
+
+                <div className="exInputGroup">
+                  <label className="exLabel">Tema</label>
+                  <input
+                    className="exInput"
+                    placeholder="ex: HTML5 e CSS3 Avançado"
+                    value={tema}
+                    onChange={(e) => setTema(e.target.value)}
+                  />
+                </div>
+
+                <div className="exInputGroup">
+                  <label className="exLabel">Prazo</label>
+                  <input
+                    className="exInput"
+                    type="datetime-local"
+                    value={prazo}
+                    onChange={(e) => setPrazo(e.target.value)}
+                  />
                 </div>
               </div>
 
-              <div style={{ textAlign: "right", opacity: 0.8 }}>
-                {ex.prazo ? `Prazo: ${new Date(ex.prazo).toLocaleString()}` : "Sem prazo"}
+              <button className="exSubmitBtn" onClick={handleCreate} disabled={disabled}>
+                {saving ? "⏳ Salvando..." : "✨ Publicar Exercício"}
+              </button>
+
+              <div className="exFormNote">
+                💡 Exercícios criados ficam visíveis para todos os alunos automaticamente.
               </div>
             </div>
-
-            <div style={{ marginTop: 10, whiteSpace: "pre-wrap" }}>{ex.descricao}</div>
           </div>
-        ))}
+        )}
+
+        {/* LISTA DE EXERCÍCIOS */}
+        <div>
+          {loading && items.length === 0 ? (
+            <div className="loadingState">
+              <div className="spinner" />
+              Carregando exercícios...
+            </div>
+          ) : !loading && items.length === 0 ? (
+            <div className="emptyState">
+              <div className="emptyIcon">📚</div>
+              <div className="emptyTitle">Nenhum exercício disponível</div>
+              <p style={{ margin: "8px 0 0 0", color: "var(--muted)" }}>
+                Volte mais tarde para novos exercícios!
+              </p>
+            </div>
+          ) : (
+            <div className="exercisesList">
+              {items.map((ex) => (
+                <div key={ex.id} className="exerciseCard">
+                  <div className="exerciseHeader">
+                    <div className="exerciseInfo">
+                      <h3 className="exerciseTitle">{ex.titulo}</h3>
+                      <div className="exerciseModule">
+                        {ex.modulo}
+                        {ex.tema && (
+                          <span className="exerciseTopic">{ex.tema}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="exerciseMeta">
+                      <div className={`exerciseDeadline ${
+                        ex.prazo && new Date(ex.prazo) < new Date() ? "overdue" : ""
+                      }`}>
+                        {ex.prazo
+                          ? new Date(ex.prazo).toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit"
+                            })
+                          : "Sem prazo"
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="exerciseDescription">{ex.descricao}</div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </DashboardLayout>
   );
