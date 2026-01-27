@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "./DashboardLayout";
 import { getName } from "../../auth/auth";
 
@@ -33,7 +34,10 @@ function Pill({ children }: { children: React.ReactNode }) {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const user = getName() ?? "Aluno";
+
+  const goToExercicios = () => navigate("/dashboard/exercicios");
 
   const progress = {
     overall: 68,
@@ -114,7 +118,10 @@ export default function Dashboard() {
 
           <div className="barWrap">
             <div className="bar">
-              <div className="barFill" style={{ width: `${currentModule.pct}%` }} />
+              <div
+                className="barFill"
+                style={{ width: `${currentModule.pct}%` }}
+              />
             </div>
             <div className="mutedSmall">{currentModule.pct}% concluído</div>
           </div>
@@ -157,12 +164,23 @@ export default function Dashboard() {
                 <span className="metaItem">📶 {nextTask.metaMid}</span>
               </div>
 
-              <button className="btnPrimary" type="button">
+              <button
+                className="btnPrimary"
+                type="button"
+                onClick={goToExercicios}
+                title="Ir para a aba de exercícios"
+              >
                 Continuar
               </button>
             </div>
 
-            <div className="wideRight">
+            <div className="wideRight" onClick={goToExercicios} role="button" tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") goToExercicios();
+              }}
+              style={{ cursor: "pointer" }}
+              aria-label="Abrir exercícios"
+            >
               <div className="codeBox" aria-hidden="true">
                 {"</>"}
               </div>
@@ -171,11 +189,32 @@ export default function Dashboard() {
         </div>
 
         <div className="card">
-          <div className="cardTitle">Próximas Tarefas</div>
+          <div className="sectionHead">
+            <div className="cardTitle">Próximas Tarefas</div>
+            <button
+              type="button"
+              className="linkRed"
+              onClick={goToExercicios}
+              style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
+            >
+              Ver todos
+            </button>
+          </div>
 
           <div className="taskList">
             {tasks.map((t, idx) => (
-              <div className="taskRow" key={idx}>
+              <div
+                className="taskRow"
+                key={idx}
+                onClick={goToExercicios}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") goToExercicios();
+                }}
+                style={{ cursor: "pointer" }}
+                title="Abrir exercícios"
+              >
                 <span className={`taskDot ${t.status}`} aria-hidden="true" />
                 <div className="taskText">
                   <div className="taskTitle">{t.title}</div>
@@ -192,14 +231,30 @@ export default function Dashboard() {
         <div className="card">
           <div className="sectionHead">
             <div className="cardTitle">Avisos da Turma</div>
-            <a className="linkRed" href="#">
+            <button
+              type="button"
+              className="linkRed"
+              onClick={goToExercicios}
+              style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
+            >
               Ver todos
-            </a>
+            </button>
           </div>
 
           <div className="noticeList">
             {notices.map((n, idx) => (
-              <div className="noticeRow" key={idx}>
+              <div
+                className="noticeRow"
+                key={idx}
+                onClick={goToExercicios}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") goToExercicios();
+                }}
+                style={{ cursor: "pointer" }}
+                title="Abrir exercícios"
+              >
                 <div className="noticeIcon" aria-hidden="true">
                   📣
                 </div>
