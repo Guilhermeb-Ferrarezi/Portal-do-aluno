@@ -29,6 +29,13 @@ export const users: User[] = [
     senhaHash: bcrypt.hashSync("prof123", 10),
     role: "professor",
   },
+  {
+    id: "3",
+    nome: "Guilherme",
+    usuario: "aluno",
+    senhaHash: bcrypt.hashSync("aluno123", 10),
+    role: "aluno",
+  },
 ];
 
 const loginSchema = z.object({
