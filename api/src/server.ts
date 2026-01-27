@@ -8,7 +8,7 @@ import { usersRouter } from "./routes/users";
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
   JWT_SECRET: z.string().min(10),
-  CORS_ORIGIN: z.string().default("http://localhost:5173")
+  CORS_ORIGIN: z.string().default("https://portaldoaluno.santos-tech.com")
 });
 
 const env = envSchema.parse(process.env);
@@ -37,5 +37,5 @@ app.use((err: unknown, _req: express.Request, res: express.Response, _next: expr
 });
 
 app.listen(env.PORT, () => {
-  console.log(`API rodando em http://localhost:${env.PORT}`);
+  console.log(`API rodando em https://portaldoaluno.santos-tech.com/api`);
 });

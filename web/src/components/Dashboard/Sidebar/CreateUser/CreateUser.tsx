@@ -42,7 +42,7 @@ export default function CreateUser() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/users", {
+      const res = await fetch("https://portaldoaluno.santos-tech.com/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
