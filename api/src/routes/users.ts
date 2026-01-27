@@ -1,62 +1,90 @@
 import { Router } from "express";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
-import { users, Role, User } from "./auth";
+import { pool } from "../db";
+import { authGuard } from "../middlewares/auth";
+import { requireRole } from "../middlewares/requireRole";
+import type { AuthRequest, Role } from "../middlewares/auth";
 
-type JwtPayload = {
-  sub: string;
+type DbUserRow = {
+  id: string;
   usuario: string;
+  nome: string;
   role: Role;
-  iat: number;
-  exp: number;
+  ativo: boolean;
+  created_at: string; // pode ser Date dependendo do pg, mas string funciona bem
 };
-
-function authGuard(jwtSecret: string) {
-  return (req: any, res: any, next: any) => {
-    const header = req.headers.authorization;
-    const token = header?.startsWith("Bearer ") ? header.slice(7) : null;
-
-    if (!token) {
-      return res.status(401).json({ message: "Token ausente" });
-    }
-
-    try {
-      const payload = jwt.verify(token, jwtSecret) as JwtPayload;
-      req.user = payload; // guarda no req
-      next();
-    } catch {
-      return res.status(401).json({ message: "Token inválido ou expirado" });
-    }
-  };
-}
-
-function requireRole(allowed: Role[]) {
-  return (req: any, res: any, next: any) => {
-    const role = req.user?.role as Role | undefined;
-    if (!role || !allowed.includes(role)) {
-      return res.status(403).json({ message: "Sem permissão" });
-    }
-    next();
-  };
-}
 
 const createUserSchema = z.object({
   usuario: z.string().min(3, "Usuário muito curto"),
   nome: z.string().min(2, "Nome obrigatório"),
   senha: z.string().min(6, "Senha muito curta"),
-  role: z.enum(["admin", "professor", "aluno"]).default("aluno"),
+  role: z.enum(["admin", "professor", "aluno"]).optional(),
+  ativo: z.boolean().optional(),
 });
 
 export function usersRouter(jwtSecret: string) {
   const router = Router();
 
-  // POST /users -> criar usuário (só admin/professor)
+  // Quem tá logado (pra testar token e pegar role/nome no front)
+  router.get("/users/me", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+    const userId = req.user!.sub;
+
+    const r = await pool.query<DbUserRow>(
+      `SELECT id, usuario, nome, role, ativo, created_at
+       FROM users
+       WHERE id = $1
+       LIMIT 1`,
+      [userId]
+    );
+
+    if (!r.rowCount) return res.status(404).json({ message: "Usuário não encontrado" });
+
+    const u = r.rows[0];
+    return res.json({
+      id: u.id,
+      usuario: u.usuario,
+      nome: u.nome,
+      role: u.role,
+      ativo: u.ativo,
+      createdAt: u.created_at,
+    });
+  });
+
+  // Listar usuários (admin)
+  router.get(
+    "/users",
+    authGuard(jwtSecret),
+    requireRole(["admin"]),
+    async (_req: AuthRequest, res) => {
+      const r = await pool.query<DbUserRow>(
+        `SELECT id, usuario, nome, role, ativo, created_at
+         FROM users
+         ORDER BY created_at DESC
+         LIMIT 200`
+      );
+
+      return res.json(
+        r.rows.map((u) => ({
+          id: u.id,
+          usuario: u.usuario,
+          nome: u.nome,
+          role: u.role,
+          ativo: u.ativo,
+          createdAt: u.created_at,
+        }))
+      );
+    }
+  );
+
+  // Criar usuário:
+  // - admin pode criar admin/professor/aluno
+  // - professor pode criar APENAS aluno (se tentar outro, força aluno)
   router.post(
     "/users",
     authGuard(jwtSecret),
     requireRole(["admin", "professor"]),
-    async (req, res) => {
+    async (req: AuthRequest, res) => {
       const parsed = createUserSchema.safeParse(req.body);
       if (!parsed.success) {
         return res.status(400).json({
@@ -65,50 +93,44 @@ export function usersRouter(jwtSecret: string) {
         });
       }
 
-      const { usuario, nome, senha, role } = parsed.data;
+      const creatorRole = req.user!.role;
+      const { usuario, nome, senha } = parsed.data;
 
-      const exists = users.some((u) => u.usuario === usuario);
-      if (exists) {
-        return res.status(409).json({ message: "Usuário já existe" });
-      }
+      let role: Role = (parsed.data.role ?? "aluno") as Role;
+      if (creatorRole === "professor") role = "aluno";
+
+      const ativo = parsed.data.ativo ?? true;
 
       const senhaHash = await bcrypt.hash(senha, 10);
 
-      const newUser: User = {
-        id: String(Date.now()),
-        usuario,
-        nome,
-        senhaHash,
-        role,
-      };
+      try {
+        const created = await pool.query<DbUserRow>(
+          `INSERT INTO users (usuario, nome, senha_hash, role, ativo)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id, usuario, nome, role, ativo, created_at`,
+          [usuario.trim(), nome.trim(), senhaHash, role, ativo]
+        );
 
-      users.push(newUser);
-
-      return res.status(201).json({
-        message: "Usuário criado com sucesso!",
-        user: {
-          id: newUser.id,
-          usuario: newUser.usuario,
-          nome: newUser.nome,
-          role: newUser.role,
-        },
-      });
-    }
-  );
-
-  // (opcional) GET /users -> listar (só admin/professor)
-  router.get(
-    "/users",
-    authGuard(jwtSecret),
-    requireRole(["admin", "professor"]),
-    (req, res) => {
-      const list = users.map((u) => ({
-        id: u.id,
-        usuario: u.usuario,
-        nome: u.nome,
-        role: u.role,
-      }));
-      return res.json(list);
+        const u = created.rows[0];
+        return res.status(201).json({
+          message: "Usuário criado com sucesso!",
+          user: {
+            id: u.id,
+            usuario: u.usuario,
+            nome: u.nome,
+            role: u.role,
+            ativo: u.ativo,
+            createdAt: u.created_at,
+          },
+        });
+      } catch (err: any) {
+        // unique violation (usuario)
+        if (err?.code === "23505") {
+          return res.status(409).json({ message: "Usuário já existe" });
+        }
+        console.error(err);
+        return res.status(500).json({ message: "Erro interno" });
+      }
     }
   );
 
