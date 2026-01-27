@@ -27,6 +27,7 @@ export default function DashboardLayout({
   const role = getRole();
 
   const isDashboard = location.pathname === "/dashboard";
+  const isExercicios = location.pathname === "/dashboard/exercicios";
   const isCreateUser = location.pathname === "/dashboard/criar-usuario";
 
   function handleLogout() {
@@ -63,12 +64,12 @@ export default function DashboardLayout({
             </span>
             Trilha do Curso
           </a>
-          <a className="sbItem" href="#">
+          <Link className={`sbItem ${isExercicios ? "active" : ""}`} to="/dashboard/exercicios">
             <span className="sbIcon" aria-hidden="true">
               ✍️
             </span>
             Exercícios
-          </a>
+          </Link>
           <a className="sbItem" href="#">
             <span className="sbIcon" aria-hidden="true">
               📄

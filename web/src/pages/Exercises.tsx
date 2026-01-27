@@ -1,4 +1,5 @@
 import React from "react";
+import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import { criarExercicio, listarExercicios, getRole, type Exercicio } from "../services/api";
 
 export default function ExerciciosPage() {
@@ -72,13 +73,14 @@ export default function ExerciciosPage() {
     modulo.trim().length < 1;
 
   return (
-    <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-        <h1 style={{ margin: 0 }}>Exercícios</h1>
-        <button onClick={load} disabled={loading}>
-          {loading ? "Carregando..." : "Atualizar"}
-        </button>
-      </div>
+    <DashboardLayout title="Exercícios" subtitle="Veja e pratique os exercícios disponíveis">
+      <div style={{ padding: 16, maxWidth: 1000, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+          <h1 style={{ margin: 0, display: "none" }}>Exercícios</h1>
+          <button onClick={load} disabled={loading}>
+            {loading ? "Carregando..." : "Atualizar"}
+          </button>
+        </div>
 
       {erro && (
         <div style={{ marginTop: 12, color: "crimson", fontWeight: 700 }}>
@@ -89,6 +91,15 @@ export default function ExerciciosPage() {
       {okMsg && (
         <div style={{ marginTop: 12, color: "green", fontWeight: 700 }}>
           {okMsg}
+        </div>
+      )}
+
+      {!canCreate && (
+        <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: "#f5f5f5", borderLeft: "4px solid var(--red)" }}>
+          <div style={{ fontWeight: 600 }}>Você não tem permissão para criar exercícios</div>
+          <div style={{ fontSize: 14, opacity: 0.8, marginTop: 4 }}>
+            Apenas professores e administradores podem criar exercícios.
+          </div>
         </div>
       )}
 
@@ -147,7 +158,7 @@ export default function ExerciciosPage() {
             </button>
 
             <div style={{ fontSize: 12, opacity: 0.7 }}>
-              Obs: se você não tiver token/role no localStorage, o backend vai bloquear o POST com 401/403.
+              Obs: exercícios criados com publicado=true ficam visíveis para todos os alunos.
             </div>
           </div>
         </div>
@@ -186,6 +197,6 @@ export default function ExerciciosPage() {
           </div>
         ))}
       </div>
-    </div>
+    </DashboardLayout>
   );
 }
