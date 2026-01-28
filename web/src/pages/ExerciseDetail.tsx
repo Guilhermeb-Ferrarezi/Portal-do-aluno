@@ -413,7 +413,7 @@ export default function ExerciseDetail() {
                       onChange={(v) => setResposta(v || "")}
                       language={linguagem}
                       onLanguageChange={setLinguagem}
-                      height="600px"
+                      height="800px"
                       theme="dark"
                     />
 
