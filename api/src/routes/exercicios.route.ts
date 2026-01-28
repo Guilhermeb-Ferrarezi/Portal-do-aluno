@@ -59,7 +59,13 @@ function detectarTipoExercicio(titulo: string, descricao: string): TipoExercicio
     "açao",
     "acao",
     "log",
-    "()" 
+    "()" ,
+    "js",
+    "python",
+    "c#",
+    "c++",
+    "javaScript",
+    "hello"
   ];
 
   const palavrasTexto = [
