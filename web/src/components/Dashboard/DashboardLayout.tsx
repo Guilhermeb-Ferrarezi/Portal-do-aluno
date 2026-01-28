@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import React from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { getName, getRole, hasRole, logout } from "../../auth/auth";
+import { getName, getRole, getUserId, hasRole, logout } from "../../auth/auth";
 import { listarTurmas, type Turma } from "../../services/api";
 import "./Dashboard.css";
 
@@ -27,6 +27,7 @@ export default function DashboardLayout({
   const canCreateUser = hasRole(["admin", "professor"]);
   const name = getName() ?? "Aluno";
   const role = getRole();
+  const userId = getUserId();
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [expandirTurmas, setExpandirTurmas] = React.useState(false);
   const [modalSelecionarTurmaAberto, setModalSelecionarTurmaAberto] = React.useState(false);
@@ -50,6 +51,13 @@ export default function DashboardLayout({
     logout();
     navigate("/login", { replace: true });
   }
+
+  const turmasVinculadas =
+    role === "admin" || role === "professor"
+      ? userId
+        ? turmas.filter((turma) => turma.professorId === userId)
+        : []
+      : turmas;
 
   function handleMinhasTurmas() {
     if (role === "aluno") {
@@ -145,9 +153,9 @@ export default function DashboardLayout({
 
                 {expandirTurmas && (
                   <div className="sideSectionContent">
-                    {turmas.length > 0 ? (
+                    {turmasVinculadas.length > 0 ? (
                       <div className="turmasListSide">
-                        {turmas.map((turma) => (
+                        {turmasVinculadas.map((turma) => (
                           <button
                             key={turma.id}
                             className="sideTurmaItem"
@@ -161,7 +169,7 @@ export default function DashboardLayout({
                         ))}
                       </div>
                     ) : (
-                      <div className="sideSectionEmpty">Nenhuma turma</div>
+                      <div className="sideSectionEmpty">Nenhuma turma vinculada a você</div>
                     )}
 
                     <button

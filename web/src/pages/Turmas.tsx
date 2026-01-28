@@ -13,15 +13,19 @@ import {
   type Turma,
   type User,
 } from "../services/api";
+import { getUserId } from "../auth/auth";
 import ConfirmModal from "../components/ConfirmModal";
 import "./Turmas.css";
 
 export default function TurmasPage() {
   const navigate = useNavigate();
   const role = getRole();
+  const userId = getUserId();
   const canCreate = role === "admin" || role === "professor";
 
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
+  const [turmasAll, setTurmasAll] = React.useState<Turma[]>([]);
+  const [filtroTurmas, setFiltroTurmas] = React.useState<"minhas" | "todas">("minhas");
   const [loading, setLoading] = React.useState(false);
   const [erro, setErro] = React.useState<string | null>(null);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
@@ -55,7 +59,18 @@ export default function TurmasPage() {
       setLoading(true);
       setErro(null);
       const data = await listarTurmas();
-      setTurmas(data);
+      if (role === "admin") {
+        setTurmasAll(data);
+        if (filtroTurmas === "todas") {
+          setTurmas(data);
+        } else if (userId) {
+          setTurmas(data.filter((turma) => turma.professorId === userId));
+        } else {
+          setTurmas([]);
+        }
+      } else {
+        setTurmas(data);
+      }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao carregar turmas");
     } finally {
@@ -77,6 +92,19 @@ export default function TurmasPage() {
         .catch((e) => console.error("Erro ao carregar professores:", e));
     }
   }, [canCreate, navigate, role]);
+
+  React.useEffect(() => {
+    if (role !== "admin") return;
+    if (filtroTurmas === "todas") {
+      setTurmas(turmasAll);
+      return;
+    }
+    if (!userId) {
+      setTurmas([]);
+      return;
+    }
+    setTurmas(turmasAll.filter((turma) => turma.professorId === userId));
+  }, [filtroTurmas, role, turmasAll, userId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -215,6 +243,15 @@ export default function TurmasPage() {
   const disabled =
     saving || !nome.trim();
 
+  const emptyTitle =
+    role === "admin" && filtroTurmas === "minhas"
+      ? "Nenhuma turma vinculada a você"
+      : "Nenhuma turma registrada";
+  const emptyDescription =
+    role === "admin" && filtroTurmas === "minhas"
+      ? "Crie uma turma ou altere para \"Todas\" para ver todas as turmas."
+      : "Crie sua primeira turma preenchendo o formulário acima.";
+
   return (
     <DashboardLayout
       title="Minhas Turmas"
@@ -223,7 +260,29 @@ export default function TurmasPage() {
       <div className="turmasContainer">
         {/* HEADER */}
         <div className="turmasHeader">
-          <div />
+          {role === "admin" ? (
+            <div className="turmasHeaderLeft">
+              <span className="turmasFilterLabel">Exibir:</span>
+              <div className="turmasFilter">
+                <button
+                  type="button"
+                  className={`turmasFilterBtn ${filtroTurmas === "minhas" ? "active" : ""}`}
+                  onClick={() => setFiltroTurmas("minhas")}
+                >
+                  Minhas
+                </button>
+                <button
+                  type="button"
+                  className={`turmasFilterBtn ${filtroTurmas === "todas" ? "active" : ""}`}
+                  onClick={() => setFiltroTurmas("todas")}
+                >
+                  Todas
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div />
+          )}
           <button className="refreshBtn" onClick={load} disabled={loading}>
             {loading ? "⏳ Carregando..." : "🔄 Atualizar"}
           </button>
@@ -353,9 +412,9 @@ export default function TurmasPage() {
           ) : !loading && turmas.length === 0 ? (
             <div className="emptyState">
               <div className="emptyIcon">📚</div>
-              <div className="emptyTitle">Nenhuma turma registrada</div>
+              <div className="emptyTitle">{emptyTitle}</div>
               <p style={{ margin: "8px 0 0 0", color: "var(--muted)" }}>
-                Crie sua primeira turma preenchendo o formulário acima.
+                {emptyDescription}
               </p>
             </div>
           ) : (

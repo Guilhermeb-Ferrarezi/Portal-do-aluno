@@ -390,7 +390,7 @@ export default function Dashboard() {
                 target.style.background = "white";
               }}
             >
-              👥 Minhas Turmas
+              Turmas
             </button>
 
             {canCreateUser && (
