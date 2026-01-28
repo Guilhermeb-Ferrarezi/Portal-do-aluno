@@ -17,6 +17,7 @@ export default function ExerciciosPage() {
   // form
   const [titulo, setTitulo] = React.useState("");
   const [descricao, setDescricao] = React.useState("");
+  const [gabarito, setGabarito] = React.useState("");
   const [modulo, setModulo] = React.useState("");
   const [tema, setTema] = React.useState("");
   const [prazo, setPrazo] = React.useState(""); // datetime-local
@@ -66,6 +67,8 @@ export default function ExerciciosPage() {
       setErro(null);
       setOkMsg(null);
 
+      const gabaritoLimpo = gabarito.trim();
+
       const dados: any = {
         titulo: titulo.trim(),
         descricao: descricao.trim(),
@@ -73,6 +76,7 @@ export default function ExerciciosPage() {
         tema: tema.trim() ? tema.trim() : null,
         prazo: prazo ? new Date(prazo).toISOString() : null,
         publicado: true,
+        ...(gabaritoLimpo ? { gabarito: gabaritoLimpo } : {}),
       };
 
       if (turmasSelecionadas.length > 0) {
@@ -92,6 +96,7 @@ export default function ExerciciosPage() {
 
       setTitulo("");
       setDescricao("");
+      setGabarito("");
       setModulo("");
       setTema("");
       setPrazo("");
@@ -108,6 +113,7 @@ export default function ExerciciosPage() {
   function handleEdit(exercicio: Exercicio) {
     setTitulo(exercicio.titulo);
     setDescricao(exercicio.descricao);
+    setGabarito("");
     setModulo(exercicio.modulo);
     setTema(exercicio.tema || "");
 
@@ -143,6 +149,7 @@ export default function ExerciciosPage() {
   function handleCancel() {
     setTitulo("");
     setDescricao("");
+    setGabarito("");
     setModulo("");
     setTema("");
     setPrazo("");
@@ -253,6 +260,19 @@ export default function ExerciciosPage() {
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
                 />
+              </div>
+
+              <div className="exInputGroup">
+                <label className="exLabel">Gabarito / Codigo esperado</label>
+                <textarea
+                  className="exTextarea"
+                  placeholder="Cole o codigo ou a resposta esperada (opcional)"
+                  value={gabarito}
+                  onChange={(e) => setGabarito(e.target.value)}
+                />
+                <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                  Esse texto sera usado para comparar se a resposta do aluno esta parecida com o esperado.
+                </small>
               </div>
 
               <div className="exInputRow">

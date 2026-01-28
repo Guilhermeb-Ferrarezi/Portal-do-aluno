@@ -86,6 +86,33 @@ function calcularScoreDescricao(descricao: string, resposta: string): number | n
   return Math.round((encontrados / chaves.length) * 100);
 }
 
+function calcularScoreAderencia(
+  resposta: string,
+  tipo: TipoResposta,
+  descricao: string,
+  gabarito: string | null
+): number | null {
+  if (gabarito) {
+    if (tipo === "codigo") {
+      const respostaLimpa = normalizarCodigo(resposta);
+      const gabaritoLimpo = normalizarCodigo(gabarito);
+      const similaridade = calcularSimilaridade(respostaLimpa, gabaritoLimpo);
+      return Math.round(similaridade * 100);
+    }
+
+    const respostaNorm = normalizarTexto(resposta);
+    const gabaritoNorm = normalizarTexto(gabarito);
+    const similaridade = calcularSimilaridade(respostaNorm, gabaritoNorm);
+    return Math.round(similaridade * 100);
+  }
+
+  if (tipo === "texto") {
+    return calcularScoreDescricao(descricao, resposta);
+  }
+
+  return null;
+}
+
 // Calcula similaridade simples entre dois textos (Levenshtein distance aproximada)
 function calcularSimilaridade(a: string, b: string): number {
   if (a === b) return 1;
@@ -117,7 +144,8 @@ function corrigirAutomaticamente(
   if (tipo === "codigo") {
     const respostaLimpa = normalizarCodigo(resposta);
     const gabaritoLimpo = normalizarCodigo(gabarito);
-    return respostaLimpa === gabaritoLimpo ? 100 : 0;
+    const similaridade = calcularSimilaridade(respostaLimpa, gabaritoLimpo);
+    return Math.round(similaridade * 100);
   }
 
   return null;
@@ -164,7 +192,7 @@ export function submissoesRouter(jwtSecret: string) {
 
         // Corrigir automaticamente se houver gabarito
         const notaAuto = corrigirAutomaticamente(resposta, gabarito, tipo_resposta);
-        const verificacaoDescricao = calcularScoreDescricao(descricaoExercicio, resposta);
+        const verificacaoDescricao = calcularScoreAderencia(resposta, tipo_resposta, descricaoExercicio, gabarito);
 
         // Inserir submissão
         const result = await pool.query<SubmissaoRow>(
@@ -219,8 +247,8 @@ export function submissoesRouter(jwtSecret: string) {
       }
 
       try {
-        const result = await pool.query<SubmissaoRow & { exercicio_descricao: string }>(
-          `SELECT s.*, e.descricao as exercicio_descricao
+        const result = await pool.query<SubmissaoRow & { exercicio_descricao: string; exercicio_gabarito: string | null }>(
+          `SELECT s.*, e.descricao as exercicio_descricao, e.gabarito as exercicio_gabarito
            FROM submissoes s
            JOIN exercicios e ON s.exercicio_id = e.id
            WHERE s.exercicio_id = $1 AND s.aluno_id = $2
@@ -239,7 +267,7 @@ export function submissoesRouter(jwtSecret: string) {
             nota: row.nota,
             corrigida: row.corrigida,
             feedbackProfessor: row.feedback_professor,
-            verificacaoDescricao: calcularScoreDescricao(row.exercicio_descricao, row.resposta),
+            verificacaoDescricao: calcularScoreAderencia(row.resposta, row.tipo_resposta, row.exercicio_descricao, row.exercicio_gabarito),
             createdAt: row.created_at,
           }))
         );
@@ -264,9 +292,10 @@ export function submissoesRouter(jwtSecret: string) {
           exercicio_titulo: string;
           exercicio_modulo: string;
           exercicio_descricao: string;
+          exercicio_gabarito: string | null;
         }
       >(
-        `SELECT s.*, e.titulo as exercicio_titulo, e.modulo as exercicio_modulo, e.descricao as exercicio_descricao
+        `SELECT s.*, e.titulo as exercicio_titulo, e.modulo as exercicio_modulo, e.descricao as exercicio_descricao, e.gabarito as exercicio_gabarito
          FROM submissoes s
          JOIN exercicios e ON s.exercicio_id = e.id
          WHERE s.aluno_id = $1
@@ -287,7 +316,7 @@ export function submissoesRouter(jwtSecret: string) {
           nota: row.nota,
           corrigida: row.corrigida,
           feedbackProfessor: row.feedback_professor,
-          verificacaoDescricao: calcularScoreDescricao(row.exercicio_descricao, row.resposta),
+          verificacaoDescricao: calcularScoreAderencia(row.resposta, row.tipo_resposta, row.exercicio_descricao, row.exercicio_gabarito),
           createdAt: row.created_at,
         }))
       );
@@ -311,9 +340,10 @@ export function submissoesRouter(jwtSecret: string) {
             usuario: string;
             nome_aluno: string;
             exercicio_descricao: string;
+            exercicio_gabarito: string | null;
           }
         >(
-          `SELECT s.*, u.usuario, u.nome as nome_aluno, e.descricao as exercicio_descricao
+          `SELECT s.*, u.usuario, u.nome as nome_aluno, e.descricao as exercicio_descricao, e.gabarito as exercicio_gabarito
            FROM submissoes s
            JOIN users u ON s.aluno_id = u.id
            JOIN exercicios e ON s.exercicio_id = e.id
@@ -335,7 +365,7 @@ export function submissoesRouter(jwtSecret: string) {
             nota: row.nota,
             corrigida: row.corrigida,
             feedbackProfessor: row.feedback_professor,
-            verificacaoDescricao: calcularScoreDescricao(row.exercicio_descricao, row.resposta),
+            verificacaoDescricao: calcularScoreAderencia(row.resposta, row.tipo_resposta, row.exercicio_descricao, row.exercicio_gabarito),
             createdAt: row.created_at,
           }))
         );

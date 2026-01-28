@@ -285,7 +285,7 @@ export default function ExerciseDetail() {
 
                       {sub.verificacaoDescricao !== null && sub.verificacaoDescricao !== undefined && (
                         <div className="tentativaFeedback">
-                          <strong>Verificacao do enunciado:</strong> {sub.verificacaoDescricao}%
+                          <strong>Aderencia ao esperado:</strong> {sub.verificacaoDescricao}%
                         </div>
                       )}
 
@@ -348,7 +348,7 @@ export default function ExerciseDetail() {
 
                         {sub.verificacaoDescricao !== null && sub.verificacaoDescricao !== undefined && (
                           <div className="tentativaFeedback">
-                            <strong>Verificacao do enunciado:</strong> {sub.verificacaoDescricao}%
+                            <strong>Aderencia ao esperado:</strong> {sub.verificacaoDescricao}%
                           </div>
                         )}
 
