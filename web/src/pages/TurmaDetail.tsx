@@ -21,6 +21,8 @@ export default function TurmaDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const role = getRole();
+  const canManageTurmas = role === "admin" || role === "professor";
+  const backPath = canManageTurmas ? "/dashboard/turmas" : "/dashboard";
 
   const [turma, setTurma] = React.useState<TurmaComAlunos | null>(null);
   const [loading, setLoading] = React.useState(false);
@@ -48,11 +50,11 @@ export default function TurmaDetailPage() {
 
   React.useEffect(() => {
     if (!id) {
-      navigate("/dashboard/turmas");
+      navigate(backPath);
       return;
     }
     load();
-  }, [id, navigate]);
+  }, [backPath, id, navigate]);
 
   async function handleRemoverAluno(alunoId: string) {
     if (!id || !turma) return;
@@ -158,7 +160,7 @@ export default function TurmaDetailPage() {
             </div>
             <button
               className="btnBack"
-              onClick={() => navigate("/dashboard/turmas")}
+              onClick={() => navigate(backPath)}
             >
               ← Voltar
             </button>

@@ -8,17 +8,18 @@ type Role = "admin" | "professor" | "aluno";
 export default function Sidebar() {
   const role = (getRole() as Role | null) ?? "aluno";
   const navigate = useNavigate();
+  const isAdmin = role === "admin";
+  const canManageTurmas = role === "admin" || role === "professor";
   const canCreateUser = role === "admin" || role === "professor";
+  const turmasSectionTitle = role === "aluno" ? "Minha Turma" : "Minhas Turmas";
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [expandirTurmas, setExpandirTurmas] = React.useState(false);
 
   React.useEffect(() => {
-    if (canCreateUser) {
-      listarTurmas()
-        .then(setTurmas)
-        .catch((e) => console.error("Erro ao carregar turmas:", e));
-    }
-  }, [canCreateUser]);
+    listarTurmas()
+      .then(setTurmas)
+      .catch((e) => console.error("Erro ao carregar turmas:", e));
+  }, [role]);
 
   return (
     <aside className="sidebar">
@@ -38,15 +39,13 @@ export default function Sidebar() {
         <span>Exercícios</span>
       </NavLink>
 
-      {canCreateUser && (
-        <>
-          <div className="sideSection">
+                <div className="sideSection">
             <button
               className="sideSectionHeader"
               onClick={() => setExpandirTurmas(!expandirTurmas)}
             >
               <span className="sideIcon" aria-hidden="true">👥</span>
-              <span>Minhas Turmas</span>
+              <span>{turmasSectionTitle}</span>
               <span className="sideExpand" aria-hidden="true">
                 {expandirTurmas ? "▼" : "▶"}
               </span>
@@ -70,36 +69,40 @@ export default function Sidebar() {
                     ))}
                   </div>
                 ) : (
-                  <div className="sideSectionEmpty">Nenhuma turma</div>
+                  <div className="sideSectionEmpty">Nenhuma turma registrada</div>
                 )}
 
-                <button
-                  className="sideCreateTurmaBtn"
-                  onClick={() => navigate("/dashboard/turmas")}
-                >
-                  <span aria-hidden="true">➕</span> Criar turma
-                </button>
+                {canManageTurmas && (
+                  <button
+                    className="sideCreateTurmaBtn"
+                    onClick={() => navigate("/dashboard/turmas")}
+                  >
+                    <span aria-hidden="true">➕</span> Criar turma
+                  </button>
+                )}
               </div>
             )}
           </div>
 
-          <NavLink
-            to="/dashboard/turmas"
-            className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
-          >
-            <span className="sideIcon" aria-hidden="true">📋</span>
-            <span>Turmas</span>
-          </NavLink>
+          {isAdmin && (
+            <NavLink
+              to="/dashboard/turmas"
+              className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
+            >
+              <span className="sideIcon" aria-hidden="true">📋</span>
+              <span>Turmas</span>
+            </NavLink>
+          )}
 
-          <NavLink
-            to="/dashboard/criar-usuario"
-            className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
-          >
-            <span className="sideIcon" aria-hidden="true">👤</span>
-            <span>Criar usuário</span>
-          </NavLink>
-        </>
-      )}
+          {canCreateUser && (
+            <NavLink
+              to="/dashboard/criar-usuario"
+              className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
+            >
+              <span className="sideIcon" aria-hidden="true">👤</span>
+              <span>Criar usuário</span>
+            </NavLink>
+          )}
     </aside>
   );
 }

@@ -283,7 +283,7 @@ export default function TurmasPage() {
           ) : !loading && turmas.length === 0 ? (
             <div className="emptyState">
               <div className="emptyIcon">📚</div>
-              <div className="emptyTitle">Nenhuma turma criada</div>
+              <div className="emptyTitle">Nenhuma turma registrada</div>
               <p style={{ margin: "8px 0 0 0", color: "var(--muted)" }}>
                 Crie sua primeira turma preenchendo o formulário acima.
               </p>

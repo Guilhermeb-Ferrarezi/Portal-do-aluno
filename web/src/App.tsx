@@ -27,6 +27,7 @@ export default function App() {
             element={<Navigate to="/dashboard/exercicios" replace />}
           />
 
+          <Route path="/dashboard/turmas/:id" element={<TurmaDetail />} />
 
           <Route element={<ProtectedRoute allowedRoles={["admin", "professor"]} />}>
             <Route path="/dashboard/criar-usuario" element={<CreateUser />} />
@@ -35,7 +36,6 @@ export default function App() {
               element={<Navigate to="/dashboard/criar-usuario" replace />}
             />
             <Route path="/dashboard/turmas" element={<Turmas />} />
-            <Route path="/dashboard/turmas/:id" element={<TurmaDetail />} />
             <Route
               path="/turmas"
               element={<Navigate to="/dashboard/turmas" replace />}
