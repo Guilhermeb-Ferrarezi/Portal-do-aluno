@@ -45,6 +45,21 @@ function detectarTipoExercicio(titulo: string, descricao: string): TipoExercicio
     "criar um programa",
     "escrever um código",
     "escrever codigo",
+    "looping",
+    "mostra",
+    "for",
+    "while",
+    "repetindo",
+    "lista",
+    "percorrendo",
+    "número",
+    "numero",
+    "programa",
+    "ação",
+    "açao",
+    "acao",
+    "log",
+    "()" 
   ];
 
   const palavrasTexto = [

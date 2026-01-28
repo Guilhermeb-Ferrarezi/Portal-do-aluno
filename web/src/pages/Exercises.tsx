@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import ConfirmModal from "../components/ConfirmModal";
+import MonacoEditor from "../components/MonacoEditor";
 import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, listarTurmas, getRole, type Exercicio, type Turma } from "../services/api";
 import "./Exercises.css";
 
@@ -18,6 +19,7 @@ export default function ExerciciosPage() {
   const [titulo, setTitulo] = React.useState("");
   const [descricao, setDescricao] = React.useState("");
   const [gabarito, setGabarito] = React.useState("");
+  const [gabaritoLang, setGabaritoLang] = React.useState("javascript");
   const [modulo, setModulo] = React.useState("");
   const [tema, setTema] = React.useState("");
   const [prazo, setPrazo] = React.useState(""); // datetime-local
@@ -264,11 +266,13 @@ export default function ExerciciosPage() {
 
               <div className="exInputGroup">
                 <label className="exLabel">Gabarito / Codigo esperado</label>
-                <textarea
-                  className="exTextarea"
-                  placeholder="Cole o codigo ou a resposta esperada (opcional)"
+                <MonacoEditor
                   value={gabarito}
-                  onChange={(e) => setGabarito(e.target.value)}
+                  onChange={(v) => setGabarito(v || "")}
+                  language={gabaritoLang}
+                  onLanguageChange={setGabaritoLang}
+                  height="240px"
+                  theme="light"
                 />
                 <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
                   Esse texto sera usado para comparar se a resposta do aluno esta parecida com o esperado.
