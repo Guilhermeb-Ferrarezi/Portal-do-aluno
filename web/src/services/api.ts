@@ -53,6 +53,7 @@ export type Exercicio = {
   prazo: string | null;
   tipoExercicio?: "codigo" | "texto" | null;
   createdAt: string;
+  turmas?: Turma[];
 };
 
 export type TipoExercicio = "codigo" | "texto";
@@ -155,6 +156,85 @@ export async function corrigirSubmissao(submissaoId: string, dados: {
       body: JSON.stringify(dados),
     }
   );
+}
+
+export type Turma = {
+  id: string;
+  nome: string;
+  tipo: "turma" | "particular";
+  professorId: string | null;
+  descricao: string | null;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+// Funções de Turma
+export async function listarTurmas() {
+  return apiFetch<Turma[]>("/turmas");
+}
+
+export async function obterTurma(id: string) {
+  return apiFetch<Turma & {
+    alunos: Array<{ id: string; usuario: string; nome: string; role: Role }>;
+    exercicios: Array<{ id: string; titulo: string; modulo: string }>;
+  }>(`/turmas/${id}`);
+}
+
+export async function criarTurma(dados: {
+  nome: string;
+  tipo: "turma" | "particular";
+  professor_id?: string | null;
+  descricao?: string | null;
+}) {
+  return apiFetch<{ message: string; turma: Turma }>("/turmas", {
+    method: "POST",
+    body: JSON.stringify(dados),
+  });
+}
+
+export async function atualizarTurma(id: string, dados: {
+  nome?: string;
+  tipo?: "turma" | "particular";
+  professor_id?: string | null;
+  descricao?: string | null;
+}) {
+  return apiFetch<{ message: string; turma: Turma }>(`/turmas/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
+}
+
+export async function deletarTurma(id: string) {
+  return apiFetch<{ message: string }>(`/turmas/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function adicionarAlunosNaTurma(turmaId: string, alunoIds: string[]) {
+  return apiFetch<{ message: string }>(`/turmas/${turmaId}/alunos`, {
+    method: "POST",
+    body: JSON.stringify({ aluno_ids: alunoIds }),
+  });
+}
+
+export async function removerAlunoDaTurma(turmaId: string, alunoId: string) {
+  return apiFetch<{ message: string }>(`/turmas/${turmaId}/alunos/${alunoId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function atribuirExerciciosNaTurma(turmaId: string, exercicioIds: string[]) {
+  return apiFetch<{ message: string }>(`/turmas/${turmaId}/exercicios`, {
+    method: "POST",
+    body: JSON.stringify({ exercicio_ids: exercicioIds }),
+  });
+}
+
+export async function removerExercicioDaTurma(turmaId: string, exercicioId: string) {
+  return apiFetch<{ message: string }>(`/turmas/${turmaId}/exercicios/${exercicioId}`, {
+    method: "DELETE",
+  });
 }
 
 export function getRole(): Role | null {

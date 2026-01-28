@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, getRole, type Exercicio } from "../services/api";
+import ConfirmModal from "../components/ConfirmModal";
+import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, listarTurmas, getRole, type Exercicio, type Turma } from "../services/api";
 import "./Exercises.css";
 
 export default function ExerciciosPage() {
@@ -19,10 +20,21 @@ export default function ExerciciosPage() {
   const [modulo, setModulo] = React.useState("");
   const [tema, setTema] = React.useState("");
   const [prazo, setPrazo] = React.useState(""); // datetime-local
+  const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
   const [editandoId, setEditandoId] = React.useState<string | null>(null);
-  const [deletandoId, setDeletandoId] = React.useState<string | null>(null);
+
+  // Turmas
+  const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
+  const [turmaFiltro, setTurmaFiltro] = React.useState("todas");
+
+  // Modal de confirmação
+  const [modalDeletar, setModalDeletar] = React.useState<{
+    isOpen: boolean;
+    exercicioId: string | null;
+    exercicioTitulo: string | null;
+  }>({ isOpen: false, exercicioId: null, exercicioTitulo: null });
 
   async function load() {
     try {
@@ -39,6 +51,13 @@ export default function ExerciciosPage() {
 
   React.useEffect(() => {
     load();
+
+    // Carregar turmas disponíveis se for professor/admin
+    if (canCreate) {
+      listarTurmas()
+        .then(setTurmasDisponiveis)
+        .catch((e) => console.error("Erro ao carregar turmas:", e));
+    }
   }, []);
 
   async function handleSubmit() {
@@ -47,7 +66,7 @@ export default function ExerciciosPage() {
       setErro(null);
       setOkMsg(null);
 
-      const dados = {
+      const dados: any = {
         titulo: titulo.trim(),
         descricao: descricao.trim(),
         modulo: modulo.trim(),
@@ -55,6 +74,10 @@ export default function ExerciciosPage() {
         prazo: prazo ? new Date(prazo).toISOString() : null,
         publicado: true,
       };
+
+      if (turmasSelecionadas.length > 0) {
+        dados.turma_ids = turmasSelecionadas;
+      }
 
       if (editandoId) {
         // Atualizar exercício existente
@@ -72,6 +95,7 @@ export default function ExerciciosPage() {
       setModulo("");
       setTema("");
       setPrazo("");
+      setTurmasSelecionadas([]);
 
       await load();
     } catch (e) {
@@ -98,6 +122,13 @@ export default function ExerciciosPage() {
       setPrazo(`${year}-${month}-${day}T${hours}:${minutes}`);
     }
 
+    // Carregar turmas do exercício se existirem
+    if (exercicio.turmas) {
+      setTurmasSelecionadas(exercicio.turmas.map((t) => t.id));
+    } else {
+      setTurmasSelecionadas([]);
+    }
+
     setEditandoId(exercicio.id);
     setOkMsg(null);
     setErro(null);
@@ -115,27 +146,43 @@ export default function ExerciciosPage() {
     setModulo("");
     setTema("");
     setPrazo("");
+    setTurmasSelecionadas([]);
     setEditandoId(null);
     setOkMsg(null);
   }
 
-  async function handleDelete(id: string) {
+  function abrirModalDeletar(id: string, titulo: string) {
+    setModalDeletar({ isOpen: true, exercicioId: id, exercicioTitulo: titulo });
+  }
+
+  function fecharModalDeletar() {
+    setModalDeletar({ isOpen: false, exercicioId: null, exercicioTitulo: null });
+  }
+
+  async function confirmarDeletar() {
+    if (!modalDeletar.exercicioId) return;
+
     try {
-      setDeletandoId(id);
       setSaving(true);
       setErro(null);
       setOkMsg(null);
 
-      await deletarExercicio(id);
+      await deletarExercicio(modalDeletar.exercicioId);
       setOkMsg("Exercício deletado com sucesso!");
 
+      fecharModalDeletar();
       await load();
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao deletar exercício");
     } finally {
       setSaving(false);
-      setDeletandoId(null);
     }
+  }
+
+  async function handleDelete(id: string) {
+    // Função mantida para compatibilidade, mas agora abre o modal
+    const exercicio = items.find((ex) => ex.id === id);
+    abrirModalDeletar(id, exercicio?.titulo || "Exercício");
   }
 
   const disabled =
@@ -240,6 +287,32 @@ export default function ExerciciosPage() {
                 </div>
               </div>
 
+              {canCreate && turmasDisponiveis.length > 0 && (
+                <div className="exInputGroup">
+                  <label className="exLabel">Turmas</label>
+                  <select
+                    className="exSelect"
+                    multiple
+                    value={turmasSelecionadas}
+                    onChange={(e) =>
+                      setTurmasSelecionadas(
+                        Array.from(e.target.selectedOptions, (opt) => opt.value)
+                      )
+                    }
+                    size={3}
+                  >
+                    {turmasDisponiveis.map((turma) => (
+                      <option key={turma.id} value={turma.id}>
+                        {turma.nome}
+                      </option>
+                    ))}
+                  </select>
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    Segure Ctrl/Cmd para selecionar múltiplas turmas
+                  </small>
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: "12px" }}>
                 <button className="exSubmitBtn" onClick={handleSubmit} disabled={disabled} style={{ flex: 1 }}>
                   {saving ? "⏳ Salvando..." : editandoId ? "💾 Atualizar Exercício" : "✨ Publicar Exercício"}
@@ -266,6 +339,26 @@ export default function ExerciciosPage() {
           </div>
         )}
 
+        {/* FILTRO DE TURMAS */}
+        {turmasDisponiveis.length > 0 && (
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <label style={{ fontWeight: 600, whiteSpace: "nowrap" }}>Filtrar por turma:</label>
+            <select
+              className="exSelect"
+              value={turmaFiltro}
+              onChange={(e) => setTurmaFiltro(e.target.value)}
+              style={{ minWidth: 200 }}
+            >
+              <option value="todas">Todas as turmas</option>
+              {turmasDisponiveis.map((turma) => (
+                <option key={turma.id} value={turma.id}>
+                  {turma.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* LISTA DE EXERCÍCIOS */}
         <div>
           {loading && items.length === 0 ? (
@@ -283,7 +376,12 @@ export default function ExerciciosPage() {
             </div>
           ) : (
             <div className="exercisesList">
-              {items.map((ex) => (
+              {items
+                .filter((ex) => {
+                  if (turmaFiltro === "todas") return true;
+                  return ex.turmas?.some((t) => t.id === turmaFiltro);
+                })
+                .map((ex) => (
                 <div
                   key={ex.id}
                   className={`exerciseCard ${canCreate ? "canEdit" : ""}`}
@@ -314,10 +412,9 @@ export default function ExerciciosPage() {
                           e.stopPropagation();
                           handleDelete(ex.id);
                         }}
-                        disabled={deletandoId === ex.id}
-                        title={deletandoId === ex.id ? "Deletando exercício..." : "Deletar exercício"}
+                        title="Deletar exercício"
                       >
-                        {deletandoId === ex.id ? "⏳" : "🗑️"}
+                        🗑️
                       </button>
                     </div>
                   )}
@@ -357,11 +454,34 @@ export default function ExerciciosPage() {
                   </div>
 
                   <div className="exerciseDescription">{ex.descricao}</div>
+
+                  {ex.turmas && ex.turmas.length > 0 && (
+                    <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                      {ex.turmas.map((turma) => (
+                        <span key={turma.id} className={`turmaBadge ${turma.tipo}`}>
+                          {turma.nome}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* MODAL DE CONFIRMAÇÃO PARA DELETAR */}
+        <ConfirmModal
+          isOpen={modalDeletar.isOpen}
+          title="Deletar Exercício"
+          message={`Tem certeza que deseja deletar "${modalDeletar.exercicioTitulo}"? Esta ação não pode ser desfeita e todas as submissões serão perdidas.`}
+          confirmText="Deletar"
+          cancelText="Cancelar"
+          onConfirm={confirmarDeletar}
+          onCancel={fecharModalDeletar}
+          danger={true}
+          isLoading={saving}
+        />
       </div>
     </DashboardLayout>
   );

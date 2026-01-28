@@ -499,6 +499,26 @@
   box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
 }
 
+/* TURMA BADGES */
+.turmaBadge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  width: fit-content;
+}
+
+.turmaBadge.turma {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.turmaBadge.particular {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+}
+
 /* RESPONSIVO */
 @media (max-width: 768px) {
   .exercisesContainer {

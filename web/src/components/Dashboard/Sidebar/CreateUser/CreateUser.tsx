@@ -1,6 +1,7 @@
 ﻿import React from "react";
 import { useNavigate } from "react-router-dom";
 import { getName, getRole, getToken } from "../../../../auth/auth";
+import { listarTurmas } from "../../../../services/api";
 import DashboardLayout from "../../DashboardLayout";
 import "./CreateUser.css";
 
@@ -9,6 +10,17 @@ type Role = "admin" | "professor" | "aluno";
 type Msg = {
   text: string;
   type: "ok" | "error";
+};
+
+type Turma = {
+  id: string;
+  nome: string;
+  tipo: "turma" | "particular";
+  professorId: string | null;
+  descricao: string | null;
+  ativo: boolean;
+  createdAt: string;
+  updatedAt?: string;
 };
 
 function roleLabel(role: Role | null) {
@@ -27,8 +39,25 @@ export default function CreateUser() {
   const [loading, setLoading] = React.useState(false);
   const [msg, setMsg] = React.useState<Msg | null>(null);
 
+  const [tipoAluno, setTipoAluno] = React.useState<"turma" | "particular">("turma");
+  const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
+  const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
+  const [professorSelecionado, setProfessorSelecionado] = React.useState("");
+
   const viewerName = getName() ?? "Usuário";
   const viewerRole = getRole();
+
+  React.useEffect(() => {
+    async function loadData() {
+      try {
+        const turmas = await listarTurmas();
+        setTurmasDisponiveis(turmas);
+      } catch (err) {
+        console.error("Erro ao carregar turmas:", err);
+      }
+    }
+    loadData();
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,13 +71,21 @@ export default function CreateUser() {
 
     setLoading(true);
     try {
+      const body: any = { usuario, nome, senha, role };
+
+      if (role === "aluno" && tipoAluno === "turma" && turmasSelecionadas.length > 0) {
+        body.turma_ids = turmasSelecionadas;
+      } else if (role === "aluno" && tipoAluno === "particular" && professorSelecionado) {
+        body.professor_id = professorSelecionado;
+      }
+
       const res = await fetch("https://portaldoaluno.santos-tech.com/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ usuario, nome, senha, role }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json().catch(() => ({}));
@@ -63,6 +100,9 @@ export default function CreateUser() {
       setNome("");
       setSenha("");
       setRole("aluno");
+      setTipoAluno("turma");
+      setTurmasSelecionadas([]);
+      setProfessorSelecionado("");
     } catch {
       setMsg({ text: "Falha de rede ao criar usuário", type: "error" });
     } finally {
@@ -124,6 +164,77 @@ export default function CreateUser() {
                 <option value="admin">Administrador</option>
               </select>
             </label>
+
+            {(viewerRole === "professor" || (viewerRole === "admin" && role === "aluno")) && (
+              <>
+                <div className="cuRadioGroup">
+                  <label className="cuRadio">
+                    <input
+                      type="radio"
+                      checked={tipoAluno === "turma"}
+                      onChange={() => {
+                        setTipoAluno("turma");
+                        setTurmasSelecionadas([]);
+                      }}
+                    />
+                    <span>Turma</span>
+                  </label>
+                  <label className="cuRadio">
+                    <input
+                      type="radio"
+                      checked={tipoAluno === "particular"}
+                      onChange={() => {
+                        setTipoAluno("particular");
+                        setProfessorSelecionado("");
+                      }}
+                    />
+                    <span>Particular</span>
+                  </label>
+                </div>
+
+                {tipoAluno === "turma" && (
+                  <label>
+                    Turmas
+                    <select
+                      multiple
+                      value={turmasSelecionadas}
+                      onChange={(e) =>
+                        setTurmasSelecionadas(
+                          Array.from(e.target.selectedOptions, (opt) => opt.value)
+                        )
+                      }
+                      size={3}
+                    >
+                      {turmasDisponiveis
+                        .filter((t) =>
+                          viewerRole === "professor" ? t.professorId === getToken() : true
+                        )
+                        .map((turma) => (
+                          <option key={turma.id} value={turma.id}>
+                            {turma.nome}
+                          </option>
+                        ))}
+                    </select>
+                    <small>Segure Ctrl/Cmd para selecionar múltiplas turmas</small>
+                  </label>
+                )}
+
+                {tipoAluno === "particular" && (
+                  <label>
+                    Professor Responsável
+                    <select
+                      value={professorSelecionado}
+                      onChange={(e) => setProfessorSelecionado(e.target.value)}
+                    >
+                      <option value="">Selecione um professor</option>
+                      {viewerRole === "professor" && (
+                        <option value={viewerName}>Eu mesmo</option>
+                      )}
+                    </select>
+                  </label>
+                )}
+              </>
+            )}
 
             {msg ? (
               <div className={`cuMsg ${msg.type}`}>{msg.text}</div>

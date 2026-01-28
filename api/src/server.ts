@@ -6,6 +6,7 @@ import { authRouter } from "./routes/auth";
 import { usersRouter } from "./routes/users";
 import { exerciciosRouter } from "./routes/exercicios.route";
 import { submissoesRouter } from "./routes/submissoes.route";
+import { turmasRouter } from "./routes/turmas.route";
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
@@ -37,6 +38,7 @@ app.use("/auth", authRouter(env.JWT_SECRET));
 app.use(usersRouter(env.JWT_SECRET));
 app.use(exerciciosRouter(env.JWT_SECRET));
 app.use(submissoesRouter(env.JWT_SECRET));
+app.use(turmasRouter(env.JWT_SECRET));
 
 // ===== ROTAS COM /api (pra prod/proxy) =====
 app.use("/api/auth", authRouter(env.JWT_SECRET));
@@ -46,6 +48,8 @@ app.use("/api", exerciciosRouter(env.JWT_SECRET));
 // (se exerciciosRouter registra /exercicios, vira /api/exercicios)
 app.use("/api", submissoesRouter(env.JWT_SECRET));
 // (se submissoesRouter registra /exercicios/:id/submissoes, vira /api/exercicios/:id/submissoes)
+app.use("/api", turmasRouter(env.JWT_SECRET));
+// (se turmasRouter registra /turmas, vira /api/turmas)
 
 // handler de 404 (pra você enxergar rota errada rápido)
 app.use((req, res) => {
