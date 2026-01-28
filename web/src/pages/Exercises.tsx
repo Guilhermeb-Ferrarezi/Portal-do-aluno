@@ -22,6 +22,7 @@ export default function ExerciciosPage() {
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
   const [editandoId, setEditandoId] = React.useState<string | null>(null);
+  const [deletandoId, setDeletandoId] = React.useState<string | null>(null);
 
   async function load() {
     try {
@@ -119,11 +120,8 @@ export default function ExerciciosPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm("Tem certeza que deseja deletar este exercício? Esta ação não pode ser desfeita.")) {
-      return;
-    }
-
     try {
+      setDeletandoId(id);
       setSaving(true);
       setErro(null);
       setOkMsg(null);
@@ -136,6 +134,7 @@ export default function ExerciciosPage() {
       setErro(e instanceof Error ? e.message : "Erro ao deletar exercício");
     } finally {
       setSaving(false);
+      setDeletandoId(null);
     }
   }
 
@@ -315,9 +314,10 @@ export default function ExerciciosPage() {
                           e.stopPropagation();
                           handleDelete(ex.id);
                         }}
-                        title="Deletar exercício"
+                        disabled={deletandoId === ex.id}
+                        title={deletandoId === ex.id ? "Deletando exercício..." : "Deletar exercício"}
                       >
-                        🗑️
+                        {deletandoId === ex.id ? "⏳" : "🗑️"}
                       </button>
                     </div>
                   )}
