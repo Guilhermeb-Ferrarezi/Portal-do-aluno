@@ -248,6 +248,10 @@ export async function listarProfessores() {
   return apiFetch<User[]>("/users?role=professor");
 }
 
+export async function listarAlunos() {
+  return apiFetch<User[]>("/users?role=aluno");
+}
+
 export function getRole(): Role | null {
   const r = localStorage.getItem("role");
   return r === "admin" || r === "professor" || r === "aluno" ? r : null;

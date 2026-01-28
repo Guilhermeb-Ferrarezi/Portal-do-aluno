@@ -284,6 +284,190 @@
   }
 }
 
+/* BUTTON ADICIONAR ALUNO */
+.btnAdicionarAluno {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, var(--red), #d41c28);
+  color: white;
+  border: 0;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(225, 29, 46, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btnAdicionarAluno:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(225, 29, 46, 0.3);
+}
+
+/* MODAL ADICIONAR ALUNOS */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+}
+
+.modalContent {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 450px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+.modalContent h3 {
+  margin: 0 0 20px 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.alunosSelectorList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 16px 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.alunoCheckboxItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.alunoCheckboxItem:hover {
+  background: #f3f4f6;
+  border-color: var(--red);
+}
+
+.alunoCheckboxItem input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--red);
+}
+
+.alunoCheckboxAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(225, 29, 46, 0.1), rgba(59, 130, 246, 0.1));
+  border: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.alunoCheckboxInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.alunoCheckboxName {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.alunoCheckboxUser {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.modalBtnCancel,
+.modalBtnConfirm {
+  flex: 1;
+  padding: 11px 14px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modalBtnCancel {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.modalBtnCancel:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.modalBtnConfirm {
+  background: linear-gradient(135deg, var(--red), #d41c28);
+  color: white;
+  box-shadow: 0 4px 12px rgba(225, 29, 46, 0.2);
+}
+
+.modalBtnConfirm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(225, 29, 46, 0.3);
+}
+
+.modalBtnCancel:disabled,
+.modalBtnConfirm:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* RESPONSIVE */
 @media (max-width: 768px) {
   .turmaDetailContainer {
