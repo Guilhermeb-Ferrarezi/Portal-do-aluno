@@ -46,6 +46,46 @@ function normalizarTexto(texto: string): string {
     .trim();
 }
 
+const STOPWORDS = new Set([
+  "a", "o", "os", "as", "um", "uma", "uns", "umas",
+  "de", "da", "do", "das", "dos", "e", "em", "para", "por", "com", "sem",
+  "que", "na", "no", "nas", "nos", "ao", "aos",
+  "se", "ser", "sua", "seu", "suas", "seus",
+  "como", "mais", "menos", "muito", "muita", "muitos", "muitas",
+  "sobre", "entre", "ate", "desde", "tambem", "ja", "voce", "voces",
+  "exercicio", "exercicios", "atividade", "atividades", "resposta", "respostas",
+]);
+
+function removerAcentos(texto: string): string {
+  return texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function extrairPalavrasChave(texto: string): string[] {
+  const base = removerAcentos(texto.toLowerCase())
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+
+  if (!base) return [];
+
+  return base
+    .split(" ")
+    .filter((p) => p.length >= 4 && !STOPWORDS.has(p));
+}
+
+function calcularScoreDescricao(descricao: string, resposta: string): number | null {
+  const chaves = extrairPalavrasChave(descricao);
+  if (chaves.length === 0) return null;
+
+  const respostaSet = new Set(extrairPalavrasChave(resposta));
+  let encontrados = 0;
+
+  for (const chave of chaves) {
+    if (respostaSet.has(chave)) encontrados++;
+  }
+
+  return Math.round((encontrados / chaves.length) * 100);
+}
+
 // Calcula similaridade simples entre dois textos (Levenshtein distance aproximada)
 function calcularSimilaridade(a: string, b: string): number {
   if (a === b) return 1;
@@ -109,7 +149,7 @@ export function submissoesRouter(jwtSecret: string) {
       try {
         // Verificar se exercício existe
         const exercicio = await pool.query(
-          `SELECT id, gabarito, tipo_exercicio FROM exercicios WHERE id = $1 AND publicado = true`,
+          `SELECT id, descricao, gabarito, tipo_exercicio FROM exercicios WHERE id = $1 AND publicado = true`,
           [exercicioId]
         );
 
@@ -119,10 +159,12 @@ export function submissoesRouter(jwtSecret: string) {
 
         const exRow = exercicio.rows[0];
         const gabarito = exRow.gabarito;
+        const descricaoExercicio = exRow.descricao ?? "";
         const { resposta, tipo_resposta, linguagem } = parsed.data;
 
         // Corrigir automaticamente se houver gabarito
         const notaAuto = corrigirAutomaticamente(resposta, gabarito, tipo_resposta);
+        const verificacaoDescricao = calcularScoreDescricao(descricaoExercicio, resposta);
 
         // Inserir submissão
         const result = await pool.query<SubmissaoRow>(
@@ -177,10 +219,12 @@ export function submissoesRouter(jwtSecret: string) {
       }
 
       try {
-        const result = await pool.query<SubmissaoRow>(
-          `SELECT * FROM submissoes
-           WHERE exercicio_id = $1 AND aluno_id = $2
-           ORDER BY created_at DESC`,
+        const result = await pool.query<SubmissaoRow & { exercicio_descricao: string }>(
+          `SELECT s.*, e.descricao as exercicio_descricao
+           FROM submissoes s
+           JOIN exercicios e ON s.exercicio_id = e.id
+           WHERE s.exercicio_id = $1 AND s.aluno_id = $2
+           ORDER BY s.created_at DESC`,
           [exercicioId, alunoId]
         );
 
@@ -195,6 +239,7 @@ export function submissoesRouter(jwtSecret: string) {
             nota: row.nota,
             corrigida: row.corrigida,
             feedbackProfessor: row.feedback_professor,
+            verificacaoDescricao: calcularScoreDescricao(row.exercicio_descricao, row.resposta),
             createdAt: row.created_at,
           }))
         );
@@ -218,9 +263,10 @@ export function submissoesRouter(jwtSecret: string) {
         SubmissaoRow & {
           exercicio_titulo: string;
           exercicio_modulo: string;
+          exercicio_descricao: string;
         }
       >(
-        `SELECT s.*, e.titulo as exercicio_titulo, e.modulo as exercicio_modulo
+        `SELECT s.*, e.titulo as exercicio_titulo, e.modulo as exercicio_modulo, e.descricao as exercicio_descricao
          FROM submissoes s
          JOIN exercicios e ON s.exercicio_id = e.id
          WHERE s.aluno_id = $1
@@ -241,6 +287,7 @@ export function submissoesRouter(jwtSecret: string) {
           nota: row.nota,
           corrigida: row.corrigida,
           feedbackProfessor: row.feedback_professor,
+          verificacaoDescricao: calcularScoreDescricao(row.exercicio_descricao, row.resposta),
           createdAt: row.created_at,
         }))
       );
@@ -263,11 +310,13 @@ export function submissoesRouter(jwtSecret: string) {
           SubmissaoRow & {
             usuario: string;
             nome_aluno: string;
+            exercicio_descricao: string;
           }
         >(
-          `SELECT s.*, u.usuario, u.nome as nome_aluno
+          `SELECT s.*, u.usuario, u.nome as nome_aluno, e.descricao as exercicio_descricao
            FROM submissoes s
            JOIN users u ON s.aluno_id = u.id
+           JOIN exercicios e ON s.exercicio_id = e.id
            WHERE s.exercicio_id = $1
            ORDER BY s.created_at DESC`,
           [exercicioId]
@@ -286,6 +335,7 @@ export function submissoesRouter(jwtSecret: string) {
             nota: row.nota,
             corrigida: row.corrigida,
             feedbackProfessor: row.feedback_professor,
+            verificacaoDescricao: calcularScoreDescricao(row.exercicio_descricao, row.resposta),
             createdAt: row.created_at,
           }))
         );

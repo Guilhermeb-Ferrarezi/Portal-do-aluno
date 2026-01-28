@@ -1,15 +1,44 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "./DashboardLayout";
-import { getName, hasRole } from "../../auth/auth";
+import { getName, getRole, hasRole } from "../../auth/auth";
 import {
   listarTurmas,
   listarExercicios,
   listarAlunos,
+  obterTurma,
+  todasMinhasSubmissoes,
   type Turma,
   type Exercicio,
-  type User,
+  type Submissao,
 } from "../../services/api";
+
+function toDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function calcularSequencia(submissoes: Submissao[]) {
+  if (!submissoes.length) return 0;
+
+  const diasAtivos = new Set(
+    submissoes.map((s) => toDateKey(new Date(s.createdAt)))
+  );
+
+  let sequencia = 0;
+  const cursor = new Date();
+
+  while (true) {
+    const chave = toDateKey(cursor);
+    if (!diasAtivos.has(chave)) break;
+    sequencia += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return sequencia;
+}
 
 function RingProgress({ value }: { value: number }) {
   const style = {
@@ -28,12 +57,15 @@ function RingProgress({ value }: { value: number }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const name = getName() ?? "Aluno";
+  const role = getRole();
+  const isAdmin = role === "admin";
   const canCreateUser = hasRole(["admin", "professor"]);
 
   // Estados
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
-  const [alunos, setAlunos] = React.useState<User[]>([]);
+  const [totalAlunos, setTotalAlunos] = React.useState(0);
+  const [sequencia, setSequencia] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [erro, setErro] = React.useState<string | null>(null);
 
@@ -44,23 +76,43 @@ export default function Dashboard() {
         setLoading(true);
         setErro(null);
 
-        // Carregar dados em paralelo
-        const [turmasData, exerciciosData, alunosData] = await Promise.all([
+        const [turmasData, exerciciosData, submissoesData] = await Promise.all([
           listarTurmas(),
           listarExercicios(),
-          listarAlunos().catch(() => []),
+          todasMinhasSubmissoes().catch(() => []),
         ]);
 
         setTurmas(turmasData);
         setExercicios(exerciciosData);
-        setAlunos(alunosData);
+        setSequencia(calcularSequencia(submissoesData));
+
+        let alunosCount = 0;
+
+        if (isAdmin) {
+          const alunosData = await listarAlunos().catch(() => []);
+          alunosCount = alunosData.filter((user) => user.role === "aluno").length;
+        } else {
+          const detalhes = await Promise.all(
+            turmasData.map((turma) => obterTurma(turma.id).catch(() => null))
+          );
+
+          const ids = new Set<string>();
+          for (const detalhe of detalhes) {
+            if (!detalhe) continue;
+            detalhe.alunos.forEach((aluno) => ids.add(aluno.id));
+          }
+
+          alunosCount = ids.size;
+        }
+
+        setTotalAlunos(alunosCount);
       } catch (e) {
         setErro(e instanceof Error ? e.message : "Erro ao carregar dados");
       } finally {
         setLoading(false);
       }
     })();
-  }, []);
+  }, [isAdmin]);
 
   if (loading) {
     return (
@@ -91,7 +143,6 @@ export default function Dashboard() {
 
   // Calcular estatísticas
   const totalTurmas = turmas.length;
-  const totalAlunos = alunos.length;
   const totalExercicios = exercicios.length;
   const exerciciosPendentes = exercicios.filter(
     (e) => e.prazo && new Date(e.prazo) > new Date()
@@ -107,7 +158,7 @@ export default function Dashboard() {
     exercicios: "41/60",
   };
 
-  const streak = 12;
+  const streak = sequencia;
   const mediaNota = 8.5;
   const ranking = 5;
 
@@ -139,7 +190,7 @@ export default function Dashboard() {
           </div>
           <div className="kv">
             <div className="kvRow">
-              <span>Total de alunos {canCreateUser ? "cadastrados" : "na turma"}</span>
+              <span>Total de alunos {isAdmin ? "cadastrados" : "na turma"}</span>
               <strong>{totalAlunos}</strong>
             </div>
           </div>
@@ -242,7 +293,9 @@ export default function Dashboard() {
             </div>
           </div>
           <p className="muted">
-            Continue assim! Você está em uma ótima sequência de estudos.
+            {streak > 0
+              ? "Continue assim! Você está em uma ótima sequência de estudos."
+              : "Envie uma atividade hoje para iniciar sua sequência."}
           </p>
         </div>
 

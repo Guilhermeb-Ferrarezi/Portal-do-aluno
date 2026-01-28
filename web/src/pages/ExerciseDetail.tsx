@@ -1,11 +1,13 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { getRole } from "../auth/auth";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import MonacoEditor from "../components/MonacoEditor";
 import {
   obterExercicio,
   enviarSubmissao,
   minhasSubmissoes,
+  listarSubmissoesExercicio,
   type Exercicio,
   type Submissao,
 } from "../services/api";
@@ -14,6 +16,8 @@ import "./ExerciseDetail.css";
 export default function ExerciseDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const role = getRole();
+  const canReview = role === "admin" || role === "professor";
 
   // Exercício
   const [exercicio, setExercicio] = React.useState<Exercicio | null>(null);
@@ -33,6 +37,9 @@ export default function ExerciseDetail() {
 
   // Minhas tentativas
   const [submissoes, setSubmissoes] = React.useState<Submissao[]>([]);
+
+  const [submissoesRecebidas, setSubmissoesRecebidas] = React.useState<Array<Submissao & { alunoNome: string; alunoUsuario: string }>>([]);
+  const [loadingRecebidas, setLoadingRecebidas] = React.useState(false);
 
   // Carregar exercício
   React.useEffect(() => {
@@ -65,6 +72,23 @@ export default function ExerciseDetail() {
     })();
   }, [id, exercicio]);
 
+
+  // Carregar submissoes dos alunos (admin/prof)
+  React.useEffect(() => {
+    if (!id || !canReview) return;
+
+    (async () => {
+      try {
+        setLoadingRecebidas(true);
+        const data = await listarSubmissoesExercicio(id);
+        setSubmissoesRecebidas(data);
+      } catch (error) {
+        console.error("Erro ao carregar submissoes dos alunos:", error);
+      } finally {
+        setLoadingRecebidas(false);
+      }
+    })();
+  }, [id, canReview]);
   const handleTestarCodigo = () => {
     if (linguagem !== "javascript") {
       setErroTeste("Teste disponível apenas para JavaScript!");
@@ -252,6 +276,12 @@ export default function ExerciseDetail() {
                         })}
                       </div>
 
+                      {sub.verificacaoDescricao !== null && sub.verificacaoDescricao !== undefined && (
+                        <div className="tentativaFeedback">
+                          <strong>Verificacao do enunciado:</strong> {sub.verificacaoDescricao}%
+                        </div>
+                      )}
+
                       {sub.feedbackProfessor && (
                         <div className="tentativaFeedback">
                           <strong>Feedback:</strong> {sub.feedbackProfessor}
@@ -273,6 +303,71 @@ export default function ExerciseDetail() {
                 </div>
               </div>
             )}
+
+            {canReview && (
+              <div className="edCard edTentativas">
+                <h3 className="edSubtitle">?? Respostas dos alunos ({submissoesRecebidas.length})</h3>
+
+                {loadingRecebidas ? (
+                  <div style={{ padding: "12px", opacity: 0.6, textAlign: "center" }}>
+                    Carregando respostas...
+                  </div>
+                ) : submissoesRecebidas.length === 0 ? (
+                  <div style={{ padding: "12px", opacity: 0.6, textAlign: "center" }}>
+                    Nenhuma resposta enviada ainda.
+                  </div>
+                ) : (
+                  <div className="tentativasList">
+                    {submissoesRecebidas.map((sub) => (
+                      <div key={sub.id} className="tentativaItem">
+                        <div className="tentativaNumber">
+                          {sub.alunoNome} <span style={{ opacity: 0.7 }}>@{sub.alunoUsuario}</span>
+                        </div>
+
+                        {sub.nota !== null && (
+                          <div className={`tentativaNota ${sub.corrigida ? "corrigida" : ""}`}>
+                            Nota: <strong>{sub.nota}/100</strong>
+                          </div>
+                        )}
+
+                        <div className="tentativaData">
+                          {new Date(sub.createdAt).toLocaleDateString("pt-BR", {
+                            day: "2-digit",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+
+                        {sub.verificacaoDescricao !== null && sub.verificacaoDescricao !== undefined && (
+                          <div className="tentativaFeedback">
+                            <strong>Verificacao do enunciado:</strong> {sub.verificacaoDescricao}%
+                          </div>
+                        )}
+
+                        {sub.feedbackProfessor && (
+                          <div className="tentativaFeedback">
+                            <strong>Feedback:</strong> {sub.feedbackProfessor}
+                          </div>
+                        )}
+
+                        <details className="tentativaDetalhes">
+                          <summary>Ver resposta</summary>
+                          <div className="tentativaResposta">
+                            {sub.tipoResposta === "codigo" ? (
+                              <pre>{sub.resposta}</pre>
+                            ) : (
+                              <p>{sub.resposta}</p>
+                            )}
+                          </div>
+                        </details>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
           </div>
 
           {/* COLUNA DIREITA: RESPONDER */}

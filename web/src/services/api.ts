@@ -68,6 +68,7 @@ export type Submissao = {
   nota: number | null;
   corrigida: boolean;
   feedbackProfessor: string | null;
+  verificacaoDescricao?: number | null;
   createdAt: string;
 };
 
