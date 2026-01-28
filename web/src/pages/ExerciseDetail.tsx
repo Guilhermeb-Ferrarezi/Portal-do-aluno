@@ -30,6 +30,7 @@ export default function ExerciseDetail() {
   const [enviando, setEnviando] = React.useState(false);
   const [erroSubmissao, setErroSubmissao] = React.useState<string | null>(null);
   const [sucessoMsg, setSucessoMsg] = React.useState<string | null>(null);
+  const [avisoMsg, setAvisoMsg] = React.useState<string | null>(null);
 
   // Teste de código
   const [outputTeste, setOutputTeste] = React.useState<string>("");
@@ -142,16 +143,22 @@ export default function ExerciseDetail() {
       setEnviando(true);
       setErroSubmissao(null);
       setSucessoMsg(null);
+      setAvisoMsg(null);
 
       const tipoResposta = exercicio.tipoExercicio || "texto";
 
-      await enviarSubmissao(id, {
+      const result = await enviarSubmissao(id, {
         resposta: resposta.trim(),
         tipo_resposta: tipoResposta,
         linguagem: tipoResposta === "codigo" ? linguagem : undefined,
       });
 
-      setSucessoMsg("✅ Resposta enviada com sucesso!");
+      const score = result.submissao?.verificacaoDescricao;
+      if (score !== null && score !== undefined && score < 50) {
+        setAvisoMsg("⚠️ Resposta enviada, mas parece fora do jeito esperado. Revise o enunciado.");
+      } else {
+        setSucessoMsg("✅ Resposta enviada com sucesso!");
+      }
       setResposta("");
 
       // Recarregar submissões
@@ -387,6 +394,13 @@ export default function ExerciseDetail() {
                 <div className="exMessage success">
                   <span>✅</span>
                   <span>{sucessoMsg}</span>
+                </div>
+              )}
+
+              {avisoMsg && (
+                <div className="exMessage warning">
+                  <span>⚠️</span>
+                  <span>{avisoMsg}</span>
                 </div>
               )}
 

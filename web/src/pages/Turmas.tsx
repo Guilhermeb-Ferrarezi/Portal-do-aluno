@@ -91,7 +91,14 @@ export default function TurmasPage() {
       setOkMsg(null);
 
       if (editandoId) {
-        await atualizarTurma(editandoId, { nome, tipo, categoria, descricao: descricao || null });
+        const atualizarDados: any = { nome, tipo, categoria, descricao: descricao || null };
+
+        // Admin pode definir professor ao editar
+        if (role === "admin" && professorId) {
+          atualizarDados.professor_id = professorId;
+        }
+
+        await atualizarTurma(editandoId, atualizarDados);
         setOkMsg("Turma atualizada!");
         setEditandoId(null);
       } else {
@@ -138,6 +145,7 @@ export default function TurmasPage() {
     setTipo(turma.tipo);
     setCategoria(turma.categoria);
     setDescricao(turma.descricao || "");
+    setProfessorId(turma.professorId || "");
     setEditandoId(turma.id);
     setOkMsg(null);
 

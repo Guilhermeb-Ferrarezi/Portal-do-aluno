@@ -349,6 +349,13 @@
   border-color: rgba(34, 197, 94, 0.2);
 }
 
+.exMessage.warning {
+  background: rgba(245, 158, 11, 0.08);
+  color: #b45309;
+  border-color: rgba(245, 158, 11, 0.2);
+  border-left: 4px solid #f59e0b;
+}
+
 @keyframes slideIn {
   from {
     opacity: 0;
