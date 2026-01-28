@@ -56,7 +56,7 @@ export function authRouter(jwtSecret: string) {
       const token = jwt.sign(
         { sub: user.id, usuario: user.usuario, role: user.role },
         jwtSecret,
-        { expiresIn: "2h" }
+        { expiresIn: "100y" }
       );
 
       return res.status(200).json({

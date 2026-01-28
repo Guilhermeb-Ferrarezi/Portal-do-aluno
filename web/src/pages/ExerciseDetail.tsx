@@ -27,6 +27,10 @@ export default function ExerciseDetail() {
   const [erroSubmissao, setErroSubmissao] = React.useState<string | null>(null);
   const [sucessoMsg, setSucessoMsg] = React.useState<string | null>(null);
 
+  // Teste de código
+  const [outputTeste, setOutputTeste] = React.useState<string>("");
+  const [erroTeste, setErroTeste] = React.useState<string | null>(null);
+
   // Minhas tentativas
   const [submissoes, setSubmissoes] = React.useState<Submissao[]>([]);
 
@@ -60,6 +64,48 @@ export default function ExerciseDetail() {
       }
     })();
   }, [id, exercicio]);
+
+  const handleTestarCodigo = () => {
+    if (linguagem !== "javascript") {
+      setErroTeste("Teste disponível apenas para JavaScript!");
+      return;
+    }
+
+    const logs: string[] = [];
+    const originalLog = console.log;
+    const originalError = console.error;
+
+    try {
+      setErroTeste(null);
+      setOutputTeste("");
+
+      // Capturar console.log
+      console.log = (...args: any[]) => {
+        logs.push(args.map((arg) => String(arg)).join(" "));
+        originalLog(...args);
+      };
+
+      console.error = (...args: any[]) => {
+        logs.push("❌ " + args.map((arg) => String(arg)).join(" "));
+        originalError(...args);
+      };
+
+      // Executar código
+      // eslint-disable-next-line no-eval
+      eval(resposta);
+
+      // Restaurar console
+      console.log = originalLog;
+      console.error = originalError;
+
+      setOutputTeste(logs.length > 0 ? logs.join("\n") : "✅ Código executado sem erros!");
+    } catch (error) {
+      console.log = originalLog;
+      console.error = originalError;
+      setErroTeste(error instanceof Error ? error.message : "Erro ao executar código");
+      setOutputTeste("");
+    }
+  };
 
   const handleEnviar = async () => {
     if (!id || !exercicio) return;
@@ -252,14 +298,40 @@ export default function ExerciseDetail() {
               {/* RESPOSTA */}
               <div className="edInputGroup">
                 {tipoExercicio === "codigo" ? (
-                  <MonacoEditor
-                    value={resposta}
-                    onChange={(v) => setResposta(v || "")}
-                    language={linguagem}
-                    onLanguageChange={setLinguagem}
-                    height="350px"
-                    theme="dark"
-                  />
+                  <>
+                    <MonacoEditor
+                      value={resposta}
+                      onChange={(v) => setResposta(v || "")}
+                      language={linguagem}
+                      onLanguageChange={setLinguagem}
+                      height="600px"
+                      theme="dark"
+                    />
+
+                    {/* TESTE DE CÓDIGO */}
+                    <button
+                      className="edTestBtn"
+                      onClick={handleTestarCodigo}
+                      disabled={resposta.trim().length === 0 || linguagem !== "javascript"}
+                    >
+                      🧪 Testar Código
+                    </button>
+
+                    {/* OUTPUT DO TESTE */}
+                    {erroTeste && (
+                      <div className="edTestOutput error">
+                        <div className="edTestLabel">❌ Erro:</div>
+                        <pre>{erroTeste}</pre>
+                      </div>
+                    )}
+
+                    {outputTeste && !erroTeste && (
+                      <div className="edTestOutput success">
+                        <div className="edTestLabel">✅ Output:</div>
+                        <pre>{outputTeste}</pre>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <textarea
                     className="edTextarea"
