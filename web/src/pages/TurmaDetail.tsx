@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import {
   obterTurma,
-  adicionarAlunosNaTurma,
   removerAlunoDaTurma,
   getRole,
   type Turma,
