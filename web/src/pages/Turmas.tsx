@@ -326,6 +326,23 @@ export default function TurmasPage() {
                     <p className="turmaCardDescription">{turma.descricao}</p>
                   )}
 
+                  <div className="turmaCardStats">
+                    <div className="statItem">
+                      <span className="statIcon">👥</span>
+                      <span className="statText">Alunos</span>
+                    </div>
+                    <div className="statItem">
+                      <span className="statIcon">📅</span>
+                      <span className="statText">
+                        {new Date(turma.createdAt).toLocaleDateString("pt-BR", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                    </div>
+                  </div>
+
                   <div className="turmaCardFooter">
                     <button
                       className="turmaViewBtn"

@@ -26,13 +26,23 @@ export default function Sidebar() {
       </NavLink>
 
       {canCreateUser && (
-        <NavLink
-          to="/dashboard/criar-usuario"
-          className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
-        >
-          <span className="sideIcon" aria-hidden="true">👤</span>
-          <span>Criar usuário</span>
-        </NavLink>
+        <>
+          <NavLink
+            to="/dashboard/turmas"
+            className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
+          >
+            <span className="sideIcon" aria-hidden="true">👥</span>
+            <span>Minhas Turmas</span>
+          </NavLink>
+
+          <NavLink
+            to="/dashboard/criar-usuario"
+            className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
+          >
+            <span className="sideIcon" aria-hidden="true">👤</span>
+            <span>Criar usuário</span>
+          </NavLink>
+        </>
       )}
     </aside>
   );

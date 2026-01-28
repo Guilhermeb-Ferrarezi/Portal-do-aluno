@@ -7,6 +7,7 @@ import CreateUser from "./components/Dashboard/Sidebar/CreateUser/CreateUser";
 import ExerciciosPage from "./pages/Exercises";
 import ExerciseDetail from "./pages/ExerciseDetail";
 import Turmas from "./pages/Turmas";
+import TurmaDetail from "./pages/TurmaDetail";
 
 export default function App() {
   return (
@@ -34,6 +35,7 @@ export default function App() {
               element={<Navigate to="/dashboard/criar-usuario" replace />}
             />
             <Route path="/dashboard/turmas" element={<Turmas />} />
+            <Route path="/dashboard/turmas/:id" element={<TurmaDetail />} />
             <Route
               path="/turmas"
               element={<Navigate to="/dashboard/turmas" replace />}
