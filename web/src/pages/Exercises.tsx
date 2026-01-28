@@ -287,7 +287,7 @@ export default function ExerciciosPage() {
               {items.map((ex) => (
                 <div
                   key={ex.id}
-                  className="exerciseCard"
+                  className={`exerciseCard ${canCreate ? "canEdit" : ""}`}
                   onClick={() => navigate(`/dashboard/exercicios/${ex.id}`)}
                   role="button"
                   tabIndex={0}

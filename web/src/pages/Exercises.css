@@ -309,6 +309,10 @@
   z-index: 1;
 }
 
+.exerciseCard.canEdit .exerciseHeader {
+  padding-right: 92px;
+}
+
 .exerciseInfo {
   flex: 1;
 }
@@ -497,6 +501,10 @@
   .exerciseHeader {
     flex-direction: column;
     gap: 12px;
+  }
+
+  .exerciseCard.canEdit .exerciseHeader {
+    padding-right: 0;
   }
 
   .exerciseMeta {
