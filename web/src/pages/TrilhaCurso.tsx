@@ -1,7 +1,5 @@
-import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import { getName, getRole } from "../auth/auth";
 import "./TrilhaCurso.css";
 
 type Modulo = {
@@ -17,7 +15,6 @@ type Modulo = {
 
 export default function TrilhaCursoPage() {
   const navigate = useNavigate();
-  const name = getName() ?? "Aluno";
 
   // Módulos de exemplo (em produção, viriam da API)
   const modulos: Modulo[] = [

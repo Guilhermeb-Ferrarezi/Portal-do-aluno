@@ -1,7 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import { getName, getRole, hasRole } from "../auth/auth";
+import { hasRole } from "../auth/auth";
 import "./Materiais.css";
 
 type Material = {
@@ -16,9 +15,6 @@ type Material = {
 };
 
 export default function MateriaisPage() {
-  const navigate = useNavigate();
-  const name = getName() ?? "Aluno";
-  const role = getRole();
   const canUpload = hasRole(["admin", "professor"]);
 
   // Estados

@@ -1,7 +1,6 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import { getName, getRole, hasRole } from "../auth/auth";
+import { hasRole } from "../auth/auth";
 import "./VideoaulaBonus.css";
 
 type Videoaula = {
@@ -10,7 +9,7 @@ type Videoaula = {
   descricao: string;
   modulo: string;
   duracao: string;
-  tipo: "youtube" | "arquivo";
+  tipo: "youtube" | "local";
   url?: string;
   arquivo?: string;
   thumbnail?: string;
@@ -18,9 +17,6 @@ type Videoaula = {
 };
 
 export default function VideoaulaBonusPage() {
-  const navigate = useNavigate();
-  const name = getName() ?? "Aluno";
-  const role = getRole();
   const canUpload = hasRole(["admin", "professor"]);
 
   // Estados
@@ -29,6 +25,15 @@ export default function VideoaulaBonusPage() {
   const [busca, setBusca] = React.useState<string>("");
   const [modalAberto, setModalAberto] = React.useState(false);
   const [videoSelecionado, setVideoSelecionado] = React.useState<Videoaula | null>(null);
+  const [formData, setFormData] = React.useState({
+    titulo: "",
+    descricao: "",
+    modulo: "",
+    tipo: "youtube",
+    url: "",
+    arquivo: null as File | null,
+    duracao: "",
+  });
 
   // Videoaulas de exemplo
   const videoaulasExemplo: Videoaula[] = [
@@ -65,65 +70,21 @@ export default function VideoaulaBonusPage() {
       thumbnail: "https://via.placeholder.com/320x180?text=Funções",
       dataAdicionada: "2025-01-13",
     },
-    {
-      id: "4",
-      titulo: "CSS Grid - Tutorial Completo",
-      descricao: "Aprenda a usar CSS Grid para layouts modernos",
-      modulo: "Desenvolvimento Web",
-      duracao: "45:20",
-      tipo: "youtube",
-      url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      thumbnail: "https://via.placeholder.com/320x180?text=CSS+Grid",
-      dataAdicionada: "2025-01-12",
-    },
-    {
-      id: "5",
-      titulo: "Flexbox na Prática",
-      descricao: "Exemplos práticos de CSS Flexbox para layouts responsivos",
-      modulo: "Desenvolvimento Web",
-      duracao: "38:10",
-      tipo: "arquivo",
-      arquivo: "flexbox-pratica.mp4",
-      thumbnail: "https://via.placeholder.com/320x180?text=Flexbox",
-      dataAdicionada: "2025-01-11",
-    },
-    {
-      id: "6",
-      titulo: "Promises e Async/Await",
-      descricao: "Programação assíncrona em JavaScript",
-      modulo: "JavaScript Avançado",
-      duracao: "42:30",
-      tipo: "youtube",
-      url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      thumbnail: "https://via.placeholder.com/320x180?text=Async+Await",
-      dataAdicionada: "2025-01-10",
-    },
-    {
-      id: "7",
-      titulo: "React Hooks - useState e useEffect",
-      descricao: "Os hooks mais usados no React para gerenciar estado",
-      modulo: "Frameworks Frontend",
-      duracao: "51:15",
-      tipo: "youtube",
-      url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      thumbnail: "https://via.placeholder.com/320x180?text=React+Hooks",
-      dataAdicionada: "2025-01-09",
-    },
-    {
-      id: "8",
-      titulo: "State Management com Context API",
-      descricao: "Gerenciamento global de estado com React Context",
-      modulo: "Frameworks Frontend",
-      duracao: "39:45",
-      tipo: "arquivo",
-      arquivo: "context-api.mp4",
-      thumbnail: "https://via.placeholder.com/320x180?text=Context+API",
-      dataAdicionada: "2025-01-08",
-    },
   ];
 
+  // Carregar videoaulas do localStorage na montagem
   React.useEffect(() => {
-    setVideoaulas(videoaulasExemplo);
+    const saved = localStorage.getItem("videoaulas");
+    if (saved) {
+      try {
+        setVideoaulas(JSON.parse(saved));
+      } catch (e) {
+        setVideoaulas(videoaulasExemplo);
+      }
+    } else {
+      setVideoaulas(videoaulasExemplo);
+      localStorage.setItem("videoaulas", JSON.stringify(videoaulasExemplo));
+    }
   }, []);
 
   // Filtrar videoaulas
@@ -143,6 +104,84 @@ export default function VideoaulaBonusPage() {
 
   const handleAssistir = (videoaula: Videoaula) => {
     setVideoSelecionado(videoaula);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData({
+        ...formData,
+        arquivo: file,
+      });
+    }
+  };
+
+  const handleAddVideoaula = () => {
+    if (
+      !formData.titulo.trim() ||
+      !formData.modulo.trim() ||
+      !formData.duracao.trim()
+    ) {
+      alert("Por favor, preencha todos os campos obrigatórios");
+      return;
+    }
+
+    if (formData.tipo === "youtube" && !formData.url.trim()) {
+      alert("Por favor, cole a URL do YouTube");
+      return;
+    }
+
+    if (formData.tipo === "local" && !formData.arquivo) {
+      alert("Por favor, selecione um arquivo de vídeo");
+      return;
+    }
+
+    // Criar nova videoaula
+    const novaVideoaula: Videoaula = {
+      id: Date.now().toString(),
+      titulo: formData.titulo,
+      descricao: formData.descricao,
+      modulo: formData.modulo,
+      duracao: formData.duracao,
+      tipo: formData.tipo as "youtube" | "local",
+      url:
+        formData.tipo === "youtube"
+          ? formData.url
+          : formData.arquivo
+          ? URL.createObjectURL(formData.arquivo)
+          : undefined,
+      arquivo:
+        formData.tipo === "local" ? formData.arquivo?.name : undefined,
+      thumbnail: "https://via.placeholder.com/320x180?text=Video",
+      dataAdicionada: new Date().toISOString().split("T")[0],
+    };
+
+    // Salvar no localStorage
+    const updated = [...videoaulas, novaVideoaula];
+    setVideoaulas(updated);
+    localStorage.setItem("videoaulas", JSON.stringify(updated));
+
+    // Resetar formulário
+    setFormData({
+      titulo: "",
+      descricao: "",
+      modulo: "",
+      tipo: "youtube",
+      url: "",
+      arquivo: null,
+      duracao: "",
+    });
+
+    setModalAberto(false);
+    alert("Videoaula adicionada com sucesso!");
+  };
+
+  const handleDeleteVideoaula = (id: string) => {
+    if (confirm("Tem certeza que deseja deletar esta videoaula?")) {
+      const updated = videoaulas.filter((v) => v.id !== id);
+      setVideoaulas(updated);
+      localStorage.setItem("videoaulas", JSON.stringify(updated));
+    }
   };
 
   return (
@@ -233,12 +272,23 @@ export default function VideoaulaBonusPage() {
                           "pt-BR"
                         )}
                       </span>
-                      <button
-                        className="assistirBtn"
-                        onClick={() => handleAssistir(videoaula)}
-                      >
-                        {videoaula.tipo === "youtube" ? "▶️ Assistir" : "⬇️ Baixar"}
-                      </button>
+                      <div style={{ display: "flex", gap: "8px" }}>
+                        <button
+                          className="assistirBtn"
+                          onClick={() => handleAssistir(videoaula)}
+                        >
+                          {videoaula.tipo === "youtube" ? "▶️ Assistir" : "📥 Download"}
+                        </button>
+                        {canUpload && (
+                          <button
+                            className="deleteBtn"
+                            onClick={() => handleDeleteVideoaula(videoaula.id)}
+                            title="Deletar"
+                          >
+                            🗑️
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -280,7 +330,7 @@ export default function VideoaulaBonusPage() {
                     style={{ backgroundColor: "#000" }}
                   >
                     <source
-                      src={`/videos/${videoSelecionado.arquivo}`}
+                      src={videoSelecionado.url}
                       type="video/mp4"
                     />
                     Seu navegador não suporta a tag de vídeo.
@@ -308,7 +358,7 @@ export default function VideoaulaBonusPage() {
           </div>
         )}
 
-        {/* MODAL DE UPLOAD (apenas para admin/professor) */}
+        {/* MODAL DE UPLOAD */}
         {modalAberto && canUpload && (
           <div className="modalOverlay" onClick={() => setModalAberto(false)}>
             <div
@@ -322,19 +372,30 @@ export default function VideoaulaBonusPage() {
                 <input
                   type="text"
                   placeholder="Título da videoaula"
+                  value={formData.titulo}
+                  onChange={(e) =>
+                    setFormData({ ...formData, titulo: e.target.value })
+                  }
                   className="formInput"
                 />
               </div>
 
               <div className="formGroup">
                 <label className="formLabel">Módulo *</label>
-                <select className="formInput">
+                <select
+                  value={formData.modulo}
+                  onChange={(e) =>
+                    setFormData({ ...formData, modulo: e.target.value })
+                  }
+                  className="formInput"
+                >
                   <option value="">Selecione um módulo</option>
                   {modulos.map((mod) => (
                     <option key={mod} value={mod}>
                       {mod}
                     </option>
                   ))}
+                  <option value="novo">+ Novo Módulo</option>
                 </select>
               </div>
 
@@ -342,12 +403,28 @@ export default function VideoaulaBonusPage() {
                 <label className="formLabel">Tipo *</label>
                 <div className="radioGroup">
                   <label className="radioLabel">
-                    <input type="radio" name="tipo" value="youtube" />
+                    <input
+                      type="radio"
+                      name="tipo"
+                      value="youtube"
+                      checked={formData.tipo === "youtube"}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tipo: e.target.value })
+                      }
+                    />
                     <span>🎥 YouTube</span>
                   </label>
                   <label className="radioLabel">
-                    <input type="radio" name="tipo" value="arquivo" />
-                    <span>📁 Arquivo Local</span>
+                    <input
+                      type="radio"
+                      name="tipo"
+                      value="local"
+                      checked={formData.tipo === "local"}
+                      onChange={(e) =>
+                        setFormData({ ...formData, tipo: e.target.value })
+                      }
+                    />
+                    <span>📁 Upload Local</span>
                   </label>
                 </div>
               </div>
@@ -356,25 +433,56 @@ export default function VideoaulaBonusPage() {
                 <label className="formLabel">Descrição</label>
                 <textarea
                   placeholder="Descrição da videoaula"
+                  value={formData.descricao}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descricao: e.target.value })
+                  }
                   className="formInput"
                   rows={3}
                 />
               </div>
 
-              <div className="formGroup">
-                <label className="formLabel">URL/Arquivo *</label>
-                <input
-                  type="text"
-                  placeholder="Cole a URL do YouTube ou selecione um arquivo"
-                  className="formInput"
-                />
-              </div>
+              {formData.tipo === "youtube" ? (
+                <div className="formGroup">
+                  <label className="formLabel">URL do YouTube *</label>
+                  <input
+                    type="text"
+                    placeholder="https://www.youtube.com/embed/..."
+                    value={formData.url}
+                    onChange={(e) =>
+                      setFormData({ ...formData, url: e.target.value })
+                    }
+                    className="formInput"
+                  />
+                </div>
+              ) : (
+                <div className="formGroup">
+                  <label className="formLabel">Arquivo de Vídeo *</label>
+                  <label className="fileInputWrapper">
+                    <input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleFileChange}
+                      className="fileInput"
+                    />
+                    <span className="fileInputLabel">
+                      {formData.arquivo
+                        ? `✓ ${formData.arquivo.name}`
+                        : "Selecione um arquivo de vídeo (MP4, WebM, etc)"}
+                    </span>
+                  </label>
+                </div>
+              )}
 
               <div className="formGroup">
-                <label className="formLabel">Duração (mm:ss)</label>
+                <label className="formLabel">Duração (mm:ss) *</label>
                 <input
                   type="text"
                   placeholder="Ex: 25:30"
+                  value={formData.duracao}
+                  onChange={(e) =>
+                    setFormData({ ...formData, duracao: e.target.value })
+                  }
                   className="formInput"
                 />
               </div>
@@ -388,10 +496,7 @@ export default function VideoaulaBonusPage() {
                 </button>
                 <button
                   className="btnConfirm"
-                  onClick={() => {
-                    setModalAberto(false);
-                    alert("Videoaula adicionada com sucesso!");
-                  }}
+                  onClick={handleAddVideoaula}
                 >
                   Adicionar
                 </button>

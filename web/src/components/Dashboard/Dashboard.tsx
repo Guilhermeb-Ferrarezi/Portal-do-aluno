@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "./DashboardLayout";
-import { getName, getRole, hasRole } from "../../auth/auth";
+import { getName, hasRole } from "../../auth/auth";
 import {
   listarTurmas,
   listarExercicios,
@@ -28,7 +28,6 @@ function RingProgress({ value }: { value: number }) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const name = getName() ?? "Aluno";
-  const role = getRole();
   const canCreateUser = hasRole(["admin", "professor"]);
 
   // Estados
