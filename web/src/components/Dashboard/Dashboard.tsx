@@ -91,6 +91,14 @@ export default function Dashboard() {
         if (isAdmin) {
           const alunosData = await listarAlunos().catch(() => []);
           alunosCount = alunosData.filter((user) => user.role === "aluno").length;
+        } else if (role === "aluno") {
+          const turmaAtual = turmasData[0];
+          if (turmaAtual) {
+            const detalhe = await obterTurma(turmaAtual.id).catch(() => null);
+            alunosCount = detalhe?.alunos.length ?? 0;
+          } else {
+            alunosCount = 0;
+          }
         } else {
           const detalhes = await Promise.all(
             turmasData.map((turma) => obterTurma(turma.id).catch(() => null))

@@ -119,8 +119,8 @@ export default function DashboardLayout({
             onClick={handleMinhasTurmas}
             style={{ textAlign: "left" }}
           >
-            <span className="sbIcon" aria-hidden="true">👥</span>
-            <span>Minha Turma</span>
+            <span className="sbIcon" aria-hidden="true">🏫</span>
+            <span>Turmas</span>
           </button>
           <Link className={`sbItem ${isPerfil ? "active" : ""}`} to="/dashboard/perfil">
             <span className="sbIcon" aria-hidden="true">
