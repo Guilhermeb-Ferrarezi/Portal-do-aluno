@@ -8,18 +8,26 @@ type Role = "admin" | "professor" | "aluno";
 export default function Sidebar() {
   const role = (getRole() as Role | null) ?? "aluno";
   const navigate = useNavigate();
-  const isAdmin = role === "admin";
-  const canManageTurmas = role === "admin" || role === "professor";
   const canCreateUser = role === "admin" || role === "professor";
-  const turmasSectionTitle = role === "aluno" ? "Minha Turma" : "Minhas Turmas";
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [expandirTurmas, setExpandirTurmas] = React.useState(false);
 
   React.useEffect(() => {
-    listarTurmas()
-      .then(setTurmas)
-      .catch((e) => console.error("Erro ao carregar turmas:", e));
-  }, [role]);
+    if (canCreateUser) {
+      listarTurmas()
+        .then(setTurmas)
+        .catch((e) => console.error("Erro ao carregar turmas:", e));
+    }
+  }, [canCreateUser]);
+
+  const handleMinhasTurmas = () => {
+    if (role === "aluno") {
+      // Redirecionar para Google Classroom ou outro link
+      window.location.href = "https://classroom.google.com";
+    } else {
+      navigate("/dashboard/turmas");
+    }
+  };
 
   return (
     <aside className="sidebar">
@@ -39,13 +47,25 @@ export default function Sidebar() {
         <span>Exercícios</span>
       </NavLink>
 
-                <div className="sideSection">
+      {/* Minha Turma - Aluno vai para Google, Admin/Professor expandem a lista */}
+      <button
+        className="sideItem"
+        onClick={handleMinhasTurmas}
+        style={{ textAlign: "left" }}
+      >
+        <span className="sideIcon" aria-hidden="true">👥</span>
+        <span>Minha Turma</span>
+      </button>
+
+      {canCreateUser && (
+        <>
+          <div className="sideSection">
             <button
               className="sideSectionHeader"
               onClick={() => setExpandirTurmas(!expandirTurmas)}
             >
-              <span className="sideIcon" aria-hidden="true">👥</span>
-              <span>{turmasSectionTitle}</span>
+              <span className="sideIcon" aria-hidden="true">📋</span>
+              <span>Minhas Turmas</span>
               <span className="sideExpand" aria-hidden="true">
                 {expandirTurmas ? "▼" : "▶"}
               </span>
@@ -69,40 +89,28 @@ export default function Sidebar() {
                     ))}
                   </div>
                 ) : (
-                  <div className="sideSectionEmpty">Nenhuma turma registrada</div>
+                  <div className="sideSectionEmpty">Nenhuma turma</div>
                 )}
 
-                {canManageTurmas && (
-                  <button
-                    className="sideCreateTurmaBtn"
-                    onClick={() => navigate("/dashboard/turmas")}
-                  >
-                    <span aria-hidden="true">➕</span> Criar turma
-                  </button>
-                )}
+                <button
+                  className="sideCreateTurmaBtn"
+                  onClick={() => navigate("/dashboard/turmas")}
+                >
+                  <span aria-hidden="true">➕</span> Criar turma
+                </button>
               </div>
             )}
           </div>
 
-          {isAdmin && (
-            <NavLink
-              to="/dashboard/turmas"
-              className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
-            >
-              <span className="sideIcon" aria-hidden="true">📋</span>
-              <span>Turmas</span>
-            </NavLink>
-          )}
-
-          {canCreateUser && (
-            <NavLink
-              to="/dashboard/criar-usuario"
-              className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
-            >
-              <span className="sideIcon" aria-hidden="true">👤</span>
-              <span>Criar usuário</span>
-            </NavLink>
-          )}
+          <NavLink
+            to="/dashboard/criar-usuario"
+            className={({ isActive }) => `sideItem ${isActive ? "active" : ""}`}
+          >
+            <span className="sideIcon" aria-hidden="true">👤</span>
+            <span>Criar usuário</span>
+          </NavLink>
+        </>
+      )}
     </aside>
   );
 }

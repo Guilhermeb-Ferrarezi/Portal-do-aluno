@@ -29,6 +29,7 @@ export default function DashboardLayout({
   const isDashboard = location.pathname === "/dashboard";
   const isExercicios = location.pathname === "/dashboard/exercicios";
   const isCreateUser = location.pathname === "/dashboard/criar-usuario";
+  const isTurmas = location.pathname === "/dashboard/turmas"
 
   function handleLogout() {
     logout();
