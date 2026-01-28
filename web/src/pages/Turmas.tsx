@@ -12,6 +12,13 @@ import {
 import ConfirmModal from "../components/ConfirmModal";
 import "./Turmas.css";
 
+type Professor = {
+  id: string;
+  usuario: string;
+  nome: string;
+  role: "admin" | "professor";
+};
+
 export default function TurmasPage() {
   const navigate = useNavigate();
   const role = getRole();
@@ -26,6 +33,8 @@ export default function TurmasPage() {
   const [nome, setNome] = React.useState("");
   const [tipo, setTipo] = React.useState<"turma" | "particular">("turma");
   const [descricao, setDescricao] = React.useState("");
+  const [professorId, setProfessorId] = React.useState("");
+  const [professores, setProfessores] = React.useState<Professor[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [editandoId, setEditandoId] = React.useState<string | null>(null);
 
@@ -55,7 +64,14 @@ export default function TurmasPage() {
       return;
     }
     load();
-  }, [canCreate, navigate]);
+
+    // Se for admin, carregar lista de professores
+    if (role === "admin") {
+      // TODO: Implementar endpoint para listar professores
+      // Por enquanto, vamos usar um placeholder
+      setProfessores([]);
+    }
+  }, [canCreate, navigate, role]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -74,13 +90,21 @@ export default function TurmasPage() {
         setOkMsg("Turma atualizada!");
         setEditandoId(null);
       } else {
-        await criarTurma({ nome, tipo, descricao: descricao || null });
+        const criarDados: any = { nome, tipo, descricao: descricao || null };
+
+        // Se for admin e selecionou um professor, adicionar ao dados
+        if (role === "admin" && professorId) {
+          criarDados.professor_id = professorId;
+        }
+
+        await criarTurma(criarDados);
         setOkMsg("Turma criada!");
       }
 
       setNome("");
       setTipo("turma");
       setDescricao("");
+      setProfessorId("");
       await load();
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao salvar turma");
@@ -106,6 +130,7 @@ export default function TurmasPage() {
     setNome("");
     setTipo("turma");
     setDescricao("");
+    setProfessorId("");
     setEditandoId(null);
     setOkMsg(null);
   }
@@ -195,6 +220,27 @@ export default function TurmasPage() {
                 <option value="particular">Particular</option>
               </select>
             </div>
+
+            {role === "admin" && (
+              <div className="turmaInputGroup">
+                <label className="turmaLabel">Professor Responsável</label>
+                <select
+                  className="turmaSelect"
+                  value={professorId}
+                  onChange={(e) => setProfessorId(e.target.value)}
+                >
+                  <option value="">Sem professor definido</option>
+                  {professores.map((prof) => (
+                    <option key={prof.id} value={prof.id}>
+                      {prof.nome}
+                    </option>
+                  ))}
+                </select>
+                <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                  Deixe em branco para nenhum professor responsável
+                </small>
+              </div>
+            )}
 
             <div className="turmaInputGroup">
               <label className="turmaLabel">Descrição</label>
