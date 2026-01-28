@@ -72,7 +72,8 @@ body {
   gap: 6px;
 }
 
-.sbItem {
+.sbItem,
+.sideItem {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -82,19 +83,140 @@ body {
   color: var(--sidebarText);
   background: transparent;
   border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
 }
 
-.sbIcon { width: 22px; text-align: center; opacity: 0.9; }
-
-.sbItem:hover {
+.sbItem:hover,
+.sideItem:hover {
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.08);
 }
 
-.sbItem.active {
+.sbItem.active,
+.sideItem.active {
   background: rgba(255,255,255,0.10);
   border-color: rgba(255,255,255,0.12);
   font-weight: 700;
+}
+
+.sideIcon,
+.sbIcon {
+  width: 22px;
+  text-align: center;
+  opacity: 0.9;
+}
+
+/* SIDEBAR TURMAS SECTION */
+.sideSection {
+  padding: 8px 10px;
+}
+
+.sideSectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--sidebarText);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.sideSectionHeader:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.08);
+}
+
+.sideExpand {
+  font-size: 10px;
+  opacity: 0.6;
+  margin-left: auto;
+}
+
+.sideSectionContent {
+  padding: 8px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.turmasListSide {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 0 8px 8px 8px;
+}
+
+.sideTurmaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--sidebarText);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.sideTurmaItem:hover {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.08);
+}
+
+.sideTurmaName {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sideTurmaBadge {
+  font-size: 12px;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+
+.sideSectionEmpty {
+  padding: 10px 12px;
+  color: var(--sidebarMuted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.sideCreateTurmaBtn {
+  margin: 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(225, 29, 46, 0.15);
+  border: 1px solid rgba(225, 29, 46, 0.3);
+  color: rgba(225, 29, 46, 0.95);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sideCreateTurmaBtn:hover {
+  background: rgba(225, 29, 46, 0.25);
+  border-color: rgba(225, 29, 46, 0.4);
 }
 
 .sbBottom {

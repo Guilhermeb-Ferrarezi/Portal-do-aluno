@@ -7,17 +7,12 @@ import {
   atualizarTurma,
   deletarTurma,
   getRole,
+  listarProfessores,
   type Turma,
+  type User,
 } from "../services/api";
 import ConfirmModal from "../components/ConfirmModal";
 import "./Turmas.css";
-
-type Professor = {
-  id: string;
-  usuario: string;
-  nome: string;
-  role: "admin" | "professor";
-};
 
 export default function TurmasPage() {
   const navigate = useNavigate();
@@ -34,7 +29,7 @@ export default function TurmasPage() {
   const [tipo, setTipo] = React.useState<"turma" | "particular">("turma");
   const [descricao, setDescricao] = React.useState("");
   const [professorId, setProfessorId] = React.useState("");
-  const [professores, setProfessores] = React.useState<Professor[]>([]);
+  const [professores, setProfessores] = React.useState<User[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [editandoId, setEditandoId] = React.useState<string | null>(null);
 
@@ -67,9 +62,9 @@ export default function TurmasPage() {
 
     // Se for admin, carregar lista de professores
     if (role === "admin") {
-      // TODO: Implementar endpoint para listar professores
-      // Por enquanto, vamos usar um placeholder
-      setProfessores([]);
+      listarProfessores()
+        .then(setProfessores)
+        .catch((e) => console.error("Erro ao carregar professores:", e));
     }
   }, [canCreate, navigate, role]);
 

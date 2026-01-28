@@ -51,18 +51,36 @@ export function usersRouter(jwtSecret: string) {
     });
   });
 
-  // Listar usuários (admin)
+  // Listar usuários (admin) ou professores (admin/professor)
   router.get(
     "/users",
     authGuard(jwtSecret),
-    requireRole(["admin"]),
-    async (_req: AuthRequest, res) => {
-      const r = await pool.query<DbUserRow>(
-        `SELECT id, usuario, nome, role, ativo, created_at
+    requireRole(["admin", "professor"]),
+    async (req: AuthRequest, res) => {
+      const userRole = req.user!.role;
+      const roleFilter = req.query.role as string | undefined;
+
+      let query = `SELECT id, usuario, nome, role, ativo, created_at
          FROM users
-         ORDER BY created_at DESC
-         LIMIT 200`
-      );
+         WHERE ativo = true`;
+
+      // Se for professor, só pode ver professores (para atribuir turmas)
+      if (userRole === "professor" && !roleFilter) {
+        query += ` AND role = 'professor'`;
+      }
+
+      // Se solicitou filtro específico e é admin, aplica
+      if (roleFilter && userRole === "admin") {
+        query += ` AND role = $1`;
+      } else if (roleFilter && userRole === "professor") {
+        // Professor só pode ver professores, ignora outro filtro
+        query += ` AND role = 'professor'`;
+      }
+
+      query += ` ORDER BY created_at DESC LIMIT 200`;
+
+      const params = roleFilter && userRole === "admin" ? [roleFilter] : [];
+      const r = await pool.query<DbUserRow>(query, params);
 
       return res.json(
         r.rows.map((u) => ({

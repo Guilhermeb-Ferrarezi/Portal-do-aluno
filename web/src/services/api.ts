@@ -237,6 +237,17 @@ export async function removerExercicioDaTurma(turmaId: string, exercicioId: stri
   });
 }
 
+export type User = {
+  id: string;
+  usuario: string;
+  nome: string;
+  role: Role;
+};
+
+export async function listarProfessores() {
+  return apiFetch<User[]>("/users?role=professor");
+}
+
 export function getRole(): Role | null {
   const r = localStorage.getItem("role");
   return r === "admin" || r === "professor" || r === "aluno" ? r : null;
