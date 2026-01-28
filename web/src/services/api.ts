@@ -162,6 +162,7 @@ export type Turma = {
   id: string;
   nome: string;
   tipo: "turma" | "particular";
+  categoria: "programacao" | "informatica";
   professorId: string | null;
   descricao: string | null;
   ativo: boolean;
@@ -184,6 +185,7 @@ export async function obterTurma(id: string) {
 export async function criarTurma(dados: {
   nome: string;
   tipo: "turma" | "particular";
+  categoria?: "programacao" | "informatica";
   professor_id?: string | null;
   descricao?: string | null;
 }) {
@@ -196,6 +198,7 @@ export async function criarTurma(dados: {
 export async function atualizarTurma(id: string, dados: {
   nome?: string;
   tipo?: "turma" | "particular";
+  categoria?: "programacao" | "informatica";
   professor_id?: string | null;
   descricao?: string | null;
 }) {

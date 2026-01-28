@@ -31,12 +31,11 @@ export default function DashboardLayout({
   const [expandirTurmas, setExpandirTurmas] = React.useState(false);
 
   React.useEffect(() => {
-    if (canCreateUser) {
-      listarTurmas()
-        .then(setTurmas)
-        .catch((e) => console.error("Erro ao carregar turmas:", e));
-    }
-  }, [canCreateUser]);
+    // Load turmas for admin/professor to manage, and for alunos to view their own
+    listarTurmas()
+      .then(setTurmas)
+      .catch((e) => console.error("Erro ao carregar turmas:", e));
+  }, []);
 
   const isDashboard = location.pathname === "/dashboard";
   const isExercicios = location.pathname === "/dashboard/exercicios";
@@ -49,7 +48,11 @@ export default function DashboardLayout({
 
   function handleMinhasTurmas() {
     if (role === "aluno") {
-      window.location.href = "https://classroom.google.com";
+      if (turmas.length > 0) {
+        navigate(`/dashboard/turmas/${turmas[0].id}`);
+      } else {
+        navigate("/dashboard");
+      }
     } else {
       navigate("/dashboard/turmas");
     }

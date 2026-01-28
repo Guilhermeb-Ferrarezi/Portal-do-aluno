@@ -27,6 +27,7 @@ export default function TurmasPage() {
   // Form
   const [nome, setNome] = React.useState("");
   const [tipo, setTipo] = React.useState<"turma" | "particular">("turma");
+  const [categoria, setCategoria] = React.useState<"programacao" | "informatica">("programacao");
   const [descricao, setDescricao] = React.useState("");
   const [professorId, setProfessorId] = React.useState("");
   const [professores, setProfessores] = React.useState<User[]>([]);
@@ -81,11 +82,11 @@ export default function TurmasPage() {
       setOkMsg(null);
 
       if (editandoId) {
-        await atualizarTurma(editandoId, { nome, tipo, descricao: descricao || null });
+        await atualizarTurma(editandoId, { nome, tipo, categoria, descricao: descricao || null });
         setOkMsg("Turma atualizada!");
         setEditandoId(null);
       } else {
-        const criarDados: any = { nome, tipo, descricao: descricao || null };
+        const criarDados: any = { nome, tipo, categoria, descricao: descricao || null };
 
         // Se for admin e selecionou um professor, adicionar ao dados
         if (role === "admin" && professorId) {
@@ -98,6 +99,7 @@ export default function TurmasPage() {
 
       setNome("");
       setTipo("turma");
+      setCategoria("programacao");
       setDescricao("");
       setProfessorId("");
       await load();
@@ -111,6 +113,7 @@ export default function TurmasPage() {
   function handleEdit(turma: Turma) {
     setNome(turma.nome);
     setTipo(turma.tipo);
+    setCategoria(turma.categoria);
     setDescricao(turma.descricao || "");
     setEditandoId(turma.id);
     setOkMsg(null);
@@ -124,6 +127,7 @@ export default function TurmasPage() {
   function handleCancel() {
     setNome("");
     setTipo("turma");
+    setCategoria("programacao");
     setDescricao("");
     setProfessorId("");
     setEditandoId(null);
@@ -213,6 +217,18 @@ export default function TurmasPage() {
               >
                 <option value="turma">Turma (Grupo)</option>
                 <option value="particular">Particular</option>
+              </select>
+            </div>
+
+            <div className="turmaInputGroup">
+              <label className="turmaLabel">Categoria *</label>
+              <select
+                className="turmaSelect"
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value as "programacao" | "informatica")}
+              >
+                <option value="programacao">Programação</option>
+                <option value="informatica">Informática</option>
               </select>
             </div>
 
