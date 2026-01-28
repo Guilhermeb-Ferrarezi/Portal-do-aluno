@@ -1,20 +1,15 @@
-﻿import React from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "./DashboardLayout";
-import { getName } from "../../auth/auth";
-import { listarExercicios, type Exercicio } from "../../services/api";
-
-type Task = {
-  title: string;
-  due: string;
-  status: "red" | "gray";
-};
-
-type Notice = {
-  title: string;
-  text: string;
-  when: string;
-};
+import { getName, getRole, hasRole } from "../../auth/auth";
+import {
+  listarTurmas,
+  listarExercicios,
+  listarAlunos,
+  type Turma,
+  type Exercicio,
+  type User,
+} from "../../services/api";
 
 function RingProgress({ value }: { value: number }) {
   const style = {
@@ -30,312 +25,345 @@ function RingProgress({ value }: { value: number }) {
   );
 }
 
-function Pill({ children }: { children: React.ReactNode }) {
-  return <span className="pill">{children}</span>;
-}
-
 export default function Dashboard() {
   const navigate = useNavigate();
-  const user = getName() ?? "Aluno";
+  const name = getName() ?? "Aluno";
+  const role = getRole();
+  const canCreateUser = hasRole(["admin", "professor"]);
 
-  // Estado para exercícios
+  // Estados
+  const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
-  const [loadingExercicios, setLoadingExercicios] = React.useState(true);
-  const [erroExercicios, setErroExercicios] = React.useState<string | null>(null);
+  const [alunos, setAlunos] = React.useState<User[]>([]);
+  const [loading, setLoading] = React.useState(true);
+  const [erro, setErro] = React.useState<string | null>(null);
 
-  // Carregar exercícios
+  // Carregar dados
   React.useEffect(() => {
     (async () => {
       try {
-        setLoadingExercicios(true);
-        setErroExercicios(null);
-        const data = await listarExercicios();
-        setExercicios(data);
+        setLoading(true);
+        setErro(null);
+
+        // Carregar dados em paralelo
+        const [turmasData, exerciciosData, alunosData] = await Promise.all([
+          listarTurmas(),
+          listarExercicios(),
+          listarAlunos().catch(() => []),
+        ]);
+
+        setTurmas(turmasData);
+        setExercicios(exerciciosData);
+        setAlunos(alunosData);
       } catch (e) {
-        setErroExercicios(e instanceof Error ? e.message : "Erro ao carregar");
+        setErro(e instanceof Error ? e.message : "Erro ao carregar dados");
       } finally {
-        setLoadingExercicios(false);
+        setLoading(false);
       }
     })();
   }, []);
 
-  const goToExercicios = () => navigate("/dashboard/exercicios");
+  if (loading) {
+    return (
+      <DashboardLayout title="Dashboard" subtitle={`Bem-vindo de volta, ${name}`}>
+        <div style={{ textAlign: "center", padding: "40px", color: "var(--muted)" }}>
+          Carregando...
+        </div>
+      </DashboardLayout>
+    );
+  }
 
-  // Transformar exercícios em tarefas
-  const tarefasDosDados = exercicios
-    .slice(0, 3)
-    .map((ex) => ({
-      title: ex.titulo,
-      due: ex.prazo ? `Entrega: ${new Date(ex.prazo).toLocaleDateString("pt-BR")}` : "Sem prazo",
-      status: ex.prazo && new Date(ex.prazo) < new Date() ? ("red" as const) : ("gray" as const),
-    }));
+  if (erro) {
+    return (
+      <DashboardLayout title="Dashboard" subtitle={`Bem-vindo de volta, ${name}`}>
+        <div
+          style={{
+            textAlign: "center",
+            padding: "40px",
+            color: "var(--red)",
+            fontSize: "14px",
+          }}
+        >
+          Erro ao carregar dados: {erro}
+        </div>
+      </DashboardLayout>
+    );
+  }
 
-  const progress = {
-    overall: 68,
-    modulesDone: "3/6",
-    exercisesDone: "41/60",
+  // Calcular estatísticas
+  const totalTurmas = turmas.length;
+  const totalAlunos = alunos.length;
+  const totalExercicios = exercicios.length;
+  const exerciciosPendentes = exercicios.filter(
+    (e) => e.prazo && new Date(e.prazo) > new Date()
+  ).length;
+
+  // Exercícios recentes (últimos 5)
+  const exerciciosRecentes = exercicios.slice(0, 5);
+
+  // Simular estatísticas (em produção, viriam da API)
+  const progresso = {
+    overall: 65,
+    modulos: "3/6",
+    exercicios: "41/60",
   };
 
-  const currentModule = {
-    tag: "ATUAL",
-    module: "MÓDULO 4",
-    title: "Desenvolvimento Web",
-    subtitle: "Semana 15 • HTML5 e CSS3 Avançado",
-    pct: 75,
-  };
-
-  const streakDays = 12;
-
-  // Primeiro exercício para a seção "Continue de onde parou"
-  const primeiroExercicio = exercicios[0];
-  const nextTask = primeiroExercicio ? {
-    tag: "CONTINUE DE ONDE PAROU",
-    title: primeiroExercicio.titulo,
-    subtitle: primeiroExercicio.descricao,
-    metaLeft: "20–30 min",
-    metaMid: primeiroExercicio.tema || "Sem tema",
-  } : {
-    tag: "CONTINUE DE ONDE PAROU",
-    title: "Nenhum exercício disponível",
-    subtitle: "Você em dia com os exercícios!",
-    metaLeft: "—",
-    metaMid: "—",
-  };
-
-  const tasks: Task[] = tarefasDosDados;
-
-  const notices: Notice[] = [
-    {
-      title: "Desafio da Semana: Landing Page Criativa",
-      text: "Crie uma landing page usando os conceitos aprendidos. Prazo: sexta-feira.",
-      when: "Há 2 horas",
-    },
-    {
-      title: "Aula extra liberada: Flexbox na prática",
-      text: "Vídeo bônus com exemplos reais e pegadinhas mais comuns.",
-      when: "Ontem",
-    },
-  ];
+  const streak = 12;
+  const mediaNota = 8.5;
+  const ranking = 5;
 
   return (
-    <DashboardLayout title="Dashboard" subtitle={`Bem-vindo de volta, ${user}`}>
-      {/* ROW 1 */}
+    <DashboardLayout title="Dashboard" subtitle={`Bem-vindo de volta, ${name}`}>
+      {/* SEÇÃO 1: ESTATÍSTICAS */}
       <section className="grid3">
         <div className="card">
           <div className="cardHead">
             <div>
-              <div className="kicker">PROGRESSO GERAL</div>
-              <div className="big">{progress.overall}%</div>
+              <div className="kicker">MINHAS TURMAS</div>
+              <div className="big">{totalTurmas}</div>
             </div>
-            <RingProgress value={progress.overall} />
           </div>
-
           <div className="kv">
             <div className="kvRow">
-              <span>Módulos concluídos</span>
-              <strong>{progress.modulesDone}</strong>
-            </div>
-            <div className="kvRow">
-              <span>Exercícios entregues</span>
-              <strong>{progress.exercisesDone}</strong>
+              <span>Total de turmas</span>
+              <strong>{totalTurmas}</strong>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <div className="cardHead2">
-            <div className="tagRed">{currentModule.tag}</div>
-            <div className="muted">{currentModule.module}</div>
-          </div>
-
-          <div className="cardTitle">{currentModule.title}</div>
-          <div className="muted">{currentModule.subtitle}</div>
-
-          <div className="barWrap">
-            <div className="bar">
-              <div
-                className="barFill"
-                style={{ width: `${currentModule.pct}%` }}
-              />
+          <div className="cardHead">
+            <div>
+              <div className="kicker">ALUNOS</div>
+              <div className="big">{totalAlunos}</div>
             </div>
-            <div className="mutedSmall">{currentModule.pct}% concluído</div>
+          </div>
+          <div className="kv">
+            <div className="kvRow">
+              <span>Total de alunos {canCreateUser ? "cadastrados" : "na turma"}</span>
+              <strong>{totalAlunos}</strong>
+            </div>
           </div>
         </div>
 
+        <div className="card">
+          <div className="cardHead">
+            <div>
+              <div className="kicker">EXERCÍCIOS</div>
+              <div className="big">{totalExercicios}</div>
+            </div>
+          </div>
+          <div className="kv">
+            <div className="kvRow">
+              <span>Pendentes</span>
+              <strong style={{ color: "var(--red)" }}>{exerciciosPendentes}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO 2: PROGRESSO E ATIVIDADES */}
+      <section className="grid2">
+        <div className="card">
+          <div className="cardTitle">Exercícios Recentes</div>
+          <div className="taskList">
+            {exerciciosRecentes.length === 0 ? (
+              <div style={{ padding: "12px", opacity: 0.6, textAlign: "center" }}>
+                Nenhum exercício disponível
+              </div>
+            ) : (
+              exerciciosRecentes.map((ex) => {
+                const isPassed =
+                  ex.prazo && new Date(ex.prazo) < new Date();
+                return (
+                  <div
+                    key={ex.id}
+                    className="taskRow"
+                    onClick={() => navigate(`/dashboard/exercicios/${ex.id}`)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ")
+                        navigate(`/dashboard/exercicios/${ex.id}`);
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <span
+                      className={`taskDot ${isPassed ? "red" : "gray"}`}
+                      aria-hidden="true"
+                    />
+                    <div className="taskText">
+                      <div className="taskTitle">{ex.titulo}</div>
+                      <div className="mutedSmall">
+                        {ex.prazo
+                          ? `Prazo: ${new Date(ex.prazo).toLocaleDateString("pt-BR")}`
+                          : "Sem prazo"}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+
+        <div className="card">
+          <div className="cardHead">
+            <div>
+              <div className="kicker">PROGRESSO</div>
+              <div className="big">{progresso.overall}%</div>
+            </div>
+            <RingProgress value={progresso.overall} />
+          </div>
+          <div className="kv" style={{ marginTop: "12px" }}>
+            <div className="kvRow">
+              <span>Módulos</span>
+              <strong>{progresso.modulos}</strong>
+            </div>
+            <div className="kvRow">
+              <span>Exercícios</span>
+              <strong>{progresso.exercicios}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO 3: INFORMAÇÕES ADICIONAIS */}
+      <section className="grid2">
         <div className="card">
           <div className="cardHead">
             <div>
               <div className="kicker">SEQUÊNCIA</div>
               <div className="big">
-                {streakDays} <span className="bigSub">dias</span>
+                {streak} <span className="bigSub">dias</span>
               </div>
             </div>
-
             <div className="streakBadge" aria-hidden="true">
               🔥
             </div>
           </div>
-
           <p className="muted">
             Continue assim! Você está em uma ótima sequência de estudos.
           </p>
         </div>
-      </section>
-
-      {/* ROW 2 */}
-      <section className="grid2">
-        <div className="card cardWide">
-          <div className="pillRow">
-            <Pill>{nextTask.tag}</Pill>
-          </div>
-
-          <div className="wideBody">
-            <div className="wideLeft">
-              <div className="wideTitle">{nextTask.title}</div>
-              <div className="muted">{nextTask.subtitle}</div>
-
-              <div className="wideMeta">
-                <span className="metaItem">⏱ {nextTask.metaLeft}</span>
-                <span className="metaItem">📶 {nextTask.metaMid}</span>
-              </div>
-
-              <button
-                className="btnPrimary"
-                type="button"
-                onClick={goToExercicios}
-                title="Ir para a aba de exercícios"
-              >
-                Continuar
-              </button>
-            </div>
-
-            <div className="wideRight" onClick={goToExercicios} role="button" tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") goToExercicios();
-              }}
-              style={{ cursor: "pointer" }}
-              aria-label="Abrir exercícios"
-            >
-              <div className="codeBox" aria-hidden="true">
-                {"</>"}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="sectionHead">
-            <div className="cardTitle">Próximas Tarefas</div>
-            <button
-              type="button"
-              className="linkRed"
-              onClick={goToExercicios}
-              style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
-            >
-              Ver todos
-            </button>
-          </div>
-
-          <div className="taskList">
-            {loadingExercicios ? (
-              <div style={{ padding: "12px", opacity: 0.6 }}>Carregando exercícios...</div>
-            ) : erroExercicios ? (
-              <div style={{ padding: "12px", color: "var(--red)", opacity: 0.8 }}>
-                Erro ao carregar exercícios
-              </div>
-            ) : tasks.length === 0 ? (
-              <div style={{ padding: "12px", opacity: 0.6 }}>Nenhum exercício disponível</div>
-            ) : (
-              tasks.map((t, idx) => (
-                <div
-                  className="taskRow"
-                  key={idx}
-                  onClick={goToExercicios}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") goToExercicios();
-                  }}
-                  style={{ cursor: "pointer" }}
-                  title="Abrir exercícios"
-                >
-                  <span className={`taskDot ${t.status}`} aria-hidden="true" />
-                  <div className="taskText">
-                    <div className="taskTitle">{t.title}</div>
-                    <div className="mutedSmall">{t.due}</div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* ROW 3 */}
-      <section className="grid2">
-        <div className="card">
-          <div className="sectionHead">
-            <div className="cardTitle">Avisos da Turma</div>
-            <button
-              type="button"
-              className="linkRed"
-              onClick={goToExercicios}
-              style={{ background: "transparent", border: 0, padding: 0, cursor: "pointer" }}
-            >
-              Ver todos
-            </button>
-          </div>
-
-          <div className="noticeList">
-            {notices.map((n, idx) => (
-              <div
-                className="noticeRow"
-                key={idx}
-                onClick={goToExercicios}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") goToExercicios();
-                }}
-                style={{ cursor: "pointer" }}
-                title="Abrir exercícios"
-              >
-                <div className="noticeIcon" aria-hidden="true">
-                  📣
-                </div>
-                <div className="noticeBody">
-                  <div className="noticeTitle">{n.title}</div>
-                  <div className="muted">{n.text}</div>
-                </div>
-                <div className="mutedSmall">{n.when}</div>
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="card">
           <div className="cardTitle">Seu Desempenho</div>
-
           <div className="perf">
             <div className="perfRow">
-              <span className="muted">Taxa de entrega</span>
-              <strong>95%</strong>
-            </div>
-            <div className="bar">
-              <div className="barFillGreen" style={{ width: "95%" }} />
-            </div>
-
-            <div className="perfRow" style={{ marginTop: 14 }}>
               <span className="muted">Média de notas</span>
-              <strong>8.7</strong>
+              <strong>{mediaNota.toFixed(1)}/10</strong>
             </div>
             <div className="bar">
-              <div className="barFillGreen" style={{ width: "87%" }} />
+              <div className="barFillGreen" style={{ width: `${mediaNota * 10}%` }} />
             </div>
+            <div className="perfRow" style={{ marginTop: 14 }}>
+              <span className="muted">Ranking</span>
+              <strong>#{ranking}</strong>
+            </div>
+          </div>
+        </div>
+      </section>
 
-            <div className="perfHint">
-              Mantendo a consistência, você estoura o nível fácil.
-            </div>
+      {/* SEÇÃO 4: AÇÕES RÁPIDAS */}
+      <section>
+        <div className="card">
+          <div className="cardTitle">Ações Rápidas</div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+              gap: "12px",
+              marginTop: "16px",
+            }}
+          >
+            <button
+              onClick={() => navigate("/dashboard/exercicios")}
+              style={{
+                padding: "12px 16px",
+                borderRadius: "10px",
+                border: "1px solid var(--line)",
+                background: "white",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "14px",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                const target = e.currentTarget as HTMLButtonElement;
+                target.style.borderColor = "var(--red)";
+                target.style.color = "var(--red)";
+                target.style.background = "rgba(225, 29, 46, 0.05)";
+              }}
+              onMouseLeave={(e) => {
+                const target = e.currentTarget as HTMLButtonElement;
+                target.style.borderColor = "var(--line)";
+                target.style.color = "var(--text)";
+                target.style.background = "white";
+              }}
+            >
+              ✍️ Exercícios
+            </button>
+
+            <button
+              onClick={() => navigate("/dashboard/turmas")}
+              style={{
+                padding: "12px 16px",
+                borderRadius: "10px",
+                border: "1px solid var(--line)",
+                background: "white",
+                cursor: "pointer",
+                fontWeight: "600",
+                fontSize: "14px",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => {
+                const target = e.currentTarget as HTMLButtonElement;
+                target.style.borderColor = "var(--red)";
+                target.style.color = "var(--red)";
+                target.style.background = "rgba(225, 29, 46, 0.05)";
+              }}
+              onMouseLeave={(e) => {
+                const target = e.currentTarget as HTMLButtonElement;
+                target.style.borderColor = "var(--line)";
+                target.style.color = "var(--text)";
+                target.style.background = "white";
+              }}
+            >
+              👥 Minhas Turmas
+            </button>
+
+            {canCreateUser && (
+              <>
+                <button
+                  onClick={() => navigate("/dashboard/criar-usuario")}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "10px",
+                    border: "1px solid var(--line)",
+                    background: "white",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    const target = e.currentTarget as HTMLButtonElement;
+                    target.style.borderColor = "var(--red)";
+                    target.style.color = "var(--red)";
+                    target.style.background = "rgba(225, 29, 46, 0.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.currentTarget as HTMLButtonElement;
+                    target.style.borderColor = "var(--line)";
+                    target.style.color = "var(--text)";
+                    target.style.background = "white";
+                  }}
+                >
+                  ➕ Criar Usuário
+                </button>
+              </>
+            )}
           </div>
         </div>
       </section>

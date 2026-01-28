@@ -29,6 +29,7 @@ export default function DashboardLayout({
   const role = getRole();
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [expandirTurmas, setExpandirTurmas] = React.useState(false);
+  const [modalSelecionarTurmaAberto, setModalSelecionarTurmaAberto] = React.useState(false);
 
   React.useEffect(() => {
     // Load turmas for admin/professor to manage, and for alunos to view their own
@@ -39,6 +40,10 @@ export default function DashboardLayout({
 
   const isDashboard = location.pathname === "/dashboard";
   const isExercicios = location.pathname === "/dashboard/exercicios";
+  const isTrilha = location.pathname === "/dashboard/trilha";
+  const isMateriais = location.pathname === "/dashboard/materiais";
+  const isVideoaulas = location.pathname === "/dashboard/videoaulas";
+  const isPerfil = location.pathname === "/dashboard/perfil";
   const isCreateUser = location.pathname === "/dashboard/criar-usuario";
 
   function handleLogout() {
@@ -48,10 +53,13 @@ export default function DashboardLayout({
 
   function handleMinhasTurmas() {
     if (role === "aluno") {
-      if (turmas.length > 0) {
+      if (turmas.length === 0) {
+        navigate("/dashboard");
+      } else if (turmas.length === 1) {
         navigate(`/dashboard/turmas/${turmas[0].id}`);
       } else {
-        navigate("/dashboard");
+        // 2+ turmas - abrir modal de seleção
+        setModalSelecionarTurmaAberto(true);
       }
     } else {
       navigate("/dashboard/turmas");
@@ -81,30 +89,30 @@ export default function DashboardLayout({
             </span>
             Dashboard
           </Link>
-          <a className="sbItem" href="#">
+          <Link className={`sbItem ${isTrilha ? "active" : ""}`} to="/dashboard/trilha">
             <span className="sbIcon" aria-hidden="true">
               🧭
             </span>
             Trilha do Curso
-          </a>
+          </Link>
           <Link className={`sbItem ${isExercicios ? "active" : ""}`} to="/dashboard/exercicios">
             <span className="sbIcon" aria-hidden="true">
               ✍️
             </span>
             Exercícios
           </Link>
-          <a className="sbItem" href="#">
+          <Link className={`sbItem ${isMateriais ? "active" : ""}`} to="/dashboard/materiais">
             <span className="sbIcon" aria-hidden="true">
               📄
             </span>
             Materiais
-          </a>
-          <a className="sbItem" href="#">
+          </Link>
+          <Link className={`sbItem ${isVideoaulas ? "active" : ""}`} to="/dashboard/videoaulas">
             <span className="sbIcon" aria-hidden="true">
               ▶️
             </span>
             Videoaulas Bônus
-          </a>
+          </Link>
           {/* Minha Turma - Aluno vai para Google, Admin/Professor expandem a lista */}
           <button
             className="sbItem"
@@ -114,12 +122,12 @@ export default function DashboardLayout({
             <span className="sbIcon" aria-hidden="true">👥</span>
             <span>Minha Turma</span>
           </button>
-          <a className="sbItem" href="#">
+          <Link className={`sbItem ${isPerfil ? "active" : ""}`} to="/dashboard/perfil">
             <span className="sbIcon" aria-hidden="true">
               👤
             </span>
             Perfil
-          </a>
+          </Link>
 
           {canCreateUser && (
             <>
@@ -220,6 +228,42 @@ export default function DashboardLayout({
 
         <main className="content">{children}</main>
       </div>
+
+      {/* MODAL SELEÇÃO DE TURMA */}
+      {modalSelecionarTurmaAberto && (
+        <div className="modalOverlay" onClick={() => setModalSelecionarTurmaAberto(false)}>
+          <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+            <h3>Selecione sua turma</h3>
+            <p style={{ color: "var(--muted)", marginBottom: "20px" }}>
+              Você está inscrito em {turmas.length} turmas
+            </p>
+
+            <div className="turmasSelectorList">
+              {turmas.map((turma) => (
+                <button
+                  key={turma.id}
+                  className="turmaSelectorItem"
+                  onClick={() => {
+                    setModalSelecionarTurmaAberto(false);
+                    navigate(`/dashboard/turmas/${turma.id}`);
+                  }}
+                >
+                  <div className="turmaSelectorInfo">
+                    <div className="turmaSelectorName">{turma.nome}</div>
+                    <div className="turmaSelectorMeta">
+                      {turma.tipo === "turma" ? "👥 Turma (Grupo)" : "👤 Turma Particular"}
+                      {turma.categoria && (
+                        <> • {turma.categoria === "programacao" ? "💻 Programação" : "🖥️ Informática"}</>
+                      )}
+                    </div>
+                  </div>
+                  <span className="turmaSelectorArrow">→</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

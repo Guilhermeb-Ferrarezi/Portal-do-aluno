@@ -8,6 +8,10 @@ import ExerciciosPage from "./pages/Exercises";
 import ExerciseDetail from "./pages/ExerciseDetail";
 import Turmas from "./pages/Turmas";
 import TurmaDetail from "./pages/TurmaDetail";
+import TrilhaCursoPage from "./pages/TrilhaCurso";
+import MateriaisPage from "./pages/Materiais";
+import VideoaulaBonusPage from "./pages/VideoaulaBonus";
+import PerfilPage from "./pages/Perfil";
 
 export default function App() {
   return (
@@ -26,6 +30,18 @@ export default function App() {
             path="/exercicios"
             element={<Navigate to="/dashboard/exercicios" replace />}
           />
+
+          {/* ✅ trilha do curso: qualquer logado */}
+          <Route path="/dashboard/trilha" element={<TrilhaCursoPage />} />
+
+          {/* ✅ materiais: qualquer logado */}
+          <Route path="/dashboard/materiais" element={<MateriaisPage />} />
+
+          {/* ✅ videoaulas bônus: qualquer logado */}
+          <Route path="/dashboard/videoaulas" element={<VideoaulaBonusPage />} />
+
+          {/* ✅ perfil: qualquer logado */}
+          <Route path="/dashboard/perfil" element={<PerfilPage />} />
 
           <Route path="/dashboard/turmas/:id" element={<TurmaDetail />} />
 

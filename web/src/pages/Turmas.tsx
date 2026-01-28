@@ -8,6 +8,8 @@ import {
   deletarTurma,
   getRole,
   listarProfessores,
+  listarAlunos,
+  adicionarAlunosNaTurma,
   type Turma,
   type User,
 } from "../services/api";
@@ -40,6 +42,13 @@ export default function TurmasPage() {
     turmaId: string | null;
     turmaNome: string | null;
   }>({ isOpen: false, turmaId: null, turmaNome: null });
+
+  // Modal Adicionar Alunos
+  const [modalAdicionarAberto, setModalAdicionarAberto] = React.useState(false);
+  const [turmaAcabadaCriar, setTurmaAcabadaCriar] = React.useState<Turma | null>(null);
+  const [alunosDisponiveis, setAlunosDisponiveis] = React.useState<User[]>([]);
+  const [alunosSelecionados, setAlunosSelecionados] = React.useState<string[]>([]);
+  const [adicionando, setAdicionando] = React.useState(false);
 
   async function load() {
     try {
@@ -94,7 +103,18 @@ export default function TurmasPage() {
         }
 
         await criarTurma(criarDados);
-        setOkMsg("Turma criada!");
+        setOkMsg("Turma criada! Agora adicione alunos.");
+
+        // Preparar para modal de adicionar alunos
+        const novasTurmas = await listarTurmas();
+        const turmaCriada = novasTurmas.find((t) => t.nome === nome);
+
+        if (turmaCriada) {
+          setTurmaAcabadaCriar(turmaCriada);
+          const alunos = await listarAlunos();
+          setAlunosDisponiveis(alunos);
+          setModalAdicionarAberto(true);
+        }
       }
 
       setNome("");
@@ -102,7 +122,10 @@ export default function TurmasPage() {
       setCategoria("programacao");
       setDescricao("");
       setProfessorId("");
-      await load();
+
+      if (editandoId) {
+        await load();
+      }
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Erro ao salvar turma");
     } finally {
@@ -155,6 +178,29 @@ export default function TurmasPage() {
       setErro(e instanceof Error ? e.message : "Erro ao deletar turma");
     } finally {
       setSaving(false);
+    }
+  }
+
+  function fecharModalAdicionar() {
+    setModalAdicionarAberto(false);
+    setTurmaAcabadaCriar(null);
+    setAlunosSelecionados([]);
+    setAlunosDisponiveis([]);
+  }
+
+  async function handleAdicionarAlunos() {
+    if (!turmaAcabadaCriar || alunosSelecionados.length === 0) return;
+
+    try {
+      setAdicionando(true);
+      await adicionarAlunosNaTurma(turmaAcabadaCriar.id, alunosSelecionados);
+      setOkMsg("Alunos adicionados com sucesso!");
+      fecharModalAdicionar();
+      await load();
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao adicionar alunos");
+    } finally {
+      setAdicionando(false);
     }
   }
 
@@ -356,6 +402,12 @@ export default function TurmasPage() {
 
                   <div className="turmaCardFooter">
                     <button
+                      className="turmaManageBtn"
+                      onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
+                    >
+                      👥 Gerenciar Alunos
+                    </button>
+                    <button
                       className="turmaViewBtn"
                       onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
                     >
@@ -380,6 +432,65 @@ export default function TurmasPage() {
           danger={true}
           isLoading={saving}
         />
+
+        {/* MODAL ADICIONAR ALUNOS */}
+        {modalAdicionarAberto && (
+          <div className="modalOverlay" onClick={fecharModalAdicionar}>
+            <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+              <h3>Adicionar alunos à turma: {turmaAcabadaCriar?.nome}</h3>
+
+              {alunosDisponiveis.length === 0 ? (
+                <p style={{ color: "var(--muted)", textAlign: "center" }}>
+                  Nenhum aluno disponível para adicionar.
+                </p>
+              ) : (
+                <div className="alunosSelectorList">
+                  {alunosDisponiveis.map((aluno) => (
+                    <label key={aluno.id} className="alunoCheckboxItem">
+                      <input
+                        type="checkbox"
+                        checked={alunosSelecionados.includes(aluno.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setAlunosSelecionados([...alunosSelecionados, aluno.id]);
+                          } else {
+                            setAlunosSelecionados(
+                              alunosSelecionados.filter((id) => id !== aluno.id)
+                            );
+                          }
+                        }}
+                      />
+                      <span className="alunoCheckboxAvatar">
+                        {aluno.nome.slice(0, 1).toUpperCase()}
+                      </span>
+                      <div className="alunoCheckboxInfo">
+                        <div className="alunoCheckboxName">{aluno.nome}</div>
+                        <div className="alunoCheckboxUser">@{aluno.usuario}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              )}
+
+              <div className="modalActions">
+                <button
+                  onClick={fecharModalAdicionar}
+                  className="modalBtnCancel"
+                  disabled={adicionando}
+                >
+                  Pular por enquanto
+                </button>
+                <button
+                  onClick={handleAdicionarAlunos}
+                  className="modalBtnConfirm"
+                  disabled={adicionando || alunosSelecionados.length === 0}
+                >
+                  {adicionando ? "⏳ Adicionando..." : "Adicionar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
