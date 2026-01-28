@@ -94,6 +94,28 @@ export async function criarExercicio(dados: {
   });
 }
 
+export async function atualizarExercicio(id: string, dados: {
+  titulo: string;
+  descricao: string;
+  modulo: string;
+  tema?: string | null;
+  prazo?: string | null;
+  publicado?: boolean;
+  gabarito?: string | null;
+  linguagem_esperada?: string | null;
+}) {
+  return apiFetch<{ message: string; exercicio: unknown }>(`/exercicios/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
+}
+
+export async function deletarExercicio(id: string) {
+  return apiFetch<{ message: string }>(`/exercicios/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export async function enviarSubmissao(exercicioId: string, dados: {
   resposta: string;
   tipo_resposta: TipoExercicio;

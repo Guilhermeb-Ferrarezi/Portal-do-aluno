@@ -204,5 +204,112 @@ export function exerciciosRouter(jwtSecret: string) {
     }
   );
 
+  // Protegido: só admin/professor pode atualizar
+  router.put(
+    "/exercicios/:id",
+    authGuard(jwtSecret),
+    requireRole(["admin", "professor"]),
+    async (req: AuthRequest, res) => {
+      const { id } = req.params;
+
+      const parsed = createSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "Dados inválidos",
+          issues: parsed.error.flatten().fieldErrors,
+        });
+      }
+
+      // Verificar se exercício existe
+      const checkExercicio = await pool.query<ExercicioRow>(
+        `SELECT id FROM exercicios WHERE id = $1`,
+        [id]
+      );
+
+      if (checkExercicio.rows.length === 0) {
+        return res.status(404).json({ message: "Exercício não encontrado" });
+      }
+
+      const { titulo, descricao, modulo, tema, prazo, publicado, gabarito, linguagem_esperada } = parsed.data;
+
+      // Detectar tipo automaticamente
+      const tipoExercicio = detectarTipoExercicio(titulo, descricao);
+
+      const updated = await pool.query<ExercicioRow>(
+        `UPDATE exercicios
+         SET titulo = $1, descricao = $2, modulo = $3, tema = $4, prazo = $5,
+             publicado = $6, tipo_exercicio = $7, gabarito = $8, linguagem_esperada = $9,
+             updated_at = NOW()
+         WHERE id = $10
+         RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at`,
+        [
+          titulo,
+          descricao,
+          modulo,
+          tema ?? null,
+          prazo ?? null,
+          publicado ?? true,
+          tipoExercicio,
+          gabarito ?? null,
+          linguagem_esperada ?? null,
+          id,
+        ]
+      );
+
+      const row = updated.rows[0];
+      return res.json({
+        message: "Exercício atualizado!",
+        exercicio: {
+          id: row.id,
+          titulo: row.titulo,
+          descricao: row.descricao,
+          modulo: row.modulo,
+          tema: row.tema,
+          prazo: row.prazo,
+          publicado: row.publicado,
+          tipoExercicio: row.tipo_exercicio,
+          gabarito: row.gabarito,
+          linguagemEsperada: row.linguagem_esperada,
+          createdAt: row.created_at,
+          updatedAt: row.updated_at,
+        },
+      });
+    }
+  );
+
+  // Protegido: só admin/professor pode deletar
+  router.delete(
+    "/exercicios/:id",
+    authGuard(jwtSecret),
+    requireRole(["admin", "professor"]),
+    async (req: AuthRequest, res) => {
+      const { id } = req.params;
+
+      // Verificar se exercício existe
+      const checkExercicio = await pool.query<ExercicioRow>(
+        `SELECT id FROM exercicios WHERE id = $1`,
+        [id]
+      );
+
+      if (checkExercicio.rows.length === 0) {
+        return res.status(404).json({ message: "Exercício não encontrado" });
+      }
+
+      // Deletar submissões primeiro (cascade)
+      await pool.query(
+        `DELETE FROM submissoes WHERE exercicio_id = $1`,
+        [id]
+      );
+
+      // Deletar exercício
+      await pool.query(
+        `DELETE FROM exercicios WHERE id = $1`,
+        [id]
+      );
+
+      return res.json({ message: "Exercício deletado com sucesso" });
+    }
+  );
+
   return router;
 }

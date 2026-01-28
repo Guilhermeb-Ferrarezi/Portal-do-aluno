@@ -1,7 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import { criarExercicio, listarExercicios, getRole, type Exercicio } from "../services/api";
+import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, getRole, type Exercicio } from "../services/api";
 import "./Exercises.css";
 
 export default function ExerciciosPage() {
@@ -21,6 +21,7 @@ export default function ExerciciosPage() {
   const [prazo, setPrazo] = React.useState(""); // datetime-local
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
+  const [editandoId, setEditandoId] = React.useState<string | null>(null);
 
   async function load() {
     try {
@@ -39,22 +40,32 @@ export default function ExerciciosPage() {
     load();
   }, []);
 
-  async function handleCreate() {
+  async function handleSubmit() {
     try {
       setSaving(true);
       setErro(null);
       setOkMsg(null);
 
-      await criarExercicio({
+      const dados = {
         titulo: titulo.trim(),
         descricao: descricao.trim(),
         modulo: modulo.trim(),
         tema: tema.trim() ? tema.trim() : null,
         prazo: prazo ? new Date(prazo).toISOString() : null,
         publicado: true,
-      });
+      };
 
-      setOkMsg("Exercício criado!");
+      if (editandoId) {
+        // Atualizar exercício existente
+        await atualizarExercicio(editandoId, dados);
+        setOkMsg("Exercício atualizado!");
+        setEditandoId(null);
+      } else {
+        // Criar novo exercício
+        await criarExercicio(dados);
+        setOkMsg("Exercício criado!");
+      }
+
       setTitulo("");
       setDescricao("");
       setModulo("");
@@ -63,7 +74,66 @@ export default function ExerciciosPage() {
 
       await load();
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao criar exercício");
+      setErro(e instanceof Error ? e.message : "Erro ao salvar exercício");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function handleEdit(exercicio: Exercicio) {
+    setTitulo(exercicio.titulo);
+    setDescricao(exercicio.descricao);
+    setModulo(exercicio.modulo);
+    setTema(exercicio.tema || "");
+
+    // Converter data de ISO para formato datetime-local
+    if (exercicio.prazo) {
+      const date = new Date(exercicio.prazo);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      setPrazo(`${year}-${month}-${day}T${hours}:${minutes}`);
+    }
+
+    setEditandoId(exercicio.id);
+    setOkMsg(null);
+    setErro(null);
+
+    // Scroll até o formulário
+    setTimeout(() => {
+      const formElement = document.querySelector(".createExerciseCard");
+      formElement?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  }
+
+  function handleCancel() {
+    setTitulo("");
+    setDescricao("");
+    setModulo("");
+    setTema("");
+    setPrazo("");
+    setEditandoId(null);
+    setOkMsg(null);
+  }
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("Tem certeza que deseja deletar este exercício? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setErro(null);
+      setOkMsg(null);
+
+      await deletarExercicio(id);
+      setOkMsg("Exercício deletado com sucesso!");
+
+      await load();
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao deletar exercício");
     } finally {
       setSaving(false);
     }
@@ -171,9 +241,24 @@ export default function ExerciciosPage() {
                 </div>
               </div>
 
-              <button className="exSubmitBtn" onClick={handleCreate} disabled={disabled}>
-                {saving ? "⏳ Salvando..." : "✨ Publicar Exercício"}
-              </button>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button className="exSubmitBtn" onClick={handleSubmit} disabled={disabled} style={{ flex: 1 }}>
+                  {saving ? "⏳ Salvando..." : editandoId ? "💾 Atualizar Exercício" : "✨ Publicar Exercício"}
+                </button>
+                {editandoId && (
+                  <button
+                    className="exSubmitBtn"
+                    onClick={handleCancel}
+                    disabled={saving}
+                    style={{
+                      background: "linear-gradient(135deg, #6b7280, #4b5563)",
+                      flex: 1,
+                    }}
+                  >
+                    ❌ Cancelar
+                  </button>
+                )}
+              </div>
 
               <div className="exFormNote">
                 💡 Exercícios criados ficam visíveis para todos os alunos automaticamente.
@@ -212,6 +297,31 @@ export default function ExerciciosPage() {
                     }
                   }}
                 >
+                  {canCreate && (
+                    <div className="exerciseActions">
+                      <button
+                        className="exerciseEditBtn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(ex);
+                        }}
+                        title="Editar exercício"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        className="exerciseDeleteBtn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(ex.id);
+                        }}
+                        title="Deletar exercício"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  )}
+
                   <div className="exerciseHeader">
                     <div className="exerciseInfo">
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
