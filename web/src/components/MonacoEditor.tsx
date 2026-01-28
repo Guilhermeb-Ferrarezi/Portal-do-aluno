@@ -8,6 +8,9 @@ interface MonacoEditorProps {
   onLanguageChange?: (language: string) => void;
   theme?: "light" | "dark";
   height?: string | number;
+  autoHeight?: boolean;
+  minHeight?: number;
+  maxHeight?: number;
   readOnly?: boolean;
   showLineNumbers?: boolean;
 }
@@ -33,11 +36,20 @@ export default function MonacoEditor({
   onLanguageChange,
   theme = "dark",
   height = "400px",
+  autoHeight = false,
+  minHeight,
+  maxHeight,
   readOnly = false,
   showLineNumbers = true,
 }: MonacoEditorProps) {
   const editorRef = React.useRef<any>(null);
+  const contentSizeListenerRef = React.useRef<any>(null);
   const [currentLanguage, setCurrentLanguage] = React.useState(language);
+  const initialHeight =
+    typeof height === "number"
+      ? height
+      : Number.parseInt(String(height).replace("px", ""), 10) || 400;
+  const [contentHeight, setContentHeight] = React.useState(initialHeight);
 
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLanguage = e.target.value;
@@ -47,7 +59,31 @@ export default function MonacoEditor({
 
   const handleMount = (editor: any) => {
     editorRef.current = editor;
+
+    if (!autoHeight) return;
+
+    const minH = minHeight ?? initialHeight;
+    const maxH = maxHeight ?? 1200;
+
+    const updateHeight = () => {
+      const next = Math.min(maxH, Math.max(minH, editor.getContentHeight()));
+      setContentHeight(next);
+    };
+
+    updateHeight();
+
+    if (contentSizeListenerRef.current) {
+      contentSizeListenerRef.current.dispose?.();
+    }
+
+    contentSizeListenerRef.current = editor.onDidContentSizeChange(updateHeight);
   };
+
+  React.useEffect(() => {
+    return () => {
+      contentSizeListenerRef.current?.dispose?.();
+    };
+  }, []);
 
   return (
     <div className="monacoEditorContainer">
@@ -71,7 +107,7 @@ export default function MonacoEditor({
 
       <div style={{ border: "1px solid var(--line)", borderRadius: "10px", overflow: "hidden" }}>
         <Editor
-          height={height}
+          height={autoHeight ? contentHeight : height}
           language={currentLanguage}
           value={value}
           onChange={onChange}
@@ -87,6 +123,7 @@ export default function MonacoEditor({
             tabSize: 2,
             readOnly,
             scrollBeyondLastLine: false,
+            scrollbar: autoHeight ? { vertical: "hidden" } : undefined,
             padding: { top: 12, bottom: 12 },
           }}
         />
