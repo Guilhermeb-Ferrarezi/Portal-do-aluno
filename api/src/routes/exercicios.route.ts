@@ -106,6 +106,7 @@ const createSchema = z.object({
   tema: z.string().optional().nullable(),
   prazo: z.coerce.date().optional().nullable(),
   publicado: z.boolean().optional(),
+  published_at: z.coerce.date().optional().nullable(),
   gabarito: z.string().optional().nullable(),
   linguagem_esperada: z.string().optional().nullable(),
 });
@@ -118,7 +119,7 @@ export function exerciciosRouter(jwtSecret: string) {
     const r = await pool.query<ExercicioRow>(
       `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
        FROM exercicios
-       WHERE publicado = true
+       WHERE publicado = true AND (published_at IS NULL OR published_at <= NOW())
        ORDER BY created_at DESC`
     );
 
@@ -143,7 +144,7 @@ export function exerciciosRouter(jwtSecret: string) {
     const r = await pool.query<ExercicioRow>(
       `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
        FROM exercicios
-       WHERE id = $1 AND publicado = true`,
+       WHERE id = $1 AND publicado = true AND (published_at IS NULL OR published_at <= NOW())`,
       [id]
     );
 
@@ -182,14 +183,17 @@ export function exerciciosRouter(jwtSecret: string) {
         });
       }
 
-      const { titulo, descricao, modulo, tema, prazo, publicado, gabarito, linguagem_esperada } = parsed.data;
+      const { titulo, descricao, modulo, tema, prazo, publicado, published_at, gabarito, linguagem_esperada } = parsed.data;
 
       // Detectar tipo automaticamente
       const tipoExercicio = detectarTipoExercicio(titulo, descricao);
 
+      // Se tem published_at, publicado deve ser false até que a data chegue
+      const shouldPublish = published_at ? false : (publicado ?? true);
+
       const created = await pool.query<ExercicioRow>(
-        `INSERT INTO exercicios (titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        `INSERT INTO exercicios (titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at`,
         [
           titulo,
@@ -197,7 +201,8 @@ export function exerciciosRouter(jwtSecret: string) {
           modulo,
           tema ?? null,
           prazo ?? null,
-          publicado ?? true,
+          shouldPublish,
+          published_at ?? null,
           req.user?.sub ?? null,
           tipoExercicio,
           gabarito ?? null,

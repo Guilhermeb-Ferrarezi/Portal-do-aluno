@@ -23,6 +23,8 @@ export default function ExerciciosPage() {
   const [modulo, setModulo] = React.useState("");
   const [tema, setTema] = React.useState("");
   const [prazo, setPrazo] = React.useState(""); // datetime-local
+  const [publishNow, setPublishNow] = React.useState(true); // Publicar agora ou agendar
+  const [publishedAt, setPublishedAt] = React.useState(""); // datetime-local
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
@@ -77,7 +79,8 @@ export default function ExerciciosPage() {
         modulo: modulo.trim(),
         tema: tema.trim() ? tema.trim() : null,
         prazo: prazo ? new Date(prazo).toISOString() : null,
-        publicado: true,
+        publicado: publishNow,
+        published_at: publishNow ? null : (publishedAt ? new Date(publishedAt).toISOString() : null),
         ...(gabaritoLimpo ? { gabarito: gabaritoLimpo } : {}),
       };
 
@@ -102,6 +105,8 @@ export default function ExerciciosPage() {
       setModulo("");
       setTema("");
       setPrazo("");
+      setPublishNow(true);
+      setPublishedAt("");
       setTurmasSelecionadas([]);
 
       await load();
@@ -310,6 +315,39 @@ export default function ExerciciosPage() {
                   />
                 </div>
               </div>
+
+              {/* AGENDAMENTO DE PUBLICAÇÃO */}
+              <div className="exInputRow">
+                <div className="exInputGroup">
+                  <label className="exLabel" style={{ display: "flex", alignItems: "center" }}>
+                    <input
+                      type="checkbox"
+                      checked={publishNow}
+                      onChange={(e) => setPublishNow(e.target.checked)}
+                      style={{ marginRight: "8px" }}
+                    />
+                    Publicar agora
+                  </label>
+                </div>
+              </div>
+
+              {!publishNow && (
+                <div className="exInputRow">
+                  <div className="exInputGroup">
+                    <label className="exLabel">📅 Agendar Publicação</label>
+                    <input
+                      className="exInput"
+                      type="datetime-local"
+                      value={publishedAt}
+                      onChange={(e) => setPublishedAt(e.target.value)}
+                      required={!publishNow}
+                    />
+                    <small style={{ color: "#666", marginTop: "4px" }}>
+                      O exercício será visível a partir dessa data e hora
+                    </small>
+                  </div>
+                </div>
+              )}
 
               {canCreate && turmasDisponiveis.length > 0 && (
                 <div className="exInputGroup">
