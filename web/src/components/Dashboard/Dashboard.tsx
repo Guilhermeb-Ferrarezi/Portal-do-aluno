@@ -390,7 +390,7 @@ export default function Dashboard() {
                 target.style.background = "white";
               }}
             >
-              Turmas
+              🏫 Turmas
             </button>
 
             {canCreateUser && (
