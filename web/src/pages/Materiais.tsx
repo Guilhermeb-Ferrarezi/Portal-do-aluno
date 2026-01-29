@@ -31,6 +31,14 @@ export default function MateriaisPage() {
   const [formUrl, setFormUrl] = React.useState("");
   const [formArquivo, setFormArquivo] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [formError, setFormError] = React.useState<string | null>(null);
+  const [feedback, setFeedback] = React.useState<{
+    kind: "success" | "error";
+    title: string;
+    message?: string;
+  } | null>(null);
+  const [deleteTarget, setDeleteTarget] = React.useState<Material | null>(null);
+  const [deleting, setDeleting] = React.useState(false);
 
   // Carregar materiais ao montar
   React.useEffect(() => {
@@ -76,23 +84,25 @@ export default function MateriaisPage() {
     setFormDescricao("");
     setFormUrl("");
     setFormArquivo(null);
+    setFormError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
 
     if (!formTitulo || !formModulo) {
-      alert("Preencha todos os campos obrigatórios");
+      setFormError("Preencha todos os campos obrigatorios.");
       return;
     }
 
     if (formTipo === "arquivo" && !formArquivo) {
-      alert("Selecione um arquivo para fazer upload");
+      setFormError("Selecione um arquivo para fazer upload.");
       return;
     }
 
     if (formTipo === "link" && !formUrl) {
-      alert("Forneça uma URL para o link");
+      setFormError("Forneca uma URL para o link.");
       return;
     }
 
@@ -115,30 +125,49 @@ export default function MateriaisPage() {
       }
 
       await criarMaterial(formData);
-      alert("Material adicionado com sucesso!");
       setModalAberto(false);
       resetForm();
+      setFeedback({
+        kind: "success",
+        title: "Material adicionado",
+        message: "O material foi adicionado com sucesso.",
+      });
       await carregarMateriais();
     } catch (err) {
-      alert(
-        err instanceof Error ? err.message : "Erro ao adicionar material"
-      );
+      setFeedback({
+        kind: "error",
+        title: "Erro ao adicionar material",
+        message:
+          err instanceof Error ? err.message : "Erro ao adicionar material",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Tem certeza que deseja deletar este material?")) return;
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    const target = deleteTarget;
 
     try {
-      await deletarMaterial(id);
-      alert("Material deletado com sucesso!");
+      setDeleting(true);
+      await deletarMaterial(target.id);
+      setDeleteTarget(null);
+      setFeedback({
+        kind: "success",
+        title: "Material deletado",
+        message: `"${target.titulo}" foi removido.`,
+      });
       await carregarMateriais();
     } catch (err) {
-      alert(
-        err instanceof Error ? err.message : "Erro ao deletar material"
-      );
+      setFeedback({
+        kind: "error",
+        title: "Erro ao deletar material",
+        message:
+          err instanceof Error ? err.message : "Erro ao deletar material",
+      });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -181,6 +210,35 @@ export default function MateriaisPage() {
       subtitle="Acesse arquivos e links de estudo"
     >
       <div className="materiaisContainer">
+        {feedback && (
+          <div
+            className="feedbackOverlay"
+            onClick={() => setFeedback(null)}
+          >
+            <div
+              className={`feedbackCard ${feedback.kind}`}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="feedbackHeader">
+                <span className="feedbackBadge">
+                  {feedback.kind === "success" ? "OK" : "ERRO"}
+                </span>
+                <h3 className="feedbackTitle">{feedback.title}</h3>
+              </div>
+              {feedback.message && (
+                <p className="feedbackMessage">{feedback.message}</p>
+              )}
+              <button
+                className="btnConfirm"
+                type="button"
+                onClick={() => setFeedback(null)}
+              >
+                Fechar
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* HEADER COM FILTROS */}
         <div className="materiaisHeader">
           <div className="filtrosRow">
@@ -225,7 +283,10 @@ export default function MateriaisPage() {
           {canUpload && (
             <button
               className="uploadBtn"
-              onClick={() => setModalAberto(true)}
+              onClick={() => {
+                setModalAberto(true);
+                setFormError(null);
+              }}
             >
               ➕ Adicionar Material
             </button>
@@ -285,16 +346,8 @@ export default function MateriaisPage() {
 
                     {canUpload && (
                       <button
-                        onClick={() => handleDelete(material.id)}
-                        style={{
-                          marginLeft: "0.5rem",
-                          padding: "0.5rem 1rem",
-                          background: "#dc3545",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "4px",
-                          cursor: "pointer",
-                        }}
+                        onClick={() => setDeleteTarget(material)}
+                        className="materialDeleteBtn"
                       >
                         🗑️ Deletar
                       </button>
@@ -314,6 +367,7 @@ export default function MateriaisPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <h3>Adicionar Novo Material</h3>
+              {formError && <p className="formError">{formError}</p>}
 
               <form onSubmit={handleSubmit}>
                 <div className="formGroup">
@@ -429,6 +483,38 @@ export default function MateriaisPage() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {deleteTarget && (
+          <div className="modalOverlay" onClick={() => setDeleteTarget(null)}>
+            <div
+              className="modalContent"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <h3>Deletar material</h3>
+              <p className="confirmText">
+                Tem certeza que deseja deletar o material "{deleteTarget.titulo}"?
+              </p>
+              <div className="modalActions">
+                <button
+                  type="button"
+                  className="btnCancel"
+                  onClick={() => setDeleteTarget(null)}
+                  disabled={deleting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  className="btnDanger"
+                  onClick={confirmDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? "Deletando..." : "Deletar"}
+                </button>
+              </div>
             </div>
           </div>
         )}

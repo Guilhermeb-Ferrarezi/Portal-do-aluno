@@ -245,6 +245,24 @@
   transform: translateY(-1px);
 }
 
+.materialDeleteBtn {
+  margin-left: 0.5rem;
+  padding: 10px 14px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.materialDeleteBtn:hover {
+  background: #c52837;
+  transform: translateY(-1px);
+}
+
 /* EMPTY STATE */
 .emptyState {
   padding: 60px 20px;
@@ -304,6 +322,23 @@
   margin: 0 0 20px 0;
   font-size: 20px;
   font-weight: 800;
+  color: var(--text);
+}
+
+.formError {
+  margin: -4px 0 16px 0;
+  padding: 10px 12px;
+  background: rgba(220, 53, 69, 0.1);
+  color: #b4232f;
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.confirmText {
+  margin: 0 0 16px 0;
+  font-size: 14px;
   color: var(--text);
 }
 
@@ -406,6 +441,102 @@ textarea.formInput {
 .btnConfirm:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(225, 29, 46, 0.3);
+}
+
+.btnDanger {
+  flex: 1;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  background: #dc3545;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.btnDanger:hover {
+  background: #c52837;
+  transform: translateY(-2px);
+}
+
+.feedbackOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+.feedbackCard {
+  background: white;
+  padding: 24px;
+  border-radius: 14px;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: slideUp 0.3s ease;
+}
+
+.feedbackCard.success {
+  border: 2px solid rgba(22, 163, 74, 0.4);
+}
+
+.feedbackCard.error {
+  border: 2px solid rgba(220, 53, 69, 0.4);
+}
+
+.feedbackHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.feedbackBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #111827;
+  color: white;
+  font-weight: 800;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.feedbackCard.error .feedbackBadge {
+  background: #dc3545;
+}
+
+.feedbackCard.success .feedbackBadge {
+  background: #16a34a;
+}
+
+.feedbackTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.feedbackMessage {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 @keyframes fadeIn {
