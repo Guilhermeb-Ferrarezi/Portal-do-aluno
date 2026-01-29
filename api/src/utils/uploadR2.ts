@@ -2,132 +2,81 @@ import {
   S3Client,
   PutObjectCommand,
   DeleteObjectCommand,
-  GetObjectCommand,
 } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuidv4 } from "uuid";
-
-const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || "";
-const bucketName = process.env.CLOUDFLARE_BUCKET_NAME || "";
-
-const accessKeyId = process.env.CLOUDFLARE_ACCESS_KEY_ID || "";
-const secretAccessKey = process.env.CLOUDFLARE_SECRET_ACCESS_KEY || "";
-
-// Opcional: se você tiver um domínio público pro R2 (recomendado p/ público)
-// Ex: https://cdn.portaldoaluno.santos-tech.com
-const publicBaseUrl = (process.env.R2_PUBLIC_BASE_URL || "").replace(/\/+$/, "");
-
-function assertEnv() {
-  if (!accountId) throw new Error("CLOUDFLARE_ACCOUNT_ID não definido");
-  if (!bucketName) throw new Error("CLOUDFLARE_BUCKET_NAME não definido");
-  if (!accessKeyId) throw new Error("CLOUDFLARE_ACCESS_KEY_ID não definido");
-  if (!secretAccessKey) throw new Error("CLOUDFLARE_SECRET_ACCESS_KEY não definido");
-}
-
-assertEnv();
 
 const s3Client = new S3Client({
   region: "auto",
-  endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
-  credentials: { accessKeyId, secretAccessKey },
-  // IMPORTANTÍSSIMO pro R2 + presign + compatibilidade
-  forcePathStyle: true,
+  credentials: {
+    accessKeyId: process.env.CLOUDFLARE_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.CLOUDFLARE_SECRET_ACCESS_KEY || "",
+  },
+  endpoint: `https://${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com`,
 });
 
-export type UploadFile = {
-  originalname: string;
-  buffer: Buffer;
-  mimetype: string;
-};
-
-function extFromName(name: string) {
-  const parts = name.split(".");
-  return parts.length > 1 ? parts.pop()!.toLowerCase() : "";
-}
-
-function buildKey(folder: string, originalname: string) {
-  const safeFolder = (folder || "materiais").replace(/^\/+|\/+$/g, "");
-  const ext = extFromName(originalname);
-  const id = uuidv4();
-  return ext ? `${safeFolder}/${id}.${ext}` : `${safeFolder}/${id}`;
-}
+const bucketName = process.env.CLOUDFLARE_BUCKET_NAME || "";
 
 /**
- * Upload para R2
- * Retorna:
- * - key: caminho dentro do bucket
- * - publicUrl: se R2_PUBLIC_BASE_URL estiver setado (p/ conteúdo público)
+ * Upload de arquivo para CloudFlare R2
+ * Retorna a URL pública do arquivo
  */
-export async function uploadToR2(file: UploadFile, folder: string = "materiais") {
-  if (!file?.buffer?.length) throw new Error("Arquivo vazio");
+export async function uploadToR2(
+  file: {
+    originalname: string;
+    buffer: Buffer;
+    mimetype: string;
+  },
+  folder: string = "materiais"
+): Promise<string> {
+  if (!file.buffer || file.buffer.length === 0) {
+    throw new Error("Arquivo vazio");
+  }
 
-  const key = buildKey(folder, file.originalname);
+  // Gera nome único para o arquivo
+  const fileExtension = file.originalname.split(".").pop() || "";
+  const uniqueFilename = `${folder}/${uuidv4()}.${fileExtension}`;
 
-  await s3Client.send(
-    new PutObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-      Body: file.buffer,
-      ContentType: file.mimetype,
-    })
-  );
-
-  const publicUrl = publicBaseUrl ? `${publicBaseUrl}/${key}` : null;
-
-  return { key, publicUrl };
-}
-
-/**
- * Gera Signed URL (GET) para baixar/abrir o arquivo por X segundos
- */
-export async function getSignedGetUrl(key: string, expiresInSeconds: number = 300) {
-  if (!key) throw new Error("key obrigatória");
-
-  const cmd = new GetObjectCommand({
+  const uploadParams = {
     Bucket: bucketName,
-    Key: key,
-  });
+    Key: uniqueFilename,
+    Body: file.buffer,
+    ContentType: file.mimetype,
+  };
 
-  const url = await getSignedUrl(s3Client, cmd, { expiresIn: expiresInSeconds });
-  return url;
-}
-
-/**
- * Deleta do R2 usando a key
- */
-export async function deleteFromR2ByKey(key: string): Promise<void> {
-  if (!key) return;
-
-  await s3Client.send(
-    new DeleteObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    })
-  );
-}
-
-/**
- * Se você só tem URL salva no banco e quer deletar:
- * - se for URL do teu domínio público, extrai o path
- * - se for URL do endpoint, também extrai
- */
-export async function deleteFromR2(fileUrlOrKey: string): Promise<void> {
   try {
-    if (!fileUrlOrKey) return;
+    await s3Client.send(new PutObjectCommand(uploadParams));
 
-    // Se já parece ser key (não tem http)
-    if (!fileUrlOrKey.startsWith("http")) {
-      await deleteFromR2ByKey(fileUrlOrKey);
-      return;
+    // Retorna URL pública (CloudFlare R2)
+    // Formato: https://<bucket-name>@<account-id>.r2.cloudflarestorage.com/<file-key>
+    const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || "";
+    const fileUrl = `https://${bucketName}@${accountId}.r2.cloudflarestorage.com/${uniqueFilename}`;
+    return fileUrl;
+  } catch (error) {
+    throw new Error(`Erro ao fazer upload: ${error}`);
+  }
+}
+
+/**
+ * Deletar arquivo do CloudFlare R2
+ */
+export async function deleteFromR2(fileUrl: string): Promise<void> {
+  try {
+    // Extrai o caminho do arquivo da URL
+    const urlParts = fileUrl.split(`.r2.cloudflarestorage.com/`);
+    if (urlParts.length !== 2) {
+      throw new Error("URL inválida");
     }
 
-    const url = new URL(fileUrlOrKey);
-    const key = url.pathname.replace(/^\/+/, "");
-    if (!key) return;
+    const fileKey = urlParts[1];
 
-    await deleteFromR2ByKey(key);
-  } catch (err) {
-    console.error("Erro ao deletar no R2:", err);
-    // aqui você decide: ou joga erro, ou ignora como fazia antes
+    const deleteParams = {
+      Bucket: bucketName,
+      Key: fileKey,
+    };
+
+    await s3Client.send(new DeleteObjectCommand(deleteParams));
+  } catch (error) {
+    console.error(`Erro ao deletar arquivo: ${error}`);
+    // Não lança erro aqui para evitar quebrar a deleção do material se R2 falhar
   }
 }
