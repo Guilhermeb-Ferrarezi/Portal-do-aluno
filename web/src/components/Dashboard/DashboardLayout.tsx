@@ -24,7 +24,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
-  const canCreateUser = hasRole(["admin", "professor"]);
+  const canCreateUser = hasRole(["admin"]);
   const name = getName() ?? "Aluno";
   const role = getRole();
   const userId = getUserId();

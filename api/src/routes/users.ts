@@ -101,7 +101,7 @@ export function usersRouter(jwtSecret: string) {
   router.post(
     "/users",
     authGuard(jwtSecret),
-    requireRole(["admin", "professor"]),
+    requireRole(["admin"]),
     async (req: AuthRequest, res) => {
       const parsed = createUserSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -111,11 +111,9 @@ export function usersRouter(jwtSecret: string) {
         });
       }
 
-      const creatorRole = req.user!.role;
       const { usuario, nome, senha } = parsed.data;
 
-      let role: Role = (parsed.data.role ?? "aluno") as Role;
-      if (creatorRole === "professor") role = "aluno";
+      const role: Role = (parsed.data.role ?? "aluno") as Role;
 
       const ativo = parsed.data.ativo ?? true;
 

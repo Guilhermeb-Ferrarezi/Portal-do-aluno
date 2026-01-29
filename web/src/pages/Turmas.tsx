@@ -21,7 +21,7 @@ export default function TurmasPage() {
   const navigate = useNavigate();
   const role = getRole();
   const userId = getUserId();
-  const canCreate = role === "admin" || role === "professor";
+  const canCreate = role === "admin";
 
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [turmasAll, setTurmasAll] = React.useState<Turma[]>([]);

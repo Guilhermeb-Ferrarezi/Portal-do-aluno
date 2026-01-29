@@ -185,11 +185,11 @@ export function turmasRouter(jwtSecret: string) {
     });
   });
 
-  // POST /turmas - Criar turma
+  // POST /turmas - Criar turma (apenas admin)
   router.post(
     "/turmas",
     authGuard(jwtSecret),
-    requireRole(["admin", "professor"]),
+    requireRole(["admin"]),
     async (req: AuthRequest, res) => {
       const parsed = createTurmaSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -200,15 +200,10 @@ export function turmasRouter(jwtSecret: string) {
       }
 
       const { nome, tipo, professor_id, descricao } = parsed.data;
-      const userRole = req.user!.role;
       const userId = req.user!.sub;
 
-      // Admin pode se auto-atribuir se não passar professor_id
-      // Professor continua sempre se auto-atribuindo
-      const finalProfessorId =
-        userRole === "professor"
-          ? userId
-          : professor_id ?? (userRole === "admin" ? userId : null);
+      // Admin pode se auto-atribuir ou atribuir a outro professor
+      const finalProfessorId = professor_id ?? userId;
 
       const created = await pool.query<DbTurmaRow>(
         `INSERT INTO turmas (nome, tipo, professor_id, descricao)

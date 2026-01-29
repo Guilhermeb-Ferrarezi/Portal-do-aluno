@@ -94,7 +94,7 @@ export default function Dashboard() {
   const name = getName() ?? "Aluno";
   const role = getRole();
   const isAdmin = role === "admin";
-  const canCreateUser = hasRole(["admin", "professor"]);
+  const canCreateUser = hasRole(["admin"]);
 
   // Estados
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
@@ -134,9 +134,22 @@ export default function Dashboard() {
         let totalAlunosSistema = 0;
 
         if (isAdmin) {
+          // Contar alunos nas turmas que o admin é responsável
+          const detalhes = await Promise.all(
+            turmasData.map((turma) => obterTurma(turma.id).catch(() => null))
+          );
+
+          const ids = new Set<string>();
+          for (const detalhe of detalhes) {
+            if (!detalhe) continue;
+            detalhe.alunos.forEach((aluno) => ids.add(aluno.id));
+          }
+
+          alunosCount = ids.size;
+
+          // Total de alunos do sistema
           const alunosData = await listarAlunos().catch(() => []);
           const alunosFiltered = alunosData.filter((user) => user.role === "aluno");
-          alunosCount = alunosFiltered.length;
           totalAlunosSistema = alunosFiltered.length;
         } else if (role === "aluno") {
           const turmaAtual = turmasData[0];
