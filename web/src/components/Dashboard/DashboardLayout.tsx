@@ -145,7 +145,7 @@ export default function DashboardLayout({
                   onClick={() => setExpandirTurmas(!expandirTurmas)}
                 >
                   <span className="sbIcon" aria-hidden="true">📋</span>
-                  <span>Minhas Turmas</span>
+                  <span>Turmas</span>
                   <span className="sideExpand" aria-hidden="true">
                     {expandirTurmas ? "▼" : "▶"}
                   </span>

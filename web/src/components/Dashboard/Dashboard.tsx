@@ -40,6 +40,30 @@ function calcularSequencia(submissoes: Submissao[]) {
   return sequencia;
 }
 
+function calcularMediaNota(submissoes: Submissao[]) {
+  const notasPorExercicio = new Map<string, { nota: number; createdAt: string }>();
+
+  for (const submissao of submissoes) {
+    if (submissao.nota === null || submissao.nota === undefined) continue;
+    const atual = notasPorExercicio.get(submissao.exercicioId);
+    if (!atual || new Date(submissao.createdAt) > new Date(atual.createdAt)) {
+      notasPorExercicio.set(submissao.exercicioId, {
+        nota: submissao.nota,
+        createdAt: submissao.createdAt,
+      });
+    }
+  }
+
+  if (notasPorExercicio.size === 0) return null;
+
+  const soma = Array.from(notasPorExercicio.values()).reduce(
+    (total, item) => total + item.nota,
+    0
+  );
+  const mediaBruta = soma / notasPorExercicio.size;
+  return mediaBruta > 10 ? mediaBruta / 10 : mediaBruta;
+}
+
 function RingProgress({ value }: { value: number }) {
   const style = {
     background: `conic-gradient(var(--red) ${value}%, var(--ring) 0)`,
@@ -64,6 +88,7 @@ export default function Dashboard() {
   // Estados
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
+  const [submissoes, setSubmissoes] = React.useState<Submissao[]>([]);
   const [totalAlunos, setTotalAlunos] = React.useState(0);
   const [sequencia, setSequencia] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
@@ -84,6 +109,7 @@ export default function Dashboard() {
 
         setTurmas(turmasData);
         setExercicios(exerciciosData);
+        setSubmissoes(submissoesData);
         setSequencia(calcularSequencia(submissoesData));
 
         let alunosCount = 0;
@@ -167,7 +193,7 @@ export default function Dashboard() {
   };
 
   const streak = sequencia;
-  const mediaNota = 8.5;
+  const mediaNota = calcularMediaNota(submissoes);
   const ranking = 5;
 
   return (
@@ -312,15 +338,28 @@ export default function Dashboard() {
           <div className="perf">
             <div className="perfRow">
               <span className="muted">Média de notas</span>
-              <strong>{mediaNota.toFixed(1)}/10</strong>
+              <strong>
+                {mediaNota !== null ? `${mediaNota.toFixed(1)}/10` : "Nenhum exercício feito"}
+              </strong>
             </div>
-            <div className="bar">
-              <div className="barFillGreen" style={{ width: `${mediaNota * 10}%` }} />
-            </div>
-            <div className="perfRow" style={{ marginTop: 14 }}>
-              <span className="muted">Ranking</span>
-              <strong>#{ranking}</strong>
-            </div>
+            {mediaNota !== null ? (
+              <>
+                <div className="bar">
+                  <div
+                    className="barFillGreen"
+                    style={{ width: `${Math.min(mediaNota * 10, 100)}%` }}
+                  />
+                </div>
+                <div className="perfRow" style={{ marginTop: 14 }}>
+                  <span className="muted">Ranking</span>
+                  <strong>#{ranking}</strong>
+                </div>
+              </>
+            ) : (
+              <div className="mutedSmall" style={{ marginTop: 10 }}>
+                Envie um exercício para ver sua média.
+              </div>
+            )}
           </div>
         </div>
       </section>

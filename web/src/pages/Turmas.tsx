@@ -7,9 +7,9 @@ import {
   atualizarTurma,
   deletarTurma,
   getRole,
-  listarProfessores,
   listarAlunos,
   adicionarAlunosNaTurma,
+  apiFetch,
   type Turma,
   type User,
 } from "../services/api";
@@ -85,11 +85,18 @@ export default function TurmasPage() {
     }
     load();
 
-    // Se for admin, carregar lista de professores
+    // Se for admin, carregar lista de responsáveis (admins + professores)
     if (role === "admin") {
-      listarProfessores()
-        .then(setProfessores)
-        .catch((e) => console.error("Erro ao carregar professores:", e));
+      Promise.all([
+        apiFetch<User[]>("/users?role=professor"),
+        apiFetch<User[]>("/users?role=admin")
+      ])
+        .then(([profs, admins]) => {
+          const responsaveis = [...admins, ...profs]
+            .sort((a, b) => a.nome.localeCompare(b.nome));
+          setProfessores(responsaveis);
+        })
+        .catch((e) => console.error("Erro ao carregar responsáveis:", e));
     }
   }, [canCreate, navigate, role]);
 
@@ -347,21 +354,21 @@ export default function TurmasPage() {
 
             {role === "admin" && (
               <div className="turmaInputGroup">
-                <label className="turmaLabel">Professor Responsável</label>
+                <label className="turmaLabel">Responsável pela Turma</label>
                 <select
                   className="turmaSelect"
                   value={professorId}
                   onChange={(e) => setProfessorId(e.target.value)}
                 >
-                  <option value="">Sem professor definido</option>
+                  <option value="">Nenhum responsável</option>
                   {professores.map((prof) => (
                     <option key={prof.id} value={prof.id}>
-                      {prof.nome}
+                      {prof.nome} ({prof.role === "admin" ? "Admin" : "Professor"})
                     </option>
                   ))}
                 </select>
                 <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                  Deixe em branco para nenhum professor responsável
+                  Deixe em branco para nenhum responsável, ou selecione um admin/professor
                 </small>
               </div>
             )}

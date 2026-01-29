@@ -1,7 +1,7 @@
 ﻿import React from "react";
 import { useNavigate } from "react-router-dom";
-import { getName, getRole, getToken } from "../../../../auth/auth";
-import { listarTurmas } from "../../../../services/api";
+import { getName, getRole, getToken, getUserId } from "../../../../auth/auth";
+import { listarTurmas, apiFetch, type User } from "../../../../services/api";
 import DashboardLayout from "../../DashboardLayout";
 import "./CreateUser.css";
 
@@ -43,6 +43,7 @@ export default function CreateUser() {
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
   const [professorSelecionado, setProfessorSelecionado] = React.useState("");
+  const [professores, setProfessores] = React.useState<User[]>([]);
 
   const viewerName = getName() ?? "Usuário";
   const viewerRole = getRole();
@@ -52,12 +53,28 @@ export default function CreateUser() {
       try {
         const turmas = await listarTurmas();
         setTurmasDisponiveis(turmas);
+
+        // Carregar lista de responsáveis (admins + professores)
+        if (viewerRole === "admin") {
+          Promise.all([
+            apiFetch<User[]>("/users?role=professor"),
+            apiFetch<User[]>("/users?role=admin")
+          ])
+            .then(([profs, admins]) => {
+              setProfessores([...admins, ...profs].sort((a, b) => a.nome.localeCompare(b.nome)));
+            })
+            .catch(err => console.error("Erro ao carregar responsáveis:", err));
+        } else if (viewerRole === "professor") {
+          apiFetch<User[]>("/users?role=professor")
+            .then(setProfessores)
+            .catch(err => console.error("Erro ao carregar professores:", err));
+        }
       } catch (err) {
-        console.error("Erro ao carregar turmas:", err);
+        console.error("Erro ao carregar dados:", err);
       }
     }
     loadData();
-  }, []);
+  }, [viewerRole]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -221,15 +238,25 @@ export default function CreateUser() {
 
                 {tipoAluno === "particular" && (
                   <label>
-                    Professor Responsável
+                    Responsável pelo Aluno
                     <select
                       value={professorSelecionado}
                       onChange={(e) => setProfessorSelecionado(e.target.value)}
+                      required
                     >
-                      <option value="">Selecione um professor</option>
-                      {viewerRole === "professor" && (
-                        <option value={viewerName}>Eu mesmo</option>
+                      <option value="">Selecione um responsável</option>
+                      {(viewerRole === "professor" || viewerRole === "admin") && (
+                        <option value={getUserId() || ""}>
+                          Eu mesmo ({viewerRole === "admin" ? "Admin" : "Professor"})
+                        </option>
                       )}
+                      {professores
+                        .filter(p => p.id !== getUserId())
+                        .map((prof) => (
+                          <option key={prof.id} value={prof.id}>
+                            {prof.nome} ({prof.role === "admin" ? "Admin" : "Professor"})
+                          </option>
+                        ))}
                     </select>
                   </label>
                 )}

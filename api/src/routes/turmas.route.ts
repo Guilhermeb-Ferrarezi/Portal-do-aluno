@@ -173,8 +173,12 @@ export function turmasRouter(jwtSecret: string) {
       const userRole = req.user!.role;
       const userId = req.user!.sub;
 
-      // Se professor: apenas criar turmas para si
-      const finalProfessorId = userRole === "professor" ? userId : professor_id ?? null;
+      // Admin pode se auto-atribuir se não passar professor_id
+      // Professor continua sempre se auto-atribuindo
+      const finalProfessorId =
+        userRole === "professor"
+          ? userId
+          : professor_id ?? (userRole === "admin" ? userId : null);
 
       const created = await pool.query<DbTurmaRow>(
         `INSERT INTO turmas (nome, tipo, professor_id, descricao)
