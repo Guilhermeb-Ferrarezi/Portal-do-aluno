@@ -45,11 +45,16 @@ function calcularMediaNota(submissoes: Submissao[]) {
   const notasPorExercicio = new Map<string, { nota: number; createdAt: string }>();
 
   for (const submissao of submissoes) {
-    if (submissao.nota === null || submissao.nota === undefined) continue;
+    // Converter nota para número se necessário (defesa adicional)
+    const notaNum = typeof submissao.nota === 'string' ? parseFloat(submissao.nota) : submissao.nota;
+
+    // Ignorar notas inválidas
+    if (notaNum === null || notaNum === undefined || isNaN(notaNum)) continue;
+
     const atual = notasPorExercicio.get(submissao.exercicioId);
     if (!atual || new Date(submissao.createdAt) > new Date(atual.createdAt)) {
       notasPorExercicio.set(submissao.exercicioId, {
-        nota: submissao.nota,
+        nota: notaNum,
         createdAt: submissao.createdAt,
       });
     }
@@ -62,6 +67,10 @@ function calcularMediaNota(submissoes: Submissao[]) {
     0
   );
   const mediaBruta = soma / notasPorExercicio.size;
+
+  // Validação adicional de NaN
+  if (isNaN(mediaBruta)) return null;
+
   return mediaBruta > 10 ? mediaBruta / 10 : mediaBruta;
 }
 
@@ -366,10 +375,12 @@ export default function Dashboard() {
             <div className="perfRow">
               <span className="muted">Média de notas</span>
               <strong>
-                {mediaNota !== null ? `${mediaNota.toFixed(1)}/10` : "Nenhum exercício feito"}
+                {mediaNota !== null && !isNaN(mediaNota)
+                  ? `${mediaNota.toFixed(1)}/10`
+                  : "Nenhum exercício corrigido"}
               </strong>
             </div>
-            {mediaNota !== null ? (
+            {mediaNota !== null && !isNaN(mediaNota) ? (
               <>
                 <div className="bar">
                   <div
@@ -384,7 +395,7 @@ export default function Dashboard() {
               </>
             ) : (
               <div className="mutedSmall" style={{ marginTop: 10 }}>
-                Envie um exercício para ver sua média.
+                Envie um exercício e aguarde a correção para ver sua média.
               </div>
             )}
           </div>

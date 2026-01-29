@@ -7,6 +7,12 @@ import type { AuthRequest } from "../middlewares/auth";
 
 type TipoResposta = "codigo" | "texto";
 
+function parseNotaToNumber(nota: unknown): number | null {
+  if (nota === null || nota === undefined) return null;
+  const parsed = typeof nota === 'string' ? parseFloat(nota) : Number(nota);
+  return isNaN(parsed) ? null : parsed;
+}
+
 type SubmissaoRow = {
   id: string;
   exercicio_id: string;
@@ -234,7 +240,7 @@ export function submissoesRouter(jwtSecret: string) {
             resposta: submissao.resposta,
             tipoResposta: submissao.tipo_resposta,
             linguagem: submissao.linguagem,
-            nota: submissao.nota,
+            nota: parseNotaToNumber(submissao.nota),
             corrigida: submissao.corrigida,
             feedbackProfessor: submissao.feedback_professor,
             isLate: submissao.is_late ?? false,
@@ -278,7 +284,7 @@ export function submissoesRouter(jwtSecret: string) {
             resposta: row.resposta,
             tipoResposta: row.tipo_resposta,
             linguagem: row.linguagem,
-            nota: row.nota,
+            nota: parseNotaToNumber(row.nota),
             corrigida: row.corrigida,
             feedbackProfessor: row.feedback_professor,
             verificacaoDescricao: calcularScoreAderencia(row.resposta, row.tipo_resposta, row.exercicio_descricao, row.exercicio_gabarito),
@@ -327,7 +333,7 @@ export function submissoesRouter(jwtSecret: string) {
           resposta: row.resposta,
           tipoResposta: row.tipo_resposta,
           linguagem: row.linguagem,
-          nota: row.nota,
+          nota: parseNotaToNumber(row.nota),
           corrigida: row.corrigida,
           feedbackProfessor: row.feedback_professor,
           verificacaoDescricao: calcularScoreAderencia(row.resposta, row.tipo_resposta, row.exercicio_descricao, row.exercicio_gabarito),
@@ -376,7 +382,7 @@ export function submissoesRouter(jwtSecret: string) {
             resposta: row.resposta,
             tipoResposta: row.tipo_resposta,
             linguagem: row.linguagem,
-            nota: row.nota,
+            nota: parseNotaToNumber(row.nota),
             corrigida: row.corrigida,
             feedbackProfessor: row.feedback_professor,
             verificacaoDescricao: calcularScoreAderencia(row.resposta, row.tipo_resposta, row.exercicio_descricao, row.exercicio_gabarito),
@@ -432,7 +438,7 @@ export function submissoesRouter(jwtSecret: string) {
             resposta: submissao.resposta,
             tipoResposta: submissao.tipo_resposta,
             linguagem: submissao.linguagem,
-            nota: submissao.nota,
+            nota: parseNotaToNumber(submissao.nota),
             corrigida: submissao.corrigida,
             feedbackProfessor: submissao.feedback_professor,
             createdAt: submissao.created_at,
