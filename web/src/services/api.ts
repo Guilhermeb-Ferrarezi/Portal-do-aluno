@@ -178,6 +178,10 @@ export async function listarTurmas() {
   return apiFetch<Turma[]>("/turmas");
 }
 
+export async function obterTotalTurmas() {
+  return apiFetch<{ total: number }>("/turmas/total");
+}
+
 export async function obterTurma(id: string) {
   return apiFetch<Turma & {
     alunos: Array<{ id: string; usuario: string; nome: string; role: Role }>;

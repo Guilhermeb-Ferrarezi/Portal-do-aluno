@@ -4,6 +4,7 @@ import DashboardLayout from "./DashboardLayout";
 import { getName, getRole, hasRole } from "../../auth/auth";
 import {
   listarTurmas,
+  obterTotalTurmas,
   listarExercicios,
   listarAlunos,
   obterTurma,
@@ -87,6 +88,7 @@ export default function Dashboard() {
 
   // Estados
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
+  const [totalTurmasDoSistema, setTotalTurmasDoSistema] = React.useState(0);
   const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
   const [submissoes, setSubmissoes] = React.useState<Submissao[]>([]);
   const [totalAlunos, setTotalAlunos] = React.useState(0);
@@ -101,13 +103,15 @@ export default function Dashboard() {
         setLoading(true);
         setErro(null);
 
-        const [turmasData, exerciciosData, submissoesData] = await Promise.all([
+        const [turmasData, exerciciosData, submissoesData, totalTurmasResult] = await Promise.all([
           listarTurmas(),
           listarExercicios(),
           todasMinhasSubmissoes().catch(() => []),
+          obterTotalTurmas().catch(() => ({ total: 0 })),
         ]);
 
         setTurmas(turmasData);
+        setTotalTurmasDoSistema(totalTurmasResult.total);
         setExercicios(exerciciosData);
         setSubmissoes(submissoesData);
         setSequencia(calcularSequencia(submissoesData));
@@ -209,8 +213,12 @@ export default function Dashboard() {
           </div>
           <div className="kv">
             <div className="kvRow">
-              <span>Total de turmas</span>
+              <span>Turmas que participo</span>
               <strong>{totalTurmas}</strong>
+            </div>
+            <div className="kvRow">
+              <span>Total no sistema</span>
+              <strong style={{ color: "var(--muted)", fontSize: "14px" }}>{totalTurmasDoSistema}</strong>
             </div>
           </div>
         </div>

@@ -77,6 +77,20 @@ export function turmasRouter(jwtSecret: string) {
     );
   });
 
+  // GET /turmas/total - Retorna o total de turmas do sistema
+  router.get("/turmas/total", authGuard(jwtSecret), async (_req: AuthRequest, res) => {
+    try {
+      const result = await pool.query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM turmas WHERE ativo = true`
+      );
+      const total = parseInt(result.rows[0]?.count ?? "0", 10);
+      return res.json({ total });
+    } catch (error) {
+      console.error("Erro ao contar turmas:", error);
+      return res.status(500).json({ message: "Erro ao contar turmas" });
+    }
+  });
+
   // GET /turmas/:id - Detalhes de uma turma com alunos e exercícios
   router.get("/turmas/:id", authGuard(jwtSecret), async (req: AuthRequest, res) => {
     const { id } = req.params;
