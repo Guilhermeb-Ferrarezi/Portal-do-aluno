@@ -77,6 +77,22 @@ export function turmasRouter(jwtSecret: string) {
     );
   });
 
+  // GET /turmas/meus-responsaveis - Retorna turmas que o usuário é responsável (professor_id)
+  router.get("/turmas/meus-responsaveis/count", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+    try {
+      const userId = req.user!.sub;
+      const result = await pool.query<{ count: string }>(
+        `SELECT COUNT(*) as count FROM turmas WHERE ativo = true AND professor_id = $1`,
+        [userId]
+      );
+      const total = parseInt(result.rows[0]?.count ?? "0", 10);
+      return res.json({ total });
+    } catch (error) {
+      console.error("Erro ao contar turmas responsáveis:", error);
+      return res.status(500).json({ message: "Erro ao contar turmas responsáveis" });
+    }
+  });
+
   // GET /turmas/total - Retorna o total de turmas do sistema
   router.get("/turmas/total", authGuard(jwtSecret), async (_req: AuthRequest, res) => {
     try {

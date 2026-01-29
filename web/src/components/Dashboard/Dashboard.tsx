@@ -4,12 +4,12 @@ import DashboardLayout from "./DashboardLayout";
 import { getName, getRole, hasRole } from "../../auth/auth";
 import {
   listarTurmas,
+  obterTurmasResponsavel,
   obterTotalTurmas,
   listarExercicios,
   listarAlunos,
   obterTurma,
   todasMinhasSubmissoes,
-  type Turma,
   type Exercicio,
   type Submissao,
 } from "../../services/api";
@@ -87,7 +87,7 @@ export default function Dashboard() {
   const canCreateUser = hasRole(["admin", "professor"]);
 
   // Estados
-  const [turmas, setTurmas] = React.useState<Turma[]>([]);
+  const [turmasResponsavel, setTurmasResponsavel] = React.useState(0);
   const [totalTurmasDoSistema, setTotalTurmasDoSistema] = React.useState(0);
   const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
   const [submissoes, setSubmissoes] = React.useState<Submissao[]>([]);
@@ -103,14 +103,15 @@ export default function Dashboard() {
         setLoading(true);
         setErro(null);
 
-        const [turmasData, exerciciosData, submissoesData, totalTurmasResult] = await Promise.all([
+        const [turmasData, exerciciosData, submissoesData, turmasResponsavelResult, totalTurmasResult] = await Promise.all([
           listarTurmas(),
           listarExercicios(),
           todasMinhasSubmissoes().catch(() => []),
+          obterTurmasResponsavel().catch(() => ({ total: 0 })),
           obterTotalTurmas().catch(() => ({ total: 0 })),
         ]);
 
-        setTurmas(turmasData);
+        setTurmasResponsavel(turmasResponsavelResult.total);
         setTotalTurmasDoSistema(totalTurmasResult.total);
         setExercicios(exerciciosData);
         setSubmissoes(submissoesData);
@@ -180,7 +181,6 @@ export default function Dashboard() {
   }
 
   // Calcular estatísticas
-  const totalTurmas = turmas.length;
   const totalExercicios = exercicios.length;
   const exerciciosPendentes = exercicios.filter(
     (e) => e.prazo && new Date(e.prazo) > new Date()
@@ -208,13 +208,13 @@ export default function Dashboard() {
           <div className="cardHead">
             <div>
               <div className="kicker">MINHAS TURMAS</div>
-              <div className="big">{totalTurmas}</div>
+              <div className="big">{turmasResponsavel}</div>
             </div>
           </div>
           <div className="kv">
             <div className="kvRow">
-              <span>Turmas que participo</span>
-              <strong>{totalTurmas}</strong>
+              <span>Turmas que sou responsável</span>
+              <strong>{turmasResponsavel}</strong>
             </div>
             <div className="kvRow">
               <span>Total no sistema</span>

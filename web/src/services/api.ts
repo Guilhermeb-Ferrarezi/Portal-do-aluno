@@ -178,6 +178,10 @@ export async function listarTurmas() {
   return apiFetch<Turma[]>("/turmas");
 }
 
+export async function obterTurmasResponsavel() {
+  return apiFetch<{ total: number }>("/turmas/meus-responsaveis/count");
+}
+
 export async function obterTotalTurmas() {
   return apiFetch<{ total: number }>("/turmas/total");
 }
