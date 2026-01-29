@@ -47,7 +47,7 @@ export async function uploadToR2(
     await s3Client.send(new PutObjectCommand(uploadParams));
 
     // Retorna URL pública (CloudFlare R2 suporta URLs diretas)
-    const fileUrl = `https://${bucketName}.b2.${process.env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/${uniqueFilename}`;
+    const fileUrl = `https://${bucketName}.r2.cloudflarestorage.com/${uniqueFilename}`;
     return fileUrl;
   } catch (error) {
     throw new Error(`Erro ao fazer upload: ${error}`);
