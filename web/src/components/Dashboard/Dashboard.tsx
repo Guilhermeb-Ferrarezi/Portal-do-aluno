@@ -222,8 +222,6 @@ export default function Dashboard() {
           </div>
           <div className="kv">
             <div className="kvRow">
-              <span>Turmas que sou responsável</span>
-              <strong>{turmasResponsavel}</strong>
             </div>
             <div className="kvRow">
               <span>Total no sistema</span>
