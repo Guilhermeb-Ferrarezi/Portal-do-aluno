@@ -170,7 +170,7 @@ export function materiaisRouter(jwtSecret: string) {
         res.status(201).json({ message: "Material criado com sucesso", material });
       } catch (error) {
         console.error(error);
-        res.status(500).json({ message: error });
+        res.status(500).json({error});
       }
     }
   );
