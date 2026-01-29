@@ -192,6 +192,14 @@ export function submissoesRouter(jwtSecret: string) {
         const prazo = exRow.prazo ? new Date(exRow.prazo) : null;
         const agora = new Date();
         const isLate = prazo && agora > prazo;
+
+        // Bloquear submissão se o prazo expirou
+        if (prazo && agora > prazo) {
+          return res.status(400).json({
+            message: "O prazo para submissão deste exercício já expirou. Não é mais possível enviar respostas."
+          });
+        }
+
         const { resposta, tipo_resposta, linguagem } = parsed.data;
 
         // Corrigir automaticamente se houver gabarito

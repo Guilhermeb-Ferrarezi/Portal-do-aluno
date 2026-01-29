@@ -139,14 +139,6 @@ export default function ExerciseDetail() {
       return;
     }
 
-    // Validar prazo
-    if (prazoVencido) {
-      const confirmado = window.confirm(
-        "⚠️ O prazo para este exercício já passou.\n\nDeseja enviar mesmo assim? A submissão será marcada como atrasada."
-      );
-      if (!confirmado) return;
-    }
-
     try {
       setEnviando(true);
       setErroSubmissao(null);
@@ -209,7 +201,7 @@ export default function ExerciseDetail() {
   }
 
   const prazoData = exercicio.prazo ? new Date(exercicio.prazo) : null;
-  const prazoVencido = prazoData && prazoData < new Date();
+  const prazoVencido = prazoData ? prazoData < new Date() : false;
   const temaTema = exercicio.tema || "Sem tema";
   const tipoExercicio = exercicio.tipoExercicio || "texto";
 
@@ -480,13 +472,14 @@ export default function ExerciseDetail() {
                 <div style={{
                   padding: "12px",
                   marginBottom: "12px",
-                  backgroundColor: "#fff3cd",
-                  border: "1px solid #ffc107",
+                  backgroundColor: "#f8d7da",
+                  border: "1px solid #f5c6cb",
                   borderRadius: "4px",
-                  color: "#856404",
+                  color: "#721c24",
                   fontSize: "14px",
+                  fontWeight: "500",
                 }}>
-                  ⚠️ <strong>Prazo vencido:</strong> Este exercício será registrado como envio atrasado.
+                  ⏰ <strong>Prazo expirado:</strong> Não é mais possível enviar respostas para este exercício.
                 </div>
               )}
 
@@ -494,9 +487,9 @@ export default function ExerciseDetail() {
               <button
                 className="edSubmitBtn"
                 onClick={handleEnviar}
-                disabled={enviando || resposta.trim().length === 0}
+                disabled={enviando || resposta.trim().length === 0 || prazoVencido}
               >
-                {enviando ? "⏳ Enviando..." : "✨ Enviar Resposta"}
+                {prazoVencido ? "❌ Prazo Expirado" : enviando ? "⏳ Enviando..." : "✨ Enviar Resposta"}
               </button>
 
               <div className="edHint">
