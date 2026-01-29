@@ -79,10 +79,6 @@ export default function TurmasPage() {
   }
 
   React.useEffect(() => {
-    if (!canCreate) {
-      navigate("/dashboard");
-      return;
-    }
     load();
 
     // Se for admin, carregar lista de responsáveis (admins + professores)
@@ -98,7 +94,7 @@ export default function TurmasPage() {
         })
         .catch((e) => console.error("Erro ao carregar responsáveis:", e));
     }
-  }, [canCreate, navigate, role]);
+  }, [role]);
 
   React.useEffect(() => {
     if (role !== "admin") return;
@@ -254,10 +250,11 @@ export default function TurmasPage() {
     role === "admin" && filtroTurmas === "minhas"
       ? "Nenhuma turma vinculada a você"
       : "Nenhuma turma registrada";
-  const emptyDescription =
-    role === "admin" && filtroTurmas === "minhas"
-      ? "Crie uma turma ou altere para \"Todas\" para ver todas as turmas."
-      : "Crie sua primeira turma preenchendo o formulário acima.";
+  const emptyDescription = !canCreate
+    ? "Voce ainda nao esta em nenhuma turma."
+    : role === "admin" && filtroTurmas === "minhas"
+    ? "Crie uma turma ou altere para \"Todas\" para ver todas as turmas."
+    : "Crie sua primeira turma preenchendo o formulario acima.";
 
   return (
     <DashboardLayout
@@ -311,103 +308,105 @@ export default function TurmasPage() {
         )}
 
         {/* FORMULÁRIO */}
-        <div className="turmaFormCard">
-          <h2 className="turmaFormTitle">
-            {editandoId ? "Editar Turma" : "Criar Nova Turma"}
-          </h2>
+        {canCreate && (
+          <div className="turmaFormCard">
+            <h2 className="turmaFormTitle">
+              {editandoId ? "Editar Turma" : "Criar Nova Turma"}
+            </h2>
 
-          <form onSubmit={handleSubmit} className="turmaForm">
-            <div className="turmaInputGroup">
-              <label className="turmaLabel">Nome da Turma *</label>
-              <input
-                className="turmaInput"
-                placeholder="ex: Turma A 2024"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="turmaInputGroup">
-              <label className="turmaLabel">Tipo *</label>
-              <select
-                className="turmaSelect"
-                value={tipo}
-                onChange={(e) => setTipo(e.target.value as "turma" | "particular")}
-              >
-                <option value="turma">Turma (Grupo)</option>
-                <option value="particular">Particular</option>
-              </select>
-            </div>
-
-            <div className="turmaInputGroup">
-              <label className="turmaLabel">Categoria *</label>
-              <select
-                className="turmaSelect"
-                value={categoria}
-                onChange={(e) => setCategoria(e.target.value as "programacao" | "informatica")}
-              >
-                <option value="programacao">Programação</option>
-                <option value="informatica">Informática</option>
-              </select>
-            </div>
-
-            {role === "admin" && (
+            <form onSubmit={handleSubmit} className="turmaForm">
               <div className="turmaInputGroup">
-                <label className="turmaLabel">Responsável pela Turma</label>
+                <label className="turmaLabel">Nome da Turma *</label>
+                <input
+                  className="turmaInput"
+                  placeholder="ex: Turma A 2024"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="turmaInputGroup">
+                <label className="turmaLabel">Tipo *</label>
                 <select
                   className="turmaSelect"
-                  value={professorId}
-                  onChange={(e) => setProfessorId(e.target.value)}
+                  value={tipo}
+                  onChange={(e) => setTipo(e.target.value as "turma" | "particular")}
                 >
-                  <option value="">Nenhum responsável</option>
-                  {professores.map((prof) => (
-                    <option key={prof.id} value={prof.id}>
-                      {prof.nome} ({prof.role === "admin" ? "Admin" : "Professor"})
-                    </option>
-                  ))}
+                  <option value="turma">Turma (Grupo)</option>
+                  <option value="particular">Particular</option>
                 </select>
-                <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                  Deixe em branco para nenhum responsável, ou selecione um admin/professor
-                </small>
               </div>
-            )}
 
-            <div className="turmaInputGroup">
-              <label className="turmaLabel">Descrição</label>
-              <textarea
-                className="turmaTextarea"
-                placeholder="Descrição opcional da turma..."
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-              />
-            </div>
-
-            <div className="turmaActions">
-              <button
-                type="submit"
-                className="turmaSubmitBtn"
-                disabled={disabled}
-              >
-                {saving
-                  ? "⏳ Salvando..."
-                  : editandoId
-                  ? "💾 Atualizar Turma"
-                  : "➕ Criar Turma"}
-              </button>
-              {editandoId && (
-                <button
-                  type="button"
-                  className="turmaCancelBtn"
-                  onClick={handleCancel}
-                  disabled={saving}
+              <div className="turmaInputGroup">
+                <label className="turmaLabel">Categoria *</label>
+                <select
+                  className="turmaSelect"
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value as "programacao" | "informatica")}
                 >
-                  ❌ Cancelar
-                </button>
+                  <option value="programacao">Programação</option>
+                  <option value="informatica">Informática</option>
+                </select>
+              </div>
+
+              {role === "admin" && (
+                <div className="turmaInputGroup">
+                  <label className="turmaLabel">Responsável pela Turma</label>
+                  <select
+                    className="turmaSelect"
+                    value={professorId}
+                    onChange={(e) => setProfessorId(e.target.value)}
+                  >
+                    <option value="">Nenhum responsável</option>
+                    {professores.map((prof) => (
+                      <option key={prof.id} value={prof.id}>
+                        {prof.nome} ({prof.role === "admin" ? "Admin" : "Professor"})
+                      </option>
+                    ))}
+                  </select>
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    Deixe em branco para nenhum responsável, ou selecione um admin/professor
+                  </small>
+                </div>
               )}
-            </div>
-          </form>
-        </div>
+
+              <div className="turmaInputGroup">
+                <label className="turmaLabel">Descrição</label>
+                <textarea
+                  className="turmaTextarea"
+                  placeholder="Descrição opcional da turma..."
+                  value={descricao}
+                  onChange={(e) => setDescricao(e.target.value)}
+                />
+              </div>
+
+              <div className="turmaActions">
+                <button
+                  type="submit"
+                  className="turmaSubmitBtn"
+                  disabled={disabled}
+                >
+                  {saving
+                    ? "⏳ Salvando..."
+                    : editandoId
+                    ? "💾 Atualizar Turma"
+                    : "➕ Criar Turma"}
+                </button>
+                {editandoId && (
+                  <button
+                    type="button"
+                    className="turmaCancelBtn"
+                    onClick={handleCancel}
+                    disabled={saving}
+                  >
+                    ❌ Cancelar
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+        )}
 
         {/* LISTA DE TURMAS */}
         <div>
@@ -435,22 +434,24 @@ export default function TurmasPage() {
                         {turma.tipo === "turma" ? "👥 Grupo" : "👤 Particular"}
                       </span>
                     </div>
-                    <div className="turmaCardActions">
-                      <button
-                        className="turmaEditBtn"
-                        onClick={() => handleEdit(turma)}
-                        title="Editar turma"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="turmaDeleteBtn"
-                        onClick={() => abrirModalDeletar(turma.id, turma.nome)}
-                        title="Deletar turma"
-                      >
-                        🗑️
-                      </button>
-                    </div>
+                    {canCreate && (
+                      <div className="turmaCardActions">
+                        <button
+                          className="turmaEditBtn"
+                          onClick={() => handleEdit(turma)}
+                          title="Editar turma"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          className="turmaDeleteBtn"
+                          onClick={() => abrirModalDeletar(turma.id, turma.nome)}
+                          title="Deletar turma"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {turma.descricao && (
@@ -475,12 +476,14 @@ export default function TurmasPage() {
                   </div>
 
                   <div className="turmaCardFooter">
-                    <button
-                      className="turmaManageBtn"
-                      onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
-                    >
-                      👥 Gerenciar Alunos
-                    </button>
+                    {canCreate && (
+                      <button
+                        className="turmaManageBtn"
+                        onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
+                      >
+                        👥 Gerenciar Alunos
+                      </button>
+                    )}
                     <button
                       className="turmaViewBtn"
                       onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
