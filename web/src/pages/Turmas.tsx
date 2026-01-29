@@ -249,9 +249,11 @@ export default function TurmasPage() {
   const emptyTitle =
     role === "admin" && filtroTurmas === "minhas"
       ? "Nenhuma turma vinculada a você"
+      : role === "aluno"
+      ? "Não registrado em nenhuma turma"
       : "Nenhuma turma registrada";
   const emptyDescription = !canCreate
-    ? "Voce ainda nao esta em nenhuma turma."
+    ? "Você ainda não está registrado em nenhuma turma. Aguarde um professor ou admin adicioná-lo a uma turma."
     : role === "admin" && filtroTurmas === "minhas"
     ? "Crie uma turma ou altere para \"Todas\" para ver todas as turmas."
     : "Crie sua primeira turma preenchendo o formulario acima.";

@@ -12,6 +12,7 @@ import {
   todasMinhasSubmissoes,
   type Exercicio,
   type Submissao,
+  type Turma,
 } from "../../services/api";
 
 function toDateKey(date: Date) {
@@ -96,6 +97,7 @@ export default function Dashboard() {
   const canCreateUser = hasRole(["admin", "professor"]);
 
   // Estados
+  const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [turmasResponsavel, setTurmasResponsavel] = React.useState(0);
   const [totalTurmasDoSistema, setTotalTurmasDoSistema] = React.useState(0);
   const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
@@ -120,6 +122,7 @@ export default function Dashboard() {
           obterTotalTurmas().catch(() => ({ total: 0 })),
         ]);
 
+        setTurmas(turmasData);
         setTurmasResponsavel(turmasResponsavelResult.total);
         setTotalTurmasDoSistema(totalTurmasResult.total);
         setExercicios(exerciciosData);
@@ -213,22 +216,28 @@ export default function Dashboard() {
     <DashboardLayout title="Dashboard" subtitle={`Bem-vindo de volta, ${name}`}>
       {/* SEÇÃO 1: ESTATÍSTICAS */}
       <section className="grid3">
-        <div className="card">
-          <div className="cardHead">
-            <div>
-              <div className="kicker">MINHAS TURMAS</div>
-              <div className="big">{turmasResponsavel}</div>
+        {(role !== "aluno" || turmas.length > 0) && (
+          <div className="card">
+            <div className="cardHead">
+              <div>
+                <div className="kicker">MINHAS TURMAS</div>
+                <div className="big">{role === "aluno" ? turmas.length : turmasResponsavel}</div>
+              </div>
+            </div>
+            <div className="kv">
+              <div className="kvRow">
+                <span>{role === "aluno" ? "Turmas registrado" : "Turmas responsável"}</span>
+                <strong>{role === "aluno" ? turmas.length : turmasResponsavel}</strong>
+              </div>
+              {role !== "aluno" && (
+                <div className="kvRow">
+                  <span>Total no sistema</span>
+                  <strong style={{ color: "var(--muted)", fontSize: "14px" }}>{totalTurmasDoSistema}</strong>
+                </div>
+              )}
             </div>
           </div>
-          <div className="kv">
-            <div className="kvRow">
-            </div>
-            <div className="kvRow">
-              <span>Total no sistema</span>
-              <strong style={{ color: "var(--muted)", fontSize: "14px" }}>{totalTurmasDoSistema}</strong>
-            </div>
-          </div>
-        </div>
+        )}
 
         <div className="card">
           <div className="cardHead">
