@@ -269,3 +269,58 @@ export function getRole(): Role | null {
   const r = localStorage.getItem("role");
   return r === "admin" || r === "professor" || r === "aluno" ? r : null;
 }
+
+export type Material = {
+  id: string;
+  titulo: string;
+  tipo: "arquivo" | "link";
+  modulo: string;
+  descricao: string | null;
+  url: string;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export async function listarMateriais(modulo?: string) {
+  const query = modulo ? `?modulo=${encodeURIComponent(modulo)}` : "";
+  return apiFetch<Material[]>(`/materiais${query}`);
+}
+
+export async function obterMaterial(id: string) {
+  return apiFetch<Material>(`/materiais/${id}`);
+}
+
+export async function criarMaterial(dados: FormData) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_BASE_URL}/materiais`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: dados,
+  });
+
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json() as Promise<{ message: string; material: Material }>;
+}
+
+export async function atualizarMaterial(id: string, dados: FormData) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_BASE_URL}/materiais/${id}`, {
+    method: "PUT",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: dados,
+  });
+
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json() as Promise<{ message: string; material: Material }>;
+}
+
+export async function deletarMaterial(id: string) {
+  return apiFetch<{ message: string }>(`/materiais/${id}`, {
+    method: "DELETE",
+  });
+}
