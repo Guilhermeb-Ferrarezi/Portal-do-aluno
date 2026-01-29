@@ -103,6 +103,7 @@ export default function Dashboard() {
   const [exercicios, setExercicios] = React.useState<Exercicio[]>([]);
   const [submissoes, setSubmissoes] = React.useState<Submissao[]>([]);
   const [totalAlunos, setTotalAlunos] = React.useState(0);
+  const [totalAlunosDoSistema, setTotalAlunosDoSistema] = React.useState(0);
   const [sequencia, setSequencia] = React.useState(0);
   const [loading, setLoading] = React.useState(true);
   const [erro, setErro] = React.useState<string | null>(null);
@@ -130,10 +131,13 @@ export default function Dashboard() {
         setSequencia(calcularSequencia(submissoesData));
 
         let alunosCount = 0;
+        let totalAlunosSistema = 0;
 
         if (isAdmin) {
           const alunosData = await listarAlunos().catch(() => []);
-          alunosCount = alunosData.filter((user) => user.role === "aluno").length;
+          const alunosFiltered = alunosData.filter((user) => user.role === "aluno");
+          alunosCount = alunosFiltered.length;
+          totalAlunosSistema = alunosFiltered.length;
         } else if (role === "aluno") {
           const turmaAtual = turmasData[0];
           if (turmaAtual) {
@@ -157,6 +161,7 @@ export default function Dashboard() {
         }
 
         setTotalAlunos(alunosCount);
+        setTotalAlunosDoSistema(totalAlunosSistema);
       } catch (e) {
         setErro(e instanceof Error ? e.message : "Erro ao carregar dados");
       } finally {
@@ -249,9 +254,15 @@ export default function Dashboard() {
             </div>
             <div className="kv">
               <div className="kvRow">
-                <span>Total de alunos {isAdmin ? "cadastrados" : "na turma"}</span>
+                <span>Alunos nas {isAdmin ? "minhas turmas" : "turma"}</span>
                 <strong>{totalAlunos}</strong>
               </div>
+              {isAdmin && (
+                <div className="kvRow">
+                  <span>Total no sistema</span>
+                  <strong style={{ color: "var(--muted)", fontSize: "14px" }}>{totalAlunosDoSistema}</strong>
+                </div>
+              )}
             </div>
           </div>
         )}
