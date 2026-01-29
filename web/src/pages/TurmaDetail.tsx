@@ -3,9 +3,11 @@ import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import {
   obterTurma,
+  atualizarTurma,
   removerAlunoDaTurma,
   adicionarAlunosNaTurma,
   listarAlunos,
+  apiFetch,
   getRole,
   type Turma,
   type User,
@@ -28,6 +30,10 @@ export default function TurmaDetailPage() {
   const [loading, setLoading] = React.useState(false);
   const [erro, setErro] = React.useState<string | null>(null);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
+
+  const [responsaveis, setResponsaveis] = React.useState<User[]>([]);
+  const [professorSelecionado, setProfessorSelecionado] = React.useState("");
+  const [salvandoResponsavel, setSalvandoResponsavel] = React.useState(false);
 
   const [modalAdicionarAberto, setModalAdicionarAberto] = React.useState(false);
   const [alunosDisponiveis, setAlunosDisponiveis] = React.useState<User[]>([]);
@@ -55,6 +61,44 @@ export default function TurmaDetailPage() {
     }
     load();
   }, [backPath, id, navigate]);
+
+  React.useEffect(() => {
+    if (role !== "admin") return;
+    Promise.all([
+      apiFetch<User[]>("/users?role=professor"),
+      apiFetch<User[]>("/users?role=admin"),
+    ])
+      .then(([profs, admins]) => {
+        const responsaveisOrdenados = [...admins, ...profs].sort((a, b) =>
+          a.nome.localeCompare(b.nome)
+        );
+        setResponsaveis(responsaveisOrdenados);
+      })
+      .catch((e) => console.error("Erro ao carregar responsÃ¡veis:", e));
+  }, [role]);
+
+  React.useEffect(() => {
+    if (role !== "admin") return;
+    setProfessorSelecionado(turma?.professorId ?? "");
+  }, [role, turma?.professorId]);
+
+  async function handleAtualizarResponsavel() {
+    if (!id || role !== "admin") return;
+    const professorId = professorSelecionado || null;
+
+    try {
+      setSalvandoResponsavel(true);
+      setErro(null);
+      setOkMsg(null);
+      await atualizarTurma(id, { professor_id: professorId });
+      setOkMsg("ResponsÃ¡vel atualizado com sucesso!");
+      await load();
+    } catch (e) {
+      setErro(e instanceof Error ? e.message : "Erro ao atualizar responsÃ¡vel");
+    } finally {
+      setSalvandoResponsavel(false);
+    }
+  }
 
   async function handleRemoverAluno(alunoId: string) {
     if (!id || !turma) return;
@@ -128,6 +172,13 @@ export default function TurmaDetailPage() {
     );
   }
 
+  const responsavelAtual = (() => {
+    if (!turma.professorId) return "Nenhum responsÃ¡vel definido";
+    const found = responsaveis.find((user) => user.id === turma.professorId);
+    if (!found) return "ResponsÃ¡vel nÃ£o encontrado";
+    return `${found.nome} (${found.role === "admin" ? "Admin" : "Professor"})`;
+  })();
+
   return (
     <DashboardLayout
       title={turma.nome}
@@ -158,6 +209,7 @@ export default function TurmaDetailPage() {
                 {turma.descricao && <> • {turma.descricao}</>}
               </p>
             </div>
+
             <button
               className="btnBack"
               onClick={() => navigate(backPath)}
@@ -165,6 +217,45 @@ export default function TurmaDetailPage() {
               ← Voltar
             </button>
           </div>
+
+          {role === "admin" && (
+            <div className="responsavelSection">
+              <div className="responsavelHeader">
+                <div>
+                  <div className="responsavelLabel">ResponsÃ¡vel pela turma</div>
+                  <div className="responsavelValue">{responsavelAtual}</div>
+                </div>
+                <div className="responsavelControls">
+                  <select
+                    className="responsavelSelect"
+                    value={professorSelecionado}
+                    onChange={(e) => setProfessorSelecionado(e.target.value)}
+                  >
+                    <option value="">Sem responsável</option>
+                    {responsaveis.map((responsavel) => (
+                      <option key={responsavel.id} value={responsavel.id}>
+                        {responsavel.nome} ({responsavel.role === "admin" ? "Admin" : "Professor"})
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="responsavelBtn"
+                    onClick={handleAtualizarResponsavel}
+                    disabled={
+                      salvandoResponsavel ||
+                      (professorSelecionado || null) === turma.professorId
+                    }
+                  >
+                    {salvandoResponsavel ? "Salvando..." : "Atualizar"}
+                  </button>
+                </div>
+              </div>
+              <span className="responsavelHint">
+                Você pode selecionar um admin/professor ou deixar sem responsável.
+              </span>
+            </div>
+          )}
         </div>
 
         {/* SEÇÃO DE ALUNOS */}

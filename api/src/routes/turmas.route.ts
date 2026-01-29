@@ -241,18 +241,40 @@ export function turmasRouter(jwtSecret: string) {
 
       const { nome, tipo, professor_id, descricao } = parsed.data;
 
+      const campos: string[] = [];
+      const valores: any[] = [];
+      let idx = 1;
+
+      if (nome !== undefined) {
+        campos.push(`nome = $${idx++}`);
+        valores.push(nome);
+      }
+
+      if (tipo !== undefined) {
+        campos.push(`tipo = $${idx++}`);
+        valores.push(tipo);
+      }
+
+      if (descricao !== undefined) {
+        campos.push(`descricao = $${idx++}`);
+        valores.push(descricao);
+      }
+
+      const temProfessorId = Object.prototype.hasOwnProperty.call(parsed.data, "professor_id");
+      if (userRole === "admin" && temProfessorId) {
+        campos.push(`professor_id = $${idx++}`);
+        valores.push(professor_id);
+      }
+
+      campos.push("updated_at = NOW()");
+
       const updated = await pool.query<DbTurmaRow>(
         `UPDATE turmas
-         SET nome = COALESCE($1, nome),
-             tipo = COALESCE($2, tipo),
-             professor_id = COALESCE($3, professor_id),
-             descricao = COALESCE($4, descricao),
-             updated_at = NOW()
-         WHERE id = $5
+         SET ${campos.join(", ")}
+         WHERE id = $${idx}
          RETURNING *`,
-        [nome, tipo, professor_id, descricao, id]
+        [...valores, id]
       );
-
       const row = updated.rows[0];
       return res.json({
         message: "Turma atualizada!",

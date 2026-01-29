@@ -129,8 +129,8 @@ export default function TurmasPage() {
         const atualizarDados: any = { nome, tipo, categoria, descricao: descricao || null };
 
         // Admin pode definir professor ao editar
-        if (role === "admin" && professorId) {
-          atualizarDados.professor_id = professorId;
+        if (role === "admin") {
+          atualizarDados.professor_id = professorId || null;
         }
 
         await atualizarTurma(editandoId, atualizarDados);
