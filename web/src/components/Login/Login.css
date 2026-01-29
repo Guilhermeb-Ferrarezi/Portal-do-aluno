@@ -21,7 +21,7 @@ body {
   overflow: hidden;
 
   /* Vite + public/ => começa com / */
-  background-image: url("../../../public/backgroundLoginBranco.png");
+  background-image: url("../../../backgroundLoginBranco.png");
   background-repeat: no-repeat;
   background-position: center;
   background-size: cover; /* <- isso evita as emendas/bordas */
