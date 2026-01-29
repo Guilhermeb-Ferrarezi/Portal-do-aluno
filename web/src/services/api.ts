@@ -248,6 +248,15 @@ export type User = {
   role: Role;
 };
 
+export type UserMe = User & {
+  ativo: boolean;
+  createdAt: string;
+};
+
+export async function obterUsuarioAtual() {
+  return apiFetch<UserMe>("/users/me");
+}
+
 export async function listarProfessores() {
   return apiFetch<User[]>("/users?role=professor");
 }

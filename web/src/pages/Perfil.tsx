@@ -1,6 +1,7 @@
 import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import { getName, getRole } from "../auth/auth";
+import { getRole } from "../auth/auth";
+import { obterUsuarioAtual, type UserMe } from "../services/api";
 import "./Perfil.css";
 
 type UserStats = {
@@ -11,17 +12,40 @@ type UserStats = {
 };
 
 export default function PerfilPage() {
-  const name = getName() ?? "Aluno";
-  const role = getRole();
+  const roleLocal = getRole();
 
   // Estados
   const [editMode, setEditMode] = React.useState(false);
   const [modalSenha, setModalSenha] = React.useState(false);
+  const [userInfo, setUserInfo] = React.useState<UserMe | null>(null);
+  const [loading, setLoading] = React.useState(true);
+  const [erro, setErro] = React.useState<string | null>(null);
   const [formData, setFormData] = React.useState({
-    nome: name,
-    usuario: "usuario.exemplo",
-    email: "usuario@example.com",
+    nome: "",
+    usuario: "",
   });
+
+  const role = userInfo?.role ?? roleLocal;
+  const name = userInfo?.nome ?? "Aluno";
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        setLoading(true);
+        setErro(null);
+        const data = await obterUsuarioAtual();
+        setUserInfo(data);
+        setFormData({
+          nome: data.nome,
+          usuario: data.usuario,
+        });
+      } catch (error) {
+        setErro(error instanceof Error ? error.message : "Erro ao carregar usuario");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
 
   // Estatísticas
   const stats: UserStats = {
@@ -63,6 +87,26 @@ export default function PerfilPage() {
     alert("Senha alterada com sucesso!");
     setModalSenha(false);
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout title="Perfil" subtitle="Carregando...">
+        <div style={{ textAlign: "center", padding: "24px", color: "var(--muted)" }}>
+          Carregando dados...
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (erro) {
+    return (
+      <DashboardLayout title="Perfil" subtitle="Erro">
+        <div style={{ textAlign: "center", padding: "24px", color: "var(--red)" }}>
+          Erro ao carregar usuario: {erro}
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout
@@ -109,14 +153,6 @@ export default function PerfilPage() {
               </div>
 
               <div className="formGroup">
-                <label className="formLabel">Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => handleEditChange("email", e.target.value)}
-                  className="formInput"
-                />
-              </div>
 
               <div className="formActions">
                 <button
@@ -144,9 +180,6 @@ export default function PerfilPage() {
                 <div className="infoValue">@{formData.usuario}</div>
               </div>
               <div className="infoItem">
-                <div className="infoLabel">Email</div>
-                <div className="infoValue">{formData.email}</div>
-              </div>
               <div className="infoItem">
                 <div className="infoLabel">Função</div>
                 <div className="infoValue">
