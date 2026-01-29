@@ -31,6 +31,7 @@ export default function DashboardLayout({
   const [turmas, setTurmas] = React.useState<Turma[]>([]);
   const [expandirTurmas, setExpandirTurmas] = React.useState(false);
   const [modalSelecionarTurmaAberto, setModalSelecionarTurmaAberto] = React.useState(false);
+  const [sidebarOpen, setSidebarOpen] = React.useState(false);
 
   React.useEffect(() => {
     // Load turmas for admin/professor to manage, and for alunos to view their own
@@ -77,7 +78,7 @@ export default function DashboardLayout({
   return (
     <div className="appShell">
       {/* SIDEBAR */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${sidebarOpen ? "open" : ""}`}>
         <div className="sbTop">
           <div className="sbBrand">
             <div className="sbLogo" aria-hidden="true">
@@ -216,9 +217,27 @@ export default function DashboardLayout({
         </div>
       </aside>
 
+      {/* Overlay para fechar sidebar em mobile */}
+      {sidebarOpen && (
+        <div
+          className="sidebarOverlay"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* MAIN */}
       <div className="main">
         <header className="topbar">
+          <button
+            className="hamburger"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="Abrir menu"
+            aria-expanded={sidebarOpen}
+          >
+            {sidebarOpen ? "✕" : "☰"}
+          </button>
+
           <div>
             <h1 className="pageTitle">{title}</h1>
             <p className="pageSub">{subtitle ?? `Bem-vindo de volta, ${name}`}</p>
