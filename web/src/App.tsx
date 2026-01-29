@@ -25,7 +25,10 @@ export default function App() {
 
           {/* ✅ exercícios: qualquer logado (admin/prof/aluno) */}
           <Route path="/dashboard/exercicios" element={<ExerciciosPage />} />
-          <Route path="/dashboard/exercicios/:id" element={<ExerciseDetail />} />
+          <Route
+            path="/dashboard/exercicios/:id"
+            element={<ExerciseDetail />}
+          />
           <Route
             path="/exercicios"
             element={<Navigate to="/dashboard/exercicios" replace />}
@@ -38,19 +41,27 @@ export default function App() {
           <Route path="/dashboard/materiais" element={<MateriaisPage />} />
 
           {/* ✅ videoaulas bônus: qualquer logado */}
-          <Route path="/dashboard/videoaulas" element={<VideoaulaBonusPage />} />
+          <Route
+            path="/dashboard/videoaulas"
+            element={<VideoaulaBonusPage />}
+          />
 
           {/* ✅ perfil: qualquer logado */}
           <Route path="/dashboard/perfil" element={<PerfilPage />} />
 
           <Route path="/dashboard/turmas/:id" element={<TurmaDetail />} />
 
-          <Route element={<ProtectedRoute allowedRoles={["admin", "professor"]} />}>
+          <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
             <Route path="/dashboard/criar-usuario" element={<CreateUser />} />
             <Route
               path="/criar-usuario"
               element={<Navigate to="/dashboard/criar-usuario" replace />}
             />
+          </Route>
+
+          <Route
+            element={<ProtectedRoute allowedRoles={["admin", "professor"]} />}
+          >
             <Route path="/dashboard/turmas" element={<Turmas />} />
             <Route
               path="/turmas"

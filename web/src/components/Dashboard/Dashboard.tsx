@@ -247,10 +247,17 @@ export default function Dashboard() {
                 <span>{role === "aluno" ? "Turmas registrado" : "Turmas responsável"}</span>
                 <strong>{role === "aluno" ? turmas.length : turmasResponsavel}</strong>
               </div>
-              {role !== "aluno" && (
+              {isAdmin && (
                 <div className="kvRow">
                   <span>Total no sistema</span>
                   <strong style={{ color: "var(--muted)", fontSize: "14px" }}>{totalTurmasDoSistema}</strong>
+                </div>
+              )}
+              {role === "professor" && (
+                <div style={{ fontSize: "13px", color: "var(--muted)", marginTop: "8px", lineHeight: "1.5" }}>
+                  {turmasResponsavel > 0
+                    ? `Você está responsável por ${turmasResponsavel} turma${turmasResponsavel !== 1 ? "s" : ""}.`
+                    : "Você não está responsável por nenhuma turma ainda."}
                 </div>
               )}
             </div>
