@@ -239,20 +239,22 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="card">
-          <div className="cardHead">
-            <div>
-              <div className="kicker">ALUNOS</div>
-              <div className="big">{totalAlunos}</div>
+        {(role !== "aluno" ? totalAlunos > 0 : turmas.length > 0) && (
+          <div className="card">
+            <div className="cardHead">
+              <div>
+                <div className="kicker">ALUNOS</div>
+                <div className="big">{totalAlunos}</div>
+              </div>
+            </div>
+            <div className="kv">
+              <div className="kvRow">
+                <span>Total de alunos {isAdmin ? "cadastrados" : "na turma"}</span>
+                <strong>{totalAlunos}</strong>
+              </div>
             </div>
           </div>
-          <div className="kv">
-            <div className="kvRow">
-              <span>Total de alunos {isAdmin ? "cadastrados" : "na turma"}</span>
-              <strong>{totalAlunos}</strong>
-            </div>
-          </div>
-        </div>
+        )}
 
         <div className="card">
           <div className="cardHead">
