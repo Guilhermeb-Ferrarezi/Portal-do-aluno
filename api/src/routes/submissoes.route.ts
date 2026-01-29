@@ -17,6 +17,7 @@ type SubmissaoRow = {
   nota: number | null;
   corrigida: boolean;
   feedback_professor: string | null;
+  is_late: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -175,9 +176,9 @@ export function submissoesRouter(jwtSecret: string) {
       }
 
       try {
-        // Verificar se exercício existe
+        // Verificar se exercício existe e buscar prazo
         const exercicio = await pool.query(
-          `SELECT id, descricao, gabarito, tipo_exercicio FROM exercicios WHERE id = $1 AND publicado = true`,
+          `SELECT id, descricao, gabarito, tipo_exercicio, prazo FROM exercicios WHERE id = $1 AND publicado = true`,
           [exercicioId]
         );
 
@@ -188,6 +189,9 @@ export function submissoesRouter(jwtSecret: string) {
         const exRow = exercicio.rows[0];
         const gabarito = exRow.gabarito;
         const descricaoExercicio = exRow.descricao ?? "";
+        const prazo = exRow.prazo ? new Date(exRow.prazo) : null;
+        const agora = new Date();
+        const isLate = prazo && agora > prazo;
         const { resposta, tipo_resposta, linguagem } = parsed.data;
 
         // Corrigir automaticamente se houver gabarito
@@ -196,8 +200,8 @@ export function submissoesRouter(jwtSecret: string) {
 
         // Inserir submissão
         const result = await pool.query<SubmissaoRow>(
-          `INSERT INTO submissoes (exercicio_id, aluno_id, resposta, tipo_resposta, linguagem, nota, corrigida)
-           VALUES ($1, $2, $3, $4, $5, $6, $7)
+          `INSERT INTO submissoes (exercicio_id, aluno_id, resposta, tipo_resposta, linguagem, nota, corrigida, is_late)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
            RETURNING *`,
           [
             exercicioId,
@@ -207,13 +211,14 @@ export function submissoesRouter(jwtSecret: string) {
             linguagem ?? null,
             notaAuto, // nota automática se houver gabarito
             gabarito ? true : false, // marcar como corrigida se há gabarito
+            isLate ?? false, // marcar como atrasada se passou do prazo
           ]
         );
 
         const submissao = result.rows[0];
 
         return res.status(201).json({
-          message: "Submissão enviada com sucesso!",
+          message: isLate ? "Submissão enviada com sucesso (atrasada)" : "Submissão enviada com sucesso!",
           submissao: {
             id: submissao.id,
             exercicioId: submissao.exercicio_id,
@@ -224,6 +229,7 @@ export function submissoesRouter(jwtSecret: string) {
             nota: submissao.nota,
             corrigida: submissao.corrigida,
             feedbackProfessor: submissao.feedback_professor,
+            isLate: submissao.is_late ?? false,
             createdAt: submissao.created_at,
           },
         });

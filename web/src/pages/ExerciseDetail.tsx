@@ -139,6 +139,14 @@ export default function ExerciseDetail() {
       return;
     }
 
+    // Validar prazo
+    if (prazoVencido) {
+      const confirmado = window.confirm(
+        "⚠️ O prazo para este exercício já passou.\n\nDeseja enviar mesmo assim? A submissão será marcada como atrasada."
+      );
+      if (!confirmado) return;
+    }
+
     try {
       setEnviando(true);
       setErroSubmissao(null);
@@ -266,7 +274,19 @@ export default function ExerciseDetail() {
                 <div className="tentativasList">
                   {submissoes.map((sub, idx) => (
                     <div key={sub.id} className="tentativaItem">
-                      <div className="tentativaNumber">Tentativa {submissoes.length - idx}</div>
+                      <div className="tentativaNumber">
+                        Tentativa {submissoes.length - idx}
+                        {sub.isLate && (
+                          <span style={{
+                            marginLeft: "8px",
+                            color: "#dc3545",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                          }}>
+                            ⏰ ATRASADA
+                          </span>
+                        )}
+                      </div>
 
                       {sub.nota !== null && (
                         <div className={`tentativaNota ${sub.corrigida ? "corrigida" : ""}`}>
@@ -454,6 +474,21 @@ export default function ExerciseDetail() {
                   />
                 )}
               </div>
+
+              {/* AVISO DE PRAZO VENCIDO */}
+              {prazoVencido && (
+                <div style={{
+                  padding: "12px",
+                  marginBottom: "12px",
+                  backgroundColor: "#fff3cd",
+                  border: "1px solid #ffc107",
+                  borderRadius: "4px",
+                  color: "#856404",
+                  fontSize: "14px",
+                }}>
+                  ⚠️ <strong>Prazo vencido:</strong> Este exercício será registrado como envio atrasado.
+                </div>
+              )}
 
               {/* BOTÃO ENVIAR */}
               <button
