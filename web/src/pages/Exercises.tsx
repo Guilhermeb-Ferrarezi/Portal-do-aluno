@@ -485,6 +485,11 @@ export default function ExerciciosPage() {
                     <div className="exerciseInfo">
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <h3 className="exerciseTitle">{ex.titulo}</h3>
+                        {ex.publishedAt && new Date(ex.publishedAt) > new Date() && (
+                          <span className="exerciseBadge" style={{ background: "#3b82f6", color: "white" }} title="Exercício programado para publicação">
+                            📅 Programado
+                          </span>
+                        )}
                         {ex.tipoExercicio && (
                           <span className="exerciseBadge" title={ex.tipoExercicio === "codigo" ? "Exercício de código" : "Exercício de digitação"}>
                             {ex.tipoExercicio === "codigo" ? "💻" : "✍️"}

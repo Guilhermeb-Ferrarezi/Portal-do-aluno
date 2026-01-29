@@ -16,6 +16,7 @@ type ExercicioRow = {
   tema: string | null;
   prazo: DBDate | null;
   publicado: boolean;
+  published_at: DBDate | null;
   created_by: string | null;
   tipo_exercicio: TipoExercicio | null;
   gabarito: string | null;
@@ -117,7 +118,7 @@ export function exerciciosRouter(jwtSecret: string) {
   // GET /exercicios - Listar todos os exercícios públicos
   router.get("/exercicios", async (_req, res) => {
     const r = await pool.query<ExercicioRow>(
-      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
+      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
        FROM exercicios
        WHERE publicado = true AND (published_at IS NULL OR published_at <= NOW())
        ORDER BY created_at DESC`
@@ -131,6 +132,7 @@ export function exerciciosRouter(jwtSecret: string) {
         modulo: row.modulo,
         tema: row.tema,
         prazo: row.prazo,
+        publishedAt: row.published_at,
         tipoExercicio: row.tipo_exercicio,
         createdAt: row.created_at,
       }))
@@ -142,7 +144,7 @@ export function exerciciosRouter(jwtSecret: string) {
     const { id } = req.params;
 
     const r = await pool.query<ExercicioRow>(
-      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
+      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, created_at, updated_at
        FROM exercicios
        WHERE id = $1 AND publicado = true AND (published_at IS NULL OR published_at <= NOW())`,
       [id]
@@ -160,6 +162,7 @@ export function exerciciosRouter(jwtSecret: string) {
       modulo: row.modulo,
       tema: row.tema,
       prazo: row.prazo,
+      publishedAt: row.published_at,
       publicado: row.publicado,
       tipoExercicio: row.tipo_exercicio,
       gabarito: row.gabarito, // Não retornar gabarito para alunos? Considerar isso

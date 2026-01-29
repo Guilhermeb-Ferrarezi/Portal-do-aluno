@@ -259,6 +259,8 @@ export default function Dashboard() {
               exerciciosRecentes.map((ex) => {
                 const isPassed =
                   ex.prazo && new Date(ex.prazo) < new Date();
+                const isProgrammed =
+                  ex.publishedAt ? new Date(ex.publishedAt) > new Date() : false;
                 return (
                   <div
                     key={ex.id}
@@ -273,13 +275,30 @@ export default function Dashboard() {
                     style={{ cursor: "pointer" }}
                   >
                     <span
-                      className={`taskDot ${isPassed ? "red" : "gray"}`}
+                      className={`taskDot ${isProgrammed ? "blue" : isPassed ? "red" : "gray"}`}
                       aria-hidden="true"
                     />
                     <div className="taskText">
-                      <div className="taskTitle">{ex.titulo}</div>
+                      <div className="taskTitle" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        {ex.titulo}
+                        {isProgrammed && (
+                          <span style={{
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            background: "#3b82f6",
+                            color: "white",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                            whiteSpace: "nowrap"
+                          }}>
+                            📅 Programado
+                          </span>
+                        )}
+                      </div>
                       <div className="mutedSmall">
-                        {ex.prazo
+                        {isProgrammed && ex.publishedAt
+                          ? `Publicação: ${new Date(ex.publishedAt).toLocaleDateString("pt-BR")}`
+                          : ex.prazo
                           ? `Prazo: ${new Date(ex.prazo).toLocaleDateString("pt-BR")}`
                           : "Sem prazo"}
                       </div>

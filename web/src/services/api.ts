@@ -51,6 +51,7 @@ export type Exercicio = {
   modulo: string;
   tema: string | null;
   prazo: string | null;
+  publishedAt: string | null;
   tipoExercicio?: "codigo" | "texto" | null;
   createdAt: string;
   turmas?: Turma[];
