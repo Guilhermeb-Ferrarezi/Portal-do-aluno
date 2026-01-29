@@ -152,7 +152,6 @@ export default function PerfilPage() {
                 />
               </div>
 
-              <div className="formGroup">
 
               <div className="formActions">
                 <button
@@ -179,7 +178,6 @@ export default function PerfilPage() {
                 <div className="infoLabel">Usuário</div>
                 <div className="infoValue">@{formData.usuario}</div>
               </div>
-              <div className="infoItem">
               <div className="infoItem">
                 <div className="infoLabel">Função</div>
                 <div className="infoValue">
