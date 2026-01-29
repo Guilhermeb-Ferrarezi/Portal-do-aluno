@@ -26,8 +26,6 @@ export default function PerfilPage() {
   });
 
   const role = userInfo?.role ?? roleLocal;
-  const name = userInfo?.nome ?? "Aluno";
-
   React.useEffect(() => {
     (async () => {
       try {
