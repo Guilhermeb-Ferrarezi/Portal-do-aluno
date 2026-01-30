@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { getRole } from "../auth/auth";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
-import { apiFetch } from "../services/api";
+import { apiFetch, type Turma } from "../services/api";
 import "./ExerciseTemplates.css";
 
 type Template = {
@@ -24,6 +24,15 @@ export default function ExerciseTemplates() {
   const [erro, setErro] = React.useState<string | null>(null);
   const [mensagem, setMensagem] = React.useState<string | null>(null);
   const [duplicando, setDuplicando] = React.useState<string | null>(null);
+
+  // Modal para enviar tarefa
+  const [modalAberto, setModalAberto] = React.useState(false);
+  const [templateSelecionado, setTemplateSelecionado] = React.useState<string | null>(null);
+  const [turmas, setTurmas] = React.useState<Turma[]>([]);
+  const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
+  const [semanaSelecionada, setSemanaSelecionada] = React.useState<number>(1);
+  const [enviandoTarefa, setEnviandoTarefa] = React.useState(false);
+  const [carregandoTurmas, setCarregandoTurmas] = React.useState(false);
 
   // Carregar templates
   React.useEffect(() => {
@@ -71,6 +80,63 @@ export default function ExerciseTemplates() {
       setErro(error instanceof Error ? error.message : "Erro ao duplicar template");
     } finally {
       setDuplicando(null);
+    }
+  };
+
+  const abrirModalEnviarTarefa = async (templateId: string) => {
+    try {
+      setCarregandoTurmas(true);
+      setErro(null);
+      const data = await apiFetch<Turma[]>("/turmas");
+      // Filtrar apenas turmas com cronograma ativo
+      const turmasComCronograma = data.filter(t => t.dataInicio && t.cronogramaAtivo);
+      setTurmas(turmasComCronograma);
+      setTemplateSelecionado(templateId);
+      setTurmasSelecionadas([]);
+      setSemanaSelecionada(1);
+      setModalAberto(true);
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Erro ao carregar turmas");
+    } finally {
+      setCarregandoTurmas(false);
+    }
+  };
+
+  const handleEnviarTarefa = async () => {
+    if (!templateSelecionado || turmasSelecionadas.length === 0) {
+      setErro("Selecione pelo menos uma turma");
+      return;
+    }
+
+    try {
+      setEnviandoTarefa(true);
+      setErro(null);
+
+      // Enviar para cada turma selecionada
+      for (const turmaId of turmasSelecionadas) {
+        await apiFetch(`/turmas/${turmaId}/cronograma`, {
+          method: "POST",
+          body: JSON.stringify({
+            semanas: [
+              {
+                semana: semanaSelecionada,
+                exercicios: [templateSelecionado],
+              },
+            ],
+          }),
+        });
+      }
+
+      setMensagem(`✅ Tarefa enviada para ${turmasSelecionadas.length} turma(s)!`);
+      setModalAberto(false);
+      setTemplateSelecionado(null);
+      setTurmasSelecionadas([]);
+
+      setTimeout(() => setMensagem(null), 3000);
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Erro ao enviar tarefa");
+    } finally {
+      setEnviandoTarefa(false);
     }
   };
 
@@ -170,15 +236,150 @@ export default function ExerciseTemplates() {
                   <span className="templateDate">
                     {new Date(template.createdAt).toLocaleDateString("pt-BR")}
                   </span>
-                  <button
-                    className="templateBtnView"
-                    onClick={() => navigate(`/dashboard/exercicios/${template.id}`)}
-                  >
-                    Ver Detalhes →
-                  </button>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      className="templateBtnView"
+                      onClick={() => abrirModalEnviarTarefa(template.id)}
+                      title="Enviar template para turmas"
+                    >
+                      📤 Enviar
+                    </button>
+                    <button
+                      className="templateBtnView"
+                      onClick={() => navigate(`/dashboard/exercicios/${template.id}`)}
+                    >
+                      Ver →
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* MODAL ENVIAR TAREFA */}
+        {modalAberto && (
+          <div className="modalOverlay" onClick={() => setModalAberto(false)}>
+            <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+              <h3 style={{ marginTop: 0 }}>📤 Enviar Template para Turmas</h3>
+
+              {carregandoTurmas ? (
+                <div style={{ textAlign: "center", padding: "20px" }}>
+                  <div className="spinner" />
+                  Carregando turmas...
+                </div>
+              ) : (
+                <>
+                  {erro && (
+                    <div style={{ padding: "12px", background: "#fee2e2", borderRadius: "4px", marginBottom: "16px", color: "#991b1b" }}>
+                      ❌ {erro}
+                    </div>
+                  )}
+
+                  {turmas.length === 0 ? (
+                    <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)" }}>
+                      <p>Nenhuma turma com cronograma ativo encontrada.</p>
+                      <small>Configure a data de início e ative o cronograma nas turmas.</small>
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ marginBottom: "20px" }}>
+                        <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, fontSize: "14px" }}>
+                          Semana:
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          max="52"
+                          value={semanaSelecionada}
+                          onChange={(e) => setSemanaSelecionada(Number(e.target.value))}
+                          style={{
+                            width: "100%",
+                            padding: "8px",
+                            border: "1px solid var(--border)",
+                            borderRadius: "4px",
+                            fontSize: "14px",
+                          }}
+                        />
+                        <small style={{ color: "var(--muted)" }}>Semana em que o exercício será liberado</small>
+                      </div>
+
+                      <div style={{ marginBottom: "20px" }}>
+                        <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, fontSize: "14px" }}>
+                          Turmas ({turmasSelecionadas.length} selecionada{turmasSelecionadas.length !== 1 ? "s" : ""}):
+                        </label>
+                        <div style={{ maxHeight: "250px", overflow: "auto", border: "1px solid var(--border)", borderRadius: "4px" }}>
+                          {turmas.map((turma) => (
+                            <label
+                              key={turma.id}
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                padding: "12px",
+                                borderBottom: "1px solid var(--border)",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={turmasSelecionadas.includes(turma.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setTurmasSelecionadas([...turmasSelecionadas, turma.id]);
+                                  } else {
+                                    setTurmasSelecionadas(turmasSelecionadas.filter((id) => id !== turma.id));
+                                  }
+                                }}
+                                style={{ marginRight: "12px", width: "18px", height: "18px", cursor: "pointer" }}
+                              />
+                              <div>
+                                <div style={{ fontWeight: 500 }}>{turma.nome}</div>
+                                <div style={{ fontSize: "12px", color: "var(--muted)" }}>
+                                  Início: {new Date(turma.dataInicio!).toLocaleDateString("pt-BR")}
+                                </div>
+                              </div>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "20px" }}>
+                <button
+                  onClick={() => setModalAberto(false)}
+                  disabled={enviandoTarefa}
+                  style={{
+                    padding: "10px 16px",
+                    background: "var(--border)",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: enviandoTarefa ? "not-allowed" : "pointer",
+                    fontWeight: 600,
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleEnviarTarefa}
+                  disabled={enviandoTarefa || turmasSelecionadas.length === 0}
+                  style={{
+                    padding: "10px 16px",
+                    background: "var(--primary)",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: enviandoTarefa || turmasSelecionadas.length === 0 ? "not-allowed" : "pointer",
+                    fontWeight: 600,
+                    opacity: (enviandoTarefa || turmasSelecionadas.length === 0) ? 0.6 : 1,
+                  }}
+                >
+                  {enviandoTarefa ? "⏳ Enviando..." : "📤 Enviar Tarefa"}
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
