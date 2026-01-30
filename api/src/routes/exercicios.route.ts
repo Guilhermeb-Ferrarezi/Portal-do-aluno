@@ -122,11 +122,14 @@ export function exerciciosRouter(jwtSecret: string) {
   const router = Router();
 
   // GET /exercicios - Listar todos os exercícios públicos
-  router.get("/exercicios", async (_req, res) => {
+  router.get("/exercicios", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+    const isAluno = req.user?.role === "aluno";
+    const filtroTemplate = isAluno ? " AND is_template = false" : "";
+
     const r = await pool.query<ExercicioRow>(
       `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, created_at, updated_at
        FROM exercicios
-       WHERE publicado = true AND (published_at IS NULL OR published_at <= NOW())
+       WHERE publicado = true AND (published_at IS NULL OR published_at <= NOW())${filtroTemplate}
        ORDER BY created_at DESC`
     );
 
@@ -149,13 +152,15 @@ export function exerciciosRouter(jwtSecret: string) {
   });
 
   // GET /exercicios/:id - Pegar detalhes de um exercício específico
-  router.get("/exercicios/:id", async (req, res) => {
+  router.get("/exercicios/:id", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+    const isAluno = req.user?.role === "aluno";
+    const filtroTemplate = isAluno ? " AND is_template = false" : "";
     const { id } = req.params;
 
     const r = await pool.query<ExercicioRow>(
       `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, created_at, updated_at
        FROM exercicios
-       WHERE id = $1 AND publicado = true AND (published_at IS NULL OR published_at <= NOW())`,
+       WHERE id = $1 AND publicado = true AND (published_at IS NULL OR published_at <= NOW())${filtroTemplate}`,
       [id]
     );
 

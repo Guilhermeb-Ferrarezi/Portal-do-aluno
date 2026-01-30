@@ -12,6 +12,8 @@ export default function ExerciciosPage() {
   const navigate = useNavigate();
   const role = getRole() ?? "aluno";
   const canCreate = role === "admin" || role === "professor";
+  const isAluno = role === "aluno";
+  const canManageTemplates = role === "admin";
 
   const [items, setItems] = React.useState<Exercicio[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -295,7 +297,16 @@ export default function ExerciciosPage() {
       <div className="exercisesContainer">
         {/* HEADER COM BOTÃO */}
         <div className="exercisesHeader">
-          <div />
+          <div className="headerActions">
+            {canManageTemplates && (
+              <button
+                className="templateScheduleBtn"
+                onClick={() => navigate("/dashboard/templates")}
+              >
+                ?? Cronograma (Templates)
+              </button>
+            )}
+          </div>
           <button className="refreshBtn" onClick={load} disabled={loading}>
             {loading ? "⏳ Carregando..." : "🔄 Atualizar"}
           </button>
@@ -871,10 +882,10 @@ export default function ExerciciosPage() {
             {/* Filtro de módulo */}
             <div className="filterGroup">
               <select
-                className="exSelect"
+                  className="exSelect"
                 value={moduloFiltro}
                 onChange={(e) => setModuloFiltro(e.target.value)}
-                style={{ minWidth: 150 }}
+                  style={{ minWidth: 150 }}
               >
                 <option value="">📚 Todos os Módulos</option>
                 {Array.from(new Set(items.map((ex) => ex.modulo)))
@@ -890,10 +901,10 @@ export default function ExerciciosPage() {
             {/* Filtro de tipo */}
             <div className="filterGroup">
               <select
-                className="exSelect"
+                  className="exSelect"
                 value={tipoFiltro}
                 onChange={(e) => setTipoFiltro(e.target.value)}
-                style={{ minWidth: 150 }}
+                  style={{ minWidth: 150 }}
               >
                 <option value="">💻 Todos os Tipos</option>
                 <option value="codigo">💻 Código</option>
@@ -901,19 +912,20 @@ export default function ExerciciosPage() {
               </select>
             </div>
 
-            {/* Filtro de template */}
-            <div className="filterGroup">
-              <select
-                className="exSelect"
-                value={templateFiltro}
-                onChange={(e) => setTemplateFiltro(e.target.value)}
-                style={{ minWidth: 150 }}
+            {!isAluno && (
+              <div className="filterGroup">
+                <select
+                  className="exSelect"
+                  value={templateFiltro}
+                  onChange={(e) => setTemplateFiltro(e.target.value)}
+                  style={{ minWidth: 150 }}
               >
                 <option value="">📦 Todos</option>
                 <option value="template">📦 Templates</option>
                 <option value="normal">📝 Atividades</option>
-              </select>
-            </div>
+                </select>
+              </div>
+            )}
           </div>
 
           {/* Filtro de turmas - se aplicável */}
@@ -957,6 +969,7 @@ export default function ExerciciosPage() {
             <div className="exercisesList">
               {items
                 .filter((ex) => {
+                  if (isAluno && ex.is_template) return false;
                   // Filtro de busca por título
                   if (
                     buscaFiltro &&
@@ -1029,7 +1042,7 @@ export default function ExerciciosPage() {
                     <div className="exerciseInfo">
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <h3 className="exerciseTitle">{ex.titulo}</h3>
-                        {ex.is_template && (
+                        {!isAluno && ex.is_template && (
                           <span className="exerciseBadge" style={{ background: "#8b5cf6", color: "white" }} title="Este é um template reutilizável">
                             📦 Template
                           </span>

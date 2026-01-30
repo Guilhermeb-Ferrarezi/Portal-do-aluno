@@ -17,6 +17,33 @@
   margin-bottom: 8px;
 }
 
+.headerActions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.templateScheduleBtn {
+  background: white;
+  color: var(--red);
+  border: 1px solid var(--line);
+  font-weight: 700;
+  padding: 10px 16px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.templateScheduleBtn:hover {
+  border-color: var(--red);
+  background: rgba(225, 29, 46, 0.05);
+}
+
+.templateScheduleBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .refreshBtn {
   background: linear-gradient(135deg, var(--red), #d41c28);
   color: white;
