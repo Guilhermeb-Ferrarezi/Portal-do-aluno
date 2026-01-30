@@ -953,7 +953,7 @@ export default function ExerciciosPage() {
               {items
                 .filter((ex) => {
                   if (ex.is_template) return false;
-                  // Filtro de busca por título
+                  // Filtro de busca por titulo
                   if (
                     buscaFiltro &&
                     !ex.titulo.toLowerCase().includes(buscaFiltro.toLowerCase())
@@ -961,18 +961,13 @@ export default function ExerciciosPage() {
                     return false;
                   }
 
-                  // Filtro de módulo
+                  // Filtro de modulo
                   if (moduloFiltro && ex.modulo !== moduloFiltro) {
                     return false;
                   }
 
                   // Filtro de tipo
                   if (tipoFiltro && ex.tipoExercicio !== tipoFiltro) {
-                    return false;
-                  }
-
-                    return false;
-                  }
                     return false;
                   }
 
