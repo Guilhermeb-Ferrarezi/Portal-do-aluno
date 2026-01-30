@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import ConfirmModal from "../components/ConfirmModal";
 import MonacoEditor from "../components/MonacoEditor";
+import MouseInteractiveBox from "../components/Exercise/MouseInteractiveBox";
+import MultipleChoiceQuestion from "../components/Exercise/MultipleChoiceQuestion";
 import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, listarTurmas, getRole, type Exercicio, type Turma } from "../services/api";
 import "./Exercises.css";
 
@@ -339,25 +341,39 @@ export default function ExerciciosPage() {
                 </div>
               </div>
 
-              {/* TOGGLE TEMPLATE VS ATIVIDADE */}
+              {/* TEMPLATE VS ATIVIDADE */}
               <div className="exInputRow">
                 <div className="exInputGroup">
                   <label className="exLabel" style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
                     <input
-                      type="checkbox"
-                      checked={isTemplate}
-                      onChange={(e) => setIsTemplate(e.target.checked)}
+                      type="radio"
+                      name="tipoAtividade"
+                      value="atividade"
+                      checked={!isTemplate}
+                      onChange={() => setIsTemplate(false)}
                       style={{ marginRight: "8px", cursor: "pointer" }}
                     />
-                    <span style={{ fontWeight: 600 }}>
-                      {isTemplate ? "📦 Template (Reutilizável)" : "📝 Atividade Padrão"}
-                    </span>
+                    <span style={{ fontWeight: 600 }}>📝 Atividade Padrão</span>
                   </label>
                   <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                    {isTemplate
-                      ? "Este exercício será salvo como um template reutilizável"
-                      : "Este exercício será uma atividade padrão para a turma"
-                    }
+                    Atividade padrão para a turma
+                  </small>
+                </div>
+
+                <div className="exInputGroup">
+                  <label className="exLabel" style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="tipoAtividade"
+                      value="template"
+                      checked={isTemplate}
+                      onChange={() => setIsTemplate(true)}
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    <span style={{ fontWeight: 600 }}>📦 Template (Reutilizável)</span>
+                  </label>
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    Template reutilizável
                   </small>
                 </div>
               </div>
@@ -411,6 +427,50 @@ export default function ExerciciosPage() {
                       <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
                         Título será: "Dia {diaNumero}: {componenteInterativo === "mouse" ? "Mouse" : "Pergunta Múltipla"}"
                       </small>
+                    </div>
+                  )}
+
+                  {/* PREVIEW DO COMPONENTE MOUSE */}
+                  {componenteInterativo === "mouse" && (
+                    <div style={{
+                      background: "#f9fafb",
+                      border: "2px dashed #e5e7eb",
+                      borderRadius: "12px",
+                      padding: "20px",
+                      marginTop: "16px",
+                    }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "#6b7280", marginTop: 0, marginBottom: "12px" }}>
+                        📋 PREVIEW - Como o aluno vai ver:
+                      </p>
+                      <MouseInteractiveBox
+                        title="🖱️ Interação com Mouse"
+                        instruction="Clique, duplo-clique ou clique direito para registrar suas ações"
+                      />
+                    </div>
+                  )}
+
+                  {/* PREVIEW DO COMPONENTE MÚLTIPLA ESCOLHA */}
+                  {componenteInterativo === "multipla" && (
+                    <div style={{
+                      background: "#f9fafb",
+                      border: "2px dashed #e5e7eb",
+                      borderRadius: "12px",
+                      padding: "20px",
+                      marginTop: "16px",
+                    }}>
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "#6b7280", marginTop: 0, marginBottom: "12px" }}>
+                        📋 PREVIEW - Como o aluno vai ver:
+                      </p>
+                      <MultipleChoiceQuestion
+                        question="Qual é a resposta correta?"
+                        options={[
+                          { letter: "A", text: "Opção A - Exemplo" },
+                          { letter: "B", text: "Opção B - Exemplo" },
+                          { letter: "C", text: "Opção C - Exemplo" },
+                          { letter: "D", text: "Opção D - Exemplo" },
+                        ]}
+                        onAnswer={() => {}}
+                      />
                     </div>
                   )}
                 </>
