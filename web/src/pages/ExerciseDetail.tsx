@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getRole } from "../auth/auth";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import MonacoEditor from "../components/MonacoEditor";
+import MultipleChoiceQuestion from "../components/Exercise/MultipleChoiceQuestion";
+import MouseInteractiveBox from "../components/Exercise/MouseInteractiveBox";
 import {
   obterExercicio,
   enviarSubmissao,
@@ -41,6 +43,9 @@ export default function ExerciseDetail() {
 
   const [submissoesRecebidas, setSubmissoesRecebidas] = React.useState<Array<Submissao & { alunoNome: string; alunoUsuario: string }>>([]);
   const [loadingRecebidas, setLoadingRecebidas] = React.useState(false);
+
+  // Para exercícios do Dia 1 (múltipla escolha e interativos)
+  const [respostasMultipla, setRespostasMultipla] = React.useState<Record<string, string>>({});
 
   // Carregar exercício
   React.useEffect(() => {
@@ -418,7 +423,105 @@ export default function ExerciseDetail() {
 
               {/* RESPOSTA */}
               <div className="edInputGroup">
-                {tipoExercicio === "codigo" ? (
+                {/* Exercícios do Dia 1 - Navegação (Múltipla Escolha) */}
+                {exercicio.titulo === "Dia 1: Navegação no Portal" && (
+                  <div>
+                    <MultipleChoiceQuestion
+                      question="Q1: Onde fica o menu principal?"
+                      options={[
+                        { letter: "A", text: "No topo da página" },
+                        { letter: "B", text: "Na barra lateral esquerda" },
+                        { letter: "C", text: "No rodapé" },
+                        { letter: "D", text: "Não existe menu" },
+                      ]}
+                      selectedAnswer={respostasMultipla.q1}
+                      onAnswer={(answer) => setRespostasMultipla({ ...respostasMultipla, q1: answer })}
+                    />
+
+                    <MultipleChoiceQuestion
+                      question="Q2: Onde você acessa as aulas?"
+                      options={[
+                        { letter: "A", text: 'Na aba "Trilha do Curso"' },
+                        { letter: "B", text: 'Na aba "Materiais"' },
+                        { letter: "C", text: 'Na aba "Videoaulas Bônus"' },
+                        { letter: "D", text: 'Em "Dashboard"' },
+                      ]}
+                      selectedAnswer={respostasMultipla.q2}
+                      onAnswer={(answer) => setRespostasMultipla({ ...respostasMultipla, q2: answer })}
+                    />
+
+                    <MultipleChoiceQuestion
+                      question="Q3: Como você submete um exercício?"
+                      options={[
+                        { letter: "A", text: "Pelo menu de configurações" },
+                        { letter: "B", text: "Clicando no botão de envio na página do exercício" },
+                        { letter: "C", text: "Por email" },
+                        { letter: "D", text: "Não é possível submeter" },
+                      ]}
+                      selectedAnswer={respostasMultipla.q3}
+                      onAnswer={(answer) => setRespostasMultipla({ ...respostasMultipla, q3: answer })}
+                    />
+
+                    <MultipleChoiceQuestion
+                      question="Q4: Qual aba mostra seu perfil e informações pessoais?"
+                      options={[
+                        { letter: "A", text: "Dashboard" },
+                        { letter: "B", text: "Exercícios" },
+                        { letter: "C", text: "Perfil" },
+                        { letter: "D", text: "Turmas" },
+                      ]}
+                      selectedAnswer={respostasMultipla.q4}
+                      onAnswer={(answer) => setRespostasMultipla({ ...respostasMultipla, q4: answer })}
+                    />
+
+                    <textarea
+                      className="edTextarea"
+                      placeholder="Descreva qual foi seu maior desafio ao responder essas questões..."
+                      value={resposta}
+                      onChange={(e) => setResposta(e.target.value)}
+                      rows={6}
+                    />
+                  </div>
+                )}
+
+                {/* Exercícios do Dia 1 - Conhecendo o Mouse (Interativo) */}
+                {exercicio.titulo === "Dia 1: Conhecendo o Mouse" && (
+                  <div>
+                    <MouseInteractiveBox
+                      title="🖱️ Pratique o uso do Mouse"
+                      instruction="Clique, duplo-clique ou clique direito na caixa abaixo para praticar. Você verá cada ação registrada!"
+                    />
+
+                    <textarea
+                      className="edTextarea"
+                      placeholder="Descreva qual foi seu maior desafio ao usar o mouse..."
+                      value={resposta}
+                      onChange={(e) => setResposta(e.target.value)}
+                      rows={6}
+                    />
+                  </div>
+                )}
+
+                {/* Exercícios do Dia 1 - Clique Consciente (Interativo) */}
+                {exercicio.titulo === "Dia 1: Clique Consciente" && (
+                  <div>
+                    <MouseInteractiveBox
+                      title="👆 Pratique Diferentes Tipos de Cliques"
+                      instruction="Faça cliques simples, duplos e direitos na caixa abaixo para praticar e aprender!"
+                    />
+
+                    <textarea
+                      className="edTextarea"
+                      placeholder="Descreva: Qual tipo de clique foi mais fácil? Qual foi mais desafiador? Perdeu o medo?"
+                      value={resposta}
+                      onChange={(e) => setResposta(e.target.value)}
+                      rows={6}
+                    />
+                  </div>
+                )}
+
+                {/* Exercícios normais de código */}
+                {!exercicio.titulo.startsWith("Dia 1:") && tipoExercicio === "codigo" && (
                   <>
                     <MonacoEditor
                       value={resposta}
@@ -456,7 +559,10 @@ export default function ExerciseDetail() {
                       </div>
                     )}
                   </>
-                ) : (
+                )}
+
+                {/* Exercícios normais de texto */}
+                {!exercicio.titulo.startsWith("Dia 1:") && tipoExercicio === "texto" && (
                   <textarea
                     className="edTextarea"
                     placeholder="Digite sua resposta aqui..."

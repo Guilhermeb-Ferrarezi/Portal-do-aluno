@@ -23,6 +23,15 @@ const createUserSchema = z.object({
   ativo: z.boolean().optional(),
 });
 
+const updateMeSchema = z.object({
+  nome: z.string().min(2, "Nome obrigatório"),
+});
+
+const changePasswordSchema = z.object({
+  senhaAtual: z.string().min(1, "Senha atual obrigatória"),
+  novaSenha: z.string().min(6, "Senha muito curta"),
+});
+
 export function usersRouter(jwtSecret: string) {
   const router = Router();
 
@@ -94,6 +103,78 @@ export function usersRouter(jwtSecret: string) {
       );
     }
   );
+
+  // Atualizar perfil do próprio usuário
+  router.put("/users/me", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+    const parsed = updateMeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Dados inválidos",
+        issues: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const userId = req.user!.sub;
+    const { nome } = parsed.data;
+
+    const updated = await pool.query<DbUserRow>(
+      `UPDATE users
+       SET nome = $1
+       WHERE id = $2
+       RETURNING id, usuario, nome, role, ativo, created_at`,
+      [nome.trim(), userId]
+    );
+
+    if (!updated.rowCount) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    const u = updated.rows[0];
+    return res.json({
+      message: "Perfil atualizado com sucesso!",
+      user: {
+        id: u.id,
+        usuario: u.usuario,
+        nome: u.nome,
+        role: u.role,
+        ativo: u.ativo,
+        createdAt: u.created_at,
+      },
+    });
+  });
+
+  // Alterar senha do próprio usuário
+  router.put("/users/me/password", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+    const parsed = changePasswordSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res.status(400).json({
+        message: "Dados inválidos",
+        issues: parsed.error.flatten().fieldErrors,
+      });
+    }
+
+    const userId = req.user!.sub;
+    const { senhaAtual, novaSenha } = parsed.data;
+
+    const result = await pool.query<{ senha_hash: string }>(
+      `SELECT senha_hash FROM users WHERE id = $1 LIMIT 1`,
+      [userId]
+    );
+
+    if (!result.rowCount) {
+      return res.status(404).json({ message: "Usuário não encontrado" });
+    }
+
+    const ok = await bcrypt.compare(senhaAtual, result.rows[0].senha_hash);
+    if (!ok) {
+      return res.status(401).json({ message: "Senha atual incorreta" });
+    }
+
+    const senhaHash = await bcrypt.hash(novaSenha, 10);
+    await pool.query(`UPDATE users SET senha_hash = $1 WHERE id = $2`, [senhaHash, userId]);
+
+    return res.json({ message: "Senha alterada com sucesso!" });
+  });
 
   // Criar usuário:
   // - admin pode criar admin/professor/aluno

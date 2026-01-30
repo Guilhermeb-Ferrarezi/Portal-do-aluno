@@ -6,6 +6,7 @@ import Dashboard from "./components/Dashboard/Dashboard";
 import CreateUser from "./components/Dashboard/Sidebar/CreateUser/CreateUser";
 import ExerciciosPage from "./pages/Exercises";
 import ExerciseDetail from "./pages/ExerciseDetail";
+import ExerciseTemplates from "./pages/ExerciseTemplates";
 import Turmas from "./pages/Turmas";
 import TurmaDetail from "./pages/TurmaDetail";
 import TrilhaCursoPage from "./pages/TrilhaCurso";
@@ -56,6 +57,11 @@ export default function App() {
             <Route
               path="/criar-usuario"
               element={<Navigate to="/dashboard/criar-usuario" replace />}
+            />
+            <Route path="/dashboard/templates" element={<ExerciseTemplates />} />
+            <Route
+              path="/templates"
+              element={<Navigate to="/dashboard/templates" replace />}
             />
           </Route>
 

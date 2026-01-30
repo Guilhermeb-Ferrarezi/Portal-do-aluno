@@ -1,7 +1,12 @@
 import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import { getRole } from "../auth/auth";
-import { obterUsuarioAtual, type UserMe } from "../services/api";
+import {
+  alterarMinhaSenha,
+  atualizarMeuPerfil,
+  obterUsuarioAtual,
+  type UserMe,
+} from "../services/api";
 import "./Perfil.css";
 
 type UserStats = {
@@ -10,6 +15,35 @@ type UserStats = {
   turmasInscritas: number;
   diasSequencia: number;
 };
+
+type ProfileSettings = {
+  emailNotificacoes: boolean;
+  pushNotificacoes: boolean;
+  perfilPublico: boolean;
+  modoCompacto: boolean;
+  temaPreferido: "sistema" | "claro" | "escuro";
+};
+
+const SETTINGS_KEY = "perfil_settings";
+
+const defaultSettings: ProfileSettings = {
+  emailNotificacoes: true,
+  pushNotificacoes: true,
+  perfilPublico: false,
+  modoCompacto: false,
+  temaPreferido: "sistema",
+};
+
+function loadSettings(): ProfileSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return defaultSettings;
+    const parsed = JSON.parse(raw) as Partial<ProfileSettings>;
+    return { ...defaultSettings, ...parsed };
+  } catch {
+    return defaultSettings;
+  }
+}
 
 export default function PerfilPage() {
   const roleLocal = getRole();
@@ -20,10 +54,20 @@ export default function PerfilPage() {
   const [userInfo, setUserInfo] = React.useState<UserMe | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [erro, setErro] = React.useState<string | null>(null);
+  const [savingProfile, setSavingProfile] = React.useState(false);
+  const [savingSenha, setSavingSenha] = React.useState(false);
+  const [savingSettings, setSavingSettings] = React.useState(false);
+  const [feedback, setFeedback] = React.useState<
+    { type: "success" | "error"; message: string } | null
+  >(null);
   const [formData, setFormData] = React.useState({
     nome: "",
     usuario: "",
   });
+  const [senhaAtual, setSenhaAtual] = React.useState("");
+  const [novaSenha, setNovaSenha] = React.useState("");
+  const [confirmarSenha, setConfirmarSenha] = React.useState("");
+  const [settings, setSettings] = React.useState<ProfileSettings>(() => loadSettings());
 
   const role = userInfo?.role ?? roleLocal;
   React.useEffect(() => {
@@ -37,15 +81,16 @@ export default function PerfilPage() {
           nome: data.nome,
           usuario: data.usuario,
         });
+        localStorage.setItem("nome", data.nome ?? "");
       } catch (error) {
-        setErro(error instanceof Error ? error.message : "Erro ao carregar usuario");
+        setErro(error instanceof Error ? error.message : "Erro ao carregar usu?rio");
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
-  // Estatísticas
+  // Estat?sticas
   const stats: UserStats = {
     exerciciosFitos: 41,
     notaMedia: 8.5,
@@ -63,28 +108,111 @@ export default function PerfilPage() {
     },
     {
       id: "2",
-      nome: "João Silva - Particular",
+      nome: "Jo?o Silva - Particular",
       categoria: "informatica",
       tipo: "particular",
     },
   ];
 
   const handleEditChange = (field: string, value: string) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [field]: value,
-    });
+    }));
   };
 
-  const handleSaveEdit = () => {
-    alert("Dados atualizados com sucesso!");
-    setEditMode(false);
+  const handleSaveEdit = async () => {
+    const nomeLimpo = formData.nome.trim();
+    if (nomeLimpo.length < 2) {
+      setFeedback({ type: "error", message: "Informe um nome v?lido." });
+      return;
+    }
+
+    try {
+      setSavingProfile(true);
+      setFeedback(null);
+      const result = await atualizarMeuPerfil({ nome: nomeLimpo });
+      setUserInfo(result.user);
+      setFormData({
+        nome: result.user.nome,
+        usuario: result.user.usuario,
+      });
+      localStorage.setItem("nome", result.user.nome ?? "");
+      setEditMode(false);
+      setFeedback({ type: "success", message: result.message });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Erro ao atualizar perfil",
+      });
+    } finally {
+      setSavingProfile(false);
+    }
   };
 
-  const handleChangeSenha = () => {
-    alert("Senha alterada com sucesso!");
+  const handleChangeSenha = async () => {
+    if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      setFeedback({ type: "error", message: "Preencha todos os campos da senha." });
+      return;
+    }
+
+    if (novaSenha.length < 6) {
+      setFeedback({ type: "error", message: "A nova senha deve ter ao menos 6 caracteres." });
+      return;
+    }
+
+    if (novaSenha !== confirmarSenha) {
+      setFeedback({ type: "error", message: "As senhas n?o coincidem." });
+      return;
+    }
+
+    try {
+      setSavingSenha(true);
+      setFeedback(null);
+      const result = await alterarMinhaSenha({ senhaAtual, novaSenha });
+      closeSenhaModal();
+      setFeedback({ type: "success", message: result.message });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? error.message : "Erro ao alterar senha",
+      });
+    } finally {
+      setSavingSenha(false);
+    }
+  };
+
+  const closeSenhaModal = () => {
     setModalSenha(false);
+    setSenhaAtual("");
+    setNovaSenha("");
+    setConfirmarSenha("");
   };
+
+  const handleSaveSettings = () => {
+    try {
+      setSavingSettings(true);
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+      setFeedback({ type: "success", message: "Configura??es salvas com sucesso!" });
+    } catch {
+      setFeedback({ type: "error", message: "N?o foi poss?vel salvar as configura??es." });
+    } finally {
+      setSavingSettings(false);
+    }
+  };
+
+  const handleResetSettings = () => {
+    setSettings(defaultSettings);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaultSettings));
+    setFeedback({ type: "success", message: "Configura??es restauradas." });
+  };
+
+  const senhaInvalida =
+    !senhaAtual ||
+    !novaSenha ||
+    !confirmarSenha ||
+    novaSenha.length < 6 ||
+    novaSenha !== confirmarSenha;
 
   if (loading) {
     return (
@@ -100,28 +228,29 @@ export default function PerfilPage() {
     return (
       <DashboardLayout title="Perfil" subtitle="Erro">
         <div style={{ textAlign: "center", padding: "24px", color: "var(--red)" }}>
-          Erro ao carregar usuario: {erro}
+          Erro ao carregar usu?rio: {erro}
         </div>
       </DashboardLayout>
     );
   }
 
   return (
-    <DashboardLayout
-      title="Perfil"
-      subtitle="Gerencie suas informações pessoais"
-    >
+    <DashboardLayout title="Perfil" subtitle="Gerencie suas informa??es pessoais">
       <div className="perfilContainer">
-        {/* SECTION 1: INFORMAÇÕES BÁSICAS */}
+        {feedback && (
+          <div className={`perfilMessage ${feedback.type}`}>
+            <span>{feedback.type === "success" ? "?" : "?"}</span>
+            <span>{feedback.message}</span>
+          </div>
+        )}
+
+        {/* SECTION 1: INFORMA??ES B?SICAS */}
         <section className="perfilCard">
           <div className="cardHeader">
-            <h2>Minhas Informações</h2>
+            <h2>Minhas Informa??es</h2>
             {!editMode && (
-              <button
-                className="editBtn"
-                onClick={() => setEditMode(true)}
-              >
-                ✏️ Editar
+              <button className="editBtn" onClick={() => setEditMode(true)}>
+                ?? Editar
               </button>
             )}
           </div>
@@ -135,11 +264,12 @@ export default function PerfilPage() {
                   value={formData.nome}
                   onChange={(e) => handleEditChange("nome", e.target.value)}
                   className="formInput"
+                  autoComplete="name"
                 />
               </div>
 
               <div className="formGroup">
-                <label className="formLabel">Usuário</label>
+                <label className="formLabel">Usu?rio</label>
                 <input
                   type="text"
                   value={formData.usuario}
@@ -147,22 +277,20 @@ export default function PerfilPage() {
                   className="formInput"
                   disabled
                   style={{ opacity: 0.6 }}
+                  autoComplete="username"
                 />
               </div>
 
-
               <div className="formActions">
-                <button
-                  className="btnCancel"
-                  onClick={() => setEditMode(false)}
-                >
+                <button className="btnCancel" onClick={() => setEditMode(false)}>
                   Cancelar
                 </button>
                 <button
                   className="btnSalvar"
                   onClick={handleSaveEdit}
+                  disabled={savingProfile || formData.nome.trim().length < 2}
                 >
-                  Salvar Alterações
+                  {savingProfile ? "Salvando..." : "Salvar Altera??es"}
                 </button>
               </div>
             </div>
@@ -173,11 +301,11 @@ export default function PerfilPage() {
                 <div className="infoValue">{formData.nome}</div>
               </div>
               <div className="infoItem">
-                <div className="infoLabel">Usuário</div>
+                <div className="infoLabel">Usu?rio</div>
                 <div className="infoValue">@{formData.usuario}</div>
               </div>
               <div className="infoItem">
-                <div className="infoLabel">Função</div>
+                <div className="infoLabel">Fun??o</div>
                 <div className="infoValue">
                   {role === "admin"
                     ? "Administrador"
@@ -190,10 +318,10 @@ export default function PerfilPage() {
           )}
         </section>
 
-        {/* SECTION 2: SEGURANÇA */}
+        {/* SECTION 2: SEGURAN?A */}
         <section className="perfilCard">
           <div className="cardHeader">
-            <h2>Segurança</h2>
+            <h2>Seguran?a</h2>
           </div>
 
           <div className="securityContent">
@@ -202,17 +330,137 @@ export default function PerfilPage() {
                 <h3>Alterar Senha</h3>
                 <p>Mantenha sua conta segura com uma senha forte</p>
               </div>
-              <button
-                className="altBtn"
-                onClick={() => setModalSenha(true)}
-              >
+              <button className="altBtn" onClick={() => setModalSenha(true)}>
                 Alterar
               </button>
             </div>
           </div>
         </section>
 
-        {/* SECTION 3: ESTATÍSTICAS */}
+        {/* SECTION 3: CONFIGURA??ES */}
+        <section className="perfilCard">
+          <div className="cardHeader">
+            <h2>Configura??es</h2>
+          </div>
+
+          <div className="settingsGrid">
+            <div className="settingsItem">
+              <div className="settingsInfo">
+                <h3>Notifica??es por e-mail</h3>
+                <p>Receba alertas sobre novas atividades e avisos</p>
+              </div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={settings.emailNotificacoes}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      emailNotificacoes: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="slider" />
+              </label>
+            </div>
+
+            <div className="settingsItem">
+              <div className="settingsInfo">
+                <h3>Notifica??es no app</h3>
+                <p>Mostre avisos dentro do portal quando houver novidades</p>
+              </div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={settings.pushNotificacoes}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      pushNotificacoes: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="slider" />
+              </label>
+            </div>
+
+            <div className="settingsItem">
+              <div className="settingsInfo">
+                <h3>Perfil p?blico</h3>
+                <p>Permitir que outros alunos vejam seu progresso</p>
+              </div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={settings.perfilPublico}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      perfilPublico: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="slider" />
+              </label>
+            </div>
+
+            <div className="settingsItem">
+              <div className="settingsInfo">
+                <h3>Modo compacto</h3>
+                <p>Reduza o espa?amento para ver mais conte?do</p>
+              </div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={settings.modoCompacto}
+                  onChange={(e) =>
+                    setSettings((prev) => ({
+                      ...prev,
+                      modoCompacto: e.target.checked,
+                    }))
+                  }
+                />
+                <span className="slider" />
+              </label>
+            </div>
+
+            <div className="settingsItem">
+              <div className="settingsInfo">
+                <h3>Tema preferido</h3>
+                <p>Escolha como prefere visualizar o portal</p>
+              </div>
+              <select
+                className="settingsSelect"
+                value={settings.temaPreferido}
+                onChange={(e) =>
+                  setSettings((prev) => ({
+                    ...prev,
+                    temaPreferido: e.target.value as ProfileSettings["temaPreferido"],
+                  }))
+                }
+              >
+                <option value="sistema">Sistema</option>
+                <option value="claro">Claro</option>
+                <option value="escuro">Escuro</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="settingsActions">
+            <button className="btnCancel" onClick={handleResetSettings}>
+              Restaurar padr?es
+            </button>
+            <button
+              className="btnSalvar"
+              onClick={handleSaveSettings}
+              disabled={savingSettings}
+            >
+              {savingSettings ? "Salvando..." : "Salvar configura??es"}
+            </button>
+          </div>
+        </section>
+
+        {/* SECTION 4: ESTAT?STICAS */}
         <section className="perfilCard">
           <div className="cardHeader">
             <h2>Seu Desempenho</h2>
@@ -220,23 +468,23 @@ export default function PerfilPage() {
 
           <div className="statsGrid">
             <div className="statCard">
-              <div className="statIcon">✍️</div>
+              <div className="statIcon">??</div>
               <div className="statInfo">
                 <div className="statValue">{stats.exerciciosFitos}</div>
-                <div className="statLabel">Exercícios Feitos</div>
+                <div className="statLabel">Exerc?cios Feitos</div>
               </div>
             </div>
 
             <div className="statCard">
-              <div className="statIcon">⭐</div>
+              <div className="statIcon">?</div>
               <div className="statInfo">
                 <div className="statValue">{stats.notaMedia.toFixed(1)}/10</div>
-                <div className="statLabel">Nota Média</div>
+                <div className="statLabel">Nota M?dia</div>
               </div>
             </div>
 
             <div className="statCard">
-              <div className="statIcon">👥</div>
+              <div className="statIcon">??</div>
               <div className="statInfo">
                 <div className="statValue">{stats.turmasInscritas}</div>
                 <div className="statLabel">Turmas Inscritas</div>
@@ -244,16 +492,16 @@ export default function PerfilPage() {
             </div>
 
             <div className="statCard">
-              <div className="statIcon">🔥</div>
+              <div className="statIcon">??</div>
               <div className="statInfo">
                 <div className="statValue">{stats.diasSequencia}</div>
-                <div className="statLabel">Dias de Sequência</div>
+                <div className="statLabel">Dias de Sequ?ncia</div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* SECTION 4: TURMAS */}
+        {/* SECTION 5: TURMAS */}
         <section className="perfilCard">
           <div className="cardHeader">
             <h2>Turmas Inscritas</h2>
@@ -261,23 +509,19 @@ export default function PerfilPage() {
 
           {turmas.length === 0 ? (
             <div className="emptyState">
-              <div className="emptyIcon">📚</div>
-              <p>Você não está inscrito em nenhuma turma</p>
+              <div className="emptyIcon">??</div>
+              <p>Voc? n?o est? inscrito em nenhuma turma</p>
             </div>
           ) : (
             <div className="turmasList">
               {turmas.map((turma) => (
                 <div key={turma.id} className="turmaItem">
-                  <div className="turmaIcon">
-                    {turma.tipo === "turma" ? "👥" : "👤"}
-                  </div>
+                  <div className="turmaIcon">{turma.tipo === "turma" ? "??" : "??"}</div>
                   <div className="turmaInfo">
                     <h3 className="turmaNome">{turma.nome}</h3>
                     <div className="turmaMeta">
                       <span className="badge badgeCategoria">
-                        {turma.categoria === "programacao"
-                          ? "💻 Programação"
-                          : "🖥️ Informática"}
+                        {turma.categoria === "programacao" ? "?? Programa??o" : "??? Inform?tica"}
                       </span>
                       <span className="badge badgeTipo">
                         {turma.tipo === "turma" ? "Grupo" : "Particular"}
@@ -292,11 +536,8 @@ export default function PerfilPage() {
 
         {/* MODAL DE ALTERAR SENHA */}
         {modalSenha && (
-          <div className="modalOverlay" onClick={() => setModalSenha(false)}>
-            <div
-              className="modalContent"
-              onClick={(e) => e.stopPropagation()}
-            >
+          <div className="modalOverlay" onClick={closeSenhaModal}>
+            <div className="modalContent" onClick={(e) => e.stopPropagation()}>
               <h3>Alterar Senha</h3>
 
               <div className="formGroup">
@@ -305,6 +546,9 @@ export default function PerfilPage() {
                   type="password"
                   placeholder="Digite sua senha atual"
                   className="formInput"
+                  value={senhaAtual}
+                  onChange={(e) => setSenhaAtual(e.target.value)}
+                  autoComplete="current-password"
                 />
               </div>
 
@@ -314,6 +558,9 @@ export default function PerfilPage() {
                   type="password"
                   placeholder="Digite sua nova senha"
                   className="formInput"
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                  autoComplete="new-password"
                 />
               </div>
 
@@ -323,21 +570,21 @@ export default function PerfilPage() {
                   type="password"
                   placeholder="Confirme sua nova senha"
                   className="formInput"
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  autoComplete="new-password"
                 />
+                {confirmarSenha && novaSenha !== confirmarSenha && (
+                  <small className="formHint error">As senhas n?o coincidem</small>
+                )}
               </div>
 
               <div className="modalActions">
-                <button
-                  className="btnCancel"
-                  onClick={() => setModalSenha(false)}
-                >
+                <button className="btnCancel" onClick={closeSenhaModal}>
                   Cancelar
                 </button>
-                <button
-                  className="btnConfirm"
-                  onClick={handleChangeSenha}
-                >
-                  Alterar Senha
+                <button className="btnConfirm" onClick={handleChangeSenha} disabled={savingSenha || senhaInvalida}>
+                  {savingSenha ? "Alterando..." : "Alterar Senha"}
                 </button>
               </div>
             </div>

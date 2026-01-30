@@ -267,6 +267,20 @@ export async function obterUsuarioAtual() {
   return apiFetch<UserMe>("/users/me");
 }
 
+export async function atualizarMeuPerfil(dados: { nome: string }) {
+  return apiFetch<{ message: string; user: UserMe }>("/users/me", {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
+}
+
+export async function alterarMinhaSenha(dados: { senhaAtual: string; novaSenha: string }) {
+  return apiFetch<{ message: string }>("/users/me/password", {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
+}
+
 export async function listarProfessores() {
   return apiFetch<User[]>("/users?role=professor");
 }

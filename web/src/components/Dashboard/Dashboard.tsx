@@ -539,6 +539,34 @@ export default function Dashboard() {
                 >
                   ➕ Criar Usuário
                 </button>
+
+                <button
+                  onClick={() => navigate("/dashboard/templates")}
+                  style={{
+                    padding: "12px 16px",
+                    borderRadius: "10px",
+                    border: "1px solid var(--line)",
+                    background: "white",
+                    cursor: "pointer",
+                    fontWeight: "600",
+                    fontSize: "14px",
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    const target = e.currentTarget as HTMLButtonElement;
+                    target.style.borderColor = "var(--red)";
+                    target.style.color = "var(--red)";
+                    target.style.background = "rgba(225, 29, 46, 0.05)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const target = e.currentTarget as HTMLButtonElement;
+                    target.style.borderColor = "var(--line)";
+                    target.style.color = "var(--text)";
+                    target.style.background = "white";
+                  }}
+                >
+                  📦 Templates
+                </button>
               </>
             )}
           </div>

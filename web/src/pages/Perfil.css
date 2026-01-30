@@ -38,6 +38,31 @@
   color: var(--text);
 }
 
+/* MENSAGENS */
+.perfilMessage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #f9fafb;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.perfilMessage.success {
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.35);
+}
+
+.perfilMessage.error {
+  color: var(--red);
+  background: rgba(225, 29, 46, 0.08);
+  border-color: rgba(225, 29, 46, 0.35);
+}
+
 /* BOTÕES */
 .editBtn,
 .altBtn {
@@ -72,6 +97,15 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.formHint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.formHint.error {
+  color: var(--red);
 }
 
 .formLabel {
@@ -200,6 +234,110 @@
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+}
+
+/* SETTINGS */
+.settingsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settingsItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  gap: 16px;
+}
+
+.settingsInfo h3 {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.settingsInfo p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.settingsSelect {
+  min-width: 180px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  background: white;
+  color: var(--text);
+}
+
+.settingsSelect:focus {
+  outline: 0;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
+}
+
+.settingsActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+/* TOGGLE */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 28px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #e5e7eb;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  transition: 0.2s ease;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 22px;
+  width: 22px;
+  left: 2px;
+  top: 2px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: 0.2s ease;
+}
+
+.switch input:checked + .slider {
+  background: rgba(225, 29, 46, 0.2);
+  border-color: var(--red);
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(20px);
+  background: var(--red);
 }
 
 /* STATS GRID */
@@ -434,6 +572,19 @@
 
   .altBtn {
     align-self: flex-start;
+  }
+
+  .settingsItem {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .settingsSelect {
+    width: 100%;
+  }
+
+  .settingsActions {
+    flex-direction: column;
   }
 }
 
