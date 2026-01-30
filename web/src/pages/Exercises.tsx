@@ -37,6 +37,21 @@ export default function ExerciciosPage() {
     duplosClicks: 0,
     clicksDireitos: 0,
   });
+  // Regras para Múltipla Escolha
+  const [multiplaQuestoes, setMultiplaQuestoes] = React.useState<Array<{
+    pergunta: string;
+    opcoes: Array<{ letter: string; text: string }>;
+    respostaCorreta: string;
+  }>>([{
+    pergunta: "",
+    opcoes: [
+      { letter: "A", text: "" },
+      { letter: "B", text: "" },
+      { letter: "C", text: "" },
+      { letter: "D", text: "" }
+    ],
+    respostaCorreta: ""
+  }]);
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
@@ -115,6 +130,10 @@ export default function ExerciciosPage() {
         ...(componenteInterativo === "mouse" ? {
           mouse_regras: JSON.stringify(mouseRegras)
         } : {}),
+        // Adicionar regras de múltipla escolha se for componente interativo
+        ...(componenteInterativo === "multipla" ? {
+          multipla_regras: JSON.stringify({ questoes: multiplaQuestoes })
+        } : {}),
       };
 
       if (turmasSelecionadas.length > 0) {
@@ -145,6 +164,16 @@ export default function ExerciciosPage() {
       setComponenteInterativo("");
       setDiaNumero(1);
       setMouseRegras({ clicksSimples: 0, duplosClicks: 0, clicksDireitos: 0 });
+      setMultiplaQuestoes([{
+        pergunta: "",
+        opcoes: [
+          { letter: "A", text: "" },
+          { letter: "B", text: "" },
+          { letter: "C", text: "" },
+          { letter: "D", text: "" }
+        ],
+        respostaCorreta: ""
+      }]);
       setTurmasSelecionadas([]);
 
       await load();
@@ -204,6 +233,16 @@ export default function ExerciciosPage() {
     setComponenteInterativo("");
     setDiaNumero(1);
     setMouseRegras({ clicksSimples: 0, duplosClicks: 0, clicksDireitos: 0 });
+    setMultiplaQuestoes([{
+      pergunta: "",
+      opcoes: [
+        { letter: "A", text: "" },
+        { letter: "B", text: "" },
+        { letter: "C", text: "" },
+        { letter: "D", text: "" }
+      ],
+      respostaCorreta: ""
+    }]);
     setTurmasSelecionadas([]);
     setEditandoId(null);
     setOkMsg(null);
@@ -513,7 +552,7 @@ export default function ExerciciosPage() {
                     </div>
                   )}
 
-                  {/* PREVIEW DO COMPONENTE MÚLTIPLA ESCOLHA */}
+                  {/* FORMULÁRIO DINÂMICO PARA MÚLTIPLA ESCOLHA */}
                   {componenteInterativo === "multipla" && (
                     <div style={{
                       background: "#f9fafb",
@@ -522,19 +561,176 @@ export default function ExerciciosPage() {
                       padding: "20px",
                       marginTop: "16px",
                     }}>
-                      <p style={{ fontSize: 13, fontWeight: 600, color: "#6b7280", marginTop: 0, marginBottom: "12px" }}>
-                        📋 PREVIEW - Como o aluno vai ver:
+                      <p style={{ fontSize: 13, fontWeight: 600, color: "#6b7280", marginTop: 0, marginBottom: "16px" }}>
+                        📋 Criar Questões ({multiplaQuestoes.length})
                       </p>
-                      <MultipleChoiceQuestion
-                        question="Qual é a resposta correta?"
-                        options={[
-                          { letter: "A", text: "Opção A - Exemplo" },
-                          { letter: "B", text: "Opção B - Exemplo" },
-                          { letter: "C", text: "Opção C - Exemplo" },
-                          { letter: "D", text: "Opção D - Exemplo" },
-                        ]}
-                        onAnswer={() => {}}
-                      />
+
+                      {/* Loop através de cada questão */}
+                      {multiplaQuestoes.map((questao, qIndex) => (
+                        <div key={qIndex} style={{
+                          background: "#ffffff",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "8px",
+                          padding: "16px",
+                          marginBottom: "16px",
+                        }}>
+                          <h4 style={{ marginTop: 0, marginBottom: "12px", color: "#1f2937" }}>
+                            Questão {qIndex + 1}
+                          </h4>
+
+                          {/* Campo de pergunta */}
+                          <div style={{ marginBottom: "12px" }}>
+                            <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: "4px" }}>
+                              Pergunta
+                            </label>
+                            <input
+                              type="text"
+                              placeholder="Digite a pergunta..."
+                              value={questao.pergunta}
+                              onChange={(e) => {
+                                const novaQuestoes = [...multiplaQuestoes];
+                                novaQuestoes[qIndex].pergunta = e.target.value;
+                                setMultiplaQuestoes(novaQuestoes);
+                              }}
+                              style={{
+                                width: "100%",
+                                padding: "8px",
+                                border: "1px solid #d1d5db",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                fontFamily: "inherit",
+                                boxSizing: "border-box",
+                              }}
+                            />
+                          </div>
+
+                          {/* Campos de opções */}
+                          {questao.opcoes.map((opcao, oIndex) => (
+                            <div key={oIndex} style={{ marginBottom: "12px" }}>
+                              <label style={{ fontSize: 12, fontWeight: 600, color: "#374151", display: "block", marginBottom: "4px" }}>
+                                Opção {opcao.letter}
+                              </label>
+                              <input
+                                type="text"
+                                placeholder={`Digite a opção ${opcao.letter}...`}
+                                value={opcao.text}
+                                onChange={(e) => {
+                                  const novaQuestoes = [...multiplaQuestoes];
+                                  novaQuestoes[qIndex].opcoes[oIndex].text = e.target.value;
+                                  setMultiplaQuestoes(novaQuestoes);
+                                }}
+                                style={{
+                                  width: "100%",
+                                  padding: "8px",
+                                  border: "1px solid #d1d5db",
+                                  borderRadius: "4px",
+                                  fontSize: "14px",
+                                  fontFamily: "inherit",
+                                  boxSizing: "border-box",
+                                }}
+                              />
+                            </div>
+                          ))}
+
+                          {/* Radio buttons para resposta correta */}
+                          <div style={{ marginBottom: "12px" }}>
+                            <p style={{ fontSize: 12, fontWeight: 600, color: "#374151", marginTop: 0, marginBottom: "8px" }}>
+                              Resposta Correta:
+                            </p>
+                            <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                              {questao.opcoes.map((opcao) => (
+                                <label key={opcao.letter} style={{ display: "flex", alignItems: "center", fontSize: "14px", cursor: "pointer" }}>
+                                  <input
+                                    type="radio"
+                                    name={`respostaCorreta_${qIndex}`}
+                                    value={opcao.letter}
+                                    checked={questao.respostaCorreta === opcao.letter}
+                                    onChange={(e) => {
+                                      const novaQuestoes = [...multiplaQuestoes];
+                                      novaQuestoes[qIndex].respostaCorreta = e.target.value;
+                                      setMultiplaQuestoes(novaQuestoes);
+                                    }}
+                                    style={{ marginRight: "6px", cursor: "pointer" }}
+                                  />
+                                  {opcao.letter}
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Botão remover questão */}
+                          {multiplaQuestoes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setMultiplaQuestoes(multiplaQuestoes.filter((_, i) => i !== qIndex));
+                              }}
+                              style={{
+                                padding: "6px 12px",
+                                background: "#fecaca",
+                                color: "#991b1b",
+                                border: "1px solid #fca5a5",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                fontSize: "12px",
+                                fontWeight: 500,
+                              }}
+                            >
+                              ❌ Remover Questão
+                            </button>
+                          )}
+                        </div>
+                      ))}
+
+                      {/* Botão adicionar questão */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setMultiplaQuestoes([...multiplaQuestoes, {
+                            pergunta: "",
+                            opcoes: [
+                              { letter: "A", text: "" },
+                              { letter: "B", text: "" },
+                              { letter: "C", text: "" },
+                              { letter: "D", text: "" }
+                            ],
+                            respostaCorreta: ""
+                          }]);
+                        }}
+                        style={{
+                          padding: "8px 16px",
+                          background: "#dbeafe",
+                          color: "#0c4a6e",
+                          border: "1px solid #93c5fd",
+                          borderRadius: "4px",
+                          cursor: "pointer",
+                          fontSize: "14px",
+                          fontWeight: 500,
+                          marginBottom: "16px",
+                        }}
+                      >
+                        ➕ Adicionar Outra Questão
+                      </button>
+
+                      {/* PREVIEW DINÂMICO DA PRIMEIRA QUESTÃO */}
+                      {multiplaQuestoes.length > 0 && multiplaQuestoes[0].pergunta && (
+                        <div style={{
+                          background: "#ffffff",
+                          border: "2px solid #bfdbfe",
+                          borderRadius: "8px",
+                          padding: "16px",
+                          marginTop: "16px",
+                        }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "#0c4a6e", marginTop: 0, marginBottom: "12px" }}>
+                            👁️ PREVIEW - Como o aluno vai ver:
+                          </p>
+                          <MultipleChoiceQuestion
+                            question={`Q1: ${multiplaQuestoes[0].pergunta}`}
+                            options={multiplaQuestoes[0].opcoes}
+                            onAnswer={() => {}}
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
                 </>

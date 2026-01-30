@@ -142,7 +142,20 @@ export default function ExerciseDetail() {
 
   const handleEnviar = async () => {
     if (!id || !exercicio) return;
-    if (resposta.trim().length === 0) {
+
+    const isMultipla = exercicio.titulo && /^Dia \d+: (Múltipla Escolha|Pergunta Múltipla)$/.test(exercicio.titulo);
+
+    // Validação
+    if (isMultipla) {
+      const multiplaRegras = exercicio.multipla_regras ? JSON.parse(exercicio.multipla_regras) : { questoes: [] };
+      const totalQuestoes = multiplaRegras.questoes?.length || 0;
+      const respostasCount = Object.keys(respostasMultipla).length;
+
+      if (respostasCount < totalQuestoes) {
+        setErroSubmissao(`Por favor, responda todas as ${totalQuestoes} questões.`);
+        return;
+      }
+    } else if (resposta.trim().length === 0) {
       setErroSubmissao("A resposta não pode estar vazia");
       return;
     }
@@ -155,19 +168,36 @@ export default function ExerciseDetail() {
 
       const tipoResposta = exercicio.tipoExercicio || "texto";
 
+      // Preparar resposta
+      const respostaFinal = isMultipla
+        ? JSON.stringify(respostasMultipla)
+        : resposta.trim();
+
       const result = await enviarSubmissao(id, {
-        resposta: resposta.trim(),
+        resposta: respostaFinal,
         tipo_resposta: tipoResposta,
         linguagem: tipoResposta === "codigo" ? linguagem : undefined,
       });
 
-      const score = result.submissao?.verificacaoDescricao;
-      if (score !== null && score !== undefined && score < 50) {
-        setAvisoMsg("⚠️ Resposta enviada, mas parece fora do jeito esperado. Revise o enunciado.");
+      // Feedback
+      const score = result.submissao?.nota;
+      if (isMultipla && score !== null && score !== undefined) {
+        if (score >= 70) {
+          setSucessoMsg(`✅ Parabéns! Você acertou e obteve ${score}% de aproveitamento!`);
+        } else {
+          setAvisoMsg(`⚠️ Você obteve ${score}% de acertos. Revise e tente novamente.`);
+        }
       } else {
-        setSucessoMsg("✅ Resposta enviada com sucesso!");
+        const verScore = result.submissao?.verificacaoDescricao;
+        if (verScore !== null && verScore !== undefined && verScore < 50) {
+          setAvisoMsg("⚠️ Resposta enviada, mas parece fora do jeito esperado. Revise o enunciado.");
+        } else {
+          setSucessoMsg("✅ Resposta enviada com sucesso!");
+        }
       }
+
       setResposta("");
+      setRespostasMultipla({});
 
       // Recarregar submissões
       const data = await minhasSubmissoes(id);
@@ -576,6 +606,63 @@ export default function ExerciseDetail() {
                         value={resposta}
                         onChange={(e) => setResposta(e.target.value)}
                         rows={6}
+                        style={{ marginTop: "16px" }}
+                      />
+                    </div>
+                  );
+                })()}
+
+                {/* EXERCÍCIOS COM MÚLTIPLA ESCOLHA */}
+                {exercicio && /^Dia \d+: (Múltipla Escolha|Pergunta Múltipla)$/.test(exercicio.titulo) && (() => {
+                  const multiplaRegras = exercicio.multipla_regras
+                    ? JSON.parse(exercicio.multipla_regras)
+                    : { questoes: [] };
+
+                  if (!multiplaRegras.questoes || multiplaRegras.questoes.length === 0) {
+                    return (
+                      <div style={{ padding: "16px", background: "#fee2e2", borderRadius: "8px" }}>
+                        ⚠️ Este exercício não possui questões configuradas.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div>
+                      {/* Instruções */}
+                      <div style={{ padding: "16px", background: "#f0f9ff", borderRadius: "8px", marginBottom: "20px" }}>
+                        <p style={{ fontWeight: 600, color: "#1e40af" }}>📋 {exercicio.descricao}</p>
+                        <p style={{ fontSize: 12, color: "#1e40af" }}>
+                          ℹ️ Responda todas as {multiplaRegras.questoes.length} questões
+                        </p>
+                      </div>
+
+                      {/* Renderizar questões */}
+                      {multiplaRegras.questoes.map((questao: any, index: number) => (
+                        <MultipleChoiceQuestion
+                          key={index}
+                          question={`Q${index + 1}: ${questao.pergunta}`}
+                          options={questao.opcoes}
+                          selectedAnswer={respostasMultipla[`q${index}`]}
+                          onAnswer={(answer) => {
+                            setRespostasMultipla({ ...respostasMultipla, [`q${index}`]: answer });
+                          }}
+                        />
+                      ))}
+
+                      {/* Progresso */}
+                      <div style={{ padding: "12px", background: "#f0fdf4", borderRadius: "8px", marginTop: "16px" }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#166534", margin: 0 }}>
+                          📊 Progresso: {Object.keys(respostasMultipla).length} / {multiplaRegras.questoes.length} respondidas
+                        </p>
+                      </div>
+
+                      {/* Campo opcional de comentário */}
+                      <textarea
+                        className="edTextarea"
+                        placeholder="(Opcional) Deixe um comentário..."
+                        value={resposta}
+                        onChange={(e) => setResposta(e.target.value)}
+                        rows={4}
                         style={{ marginTop: "16px" }}
                       />
                     </div>

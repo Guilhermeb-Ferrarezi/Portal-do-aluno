@@ -158,6 +158,30 @@ function corrigirAutomaticamente(
   return null;
 }
 
+function validarMultiplaEscolha(resposta: string, multipla_regras: string): number {
+  try {
+    const respostaObj = JSON.parse(resposta);
+    const regrasObj = JSON.parse(multipla_regras);
+
+    if (!regrasObj.questoes || !Array.isArray(regrasObj.questoes)) {
+      return 0;
+    }
+
+    let acertos = 0;
+    regrasObj.questoes.forEach((questao: any, index: number) => {
+      const respostaAluno = respostaObj[`q${index}`];
+      if (respostaAluno === questao.respostaCorreta) {
+        acertos++;
+      }
+    });
+
+    return Math.round((acertos / regrasObj.questoes.length) * 100);
+  } catch (error) {
+    console.error("Erro ao validar múltipla escolha:", error);
+    return 0;
+  }
+}
+
 export function submissoesRouter(jwtSecret: string) {
   const router = Router();
 
@@ -184,7 +208,7 @@ export function submissoesRouter(jwtSecret: string) {
       try {
         // Verificar se exercício existe e buscar prazo
         const exercicio = await pool.query(
-          `SELECT id, descricao, gabarito, tipo_exercicio, prazo FROM exercicios WHERE id = $1 AND publicado = true`,
+          `SELECT id, descricao, gabarito, tipo_exercicio, prazo, multipla_regras FROM exercicios WHERE id = $1 AND publicado = true`,
           [exercicioId]
         );
 
@@ -194,6 +218,7 @@ export function submissoesRouter(jwtSecret: string) {
 
         const exRow = exercicio.rows[0];
         const gabarito = exRow.gabarito;
+        const multiplaRegras = exRow.multipla_regras;
         const descricaoExercicio = exRow.descricao ?? "";
         const prazo = exRow.prazo ? new Date(exRow.prazo) : null;
         const agora = new Date();
@@ -208,8 +233,15 @@ export function submissoesRouter(jwtSecret: string) {
 
         const { resposta, tipo_resposta, linguagem } = parsed.data;
 
-        // Corrigir automaticamente se houver gabarito
-        const notaAuto = corrigirAutomaticamente(resposta, gabarito, tipo_resposta);
+        // Detectar tipo de exercício e validar
+        let notaAuto = null;
+        if (multiplaRegras) {
+          // Múltipla escolha - validação automática
+          notaAuto = validarMultiplaEscolha(resposta, multiplaRegras);
+        } else if (gabarito) {
+          // Validação normal por gabarito
+          notaAuto = corrigirAutomaticamente(resposta, gabarito, tipo_resposta);
+        }
         const verificacaoDescricao = calcularScoreAderencia(resposta, tipo_resposta, descricaoExercicio, gabarito);
 
         // Inserir submissão
@@ -223,8 +255,8 @@ export function submissoesRouter(jwtSecret: string) {
             resposta,
             tipo_resposta,
             linguagem ?? null,
-            notaAuto, // nota automática se houver gabarito
-            gabarito ? true : false, // marcar como corrigida se há gabarito
+            notaAuto, // nota automática se houver gabarito ou múltipla escolha
+            gabarito || multiplaRegras ? true : false, // marcar como corrigida se há gabarito ou múltipla escolha
             isLate ?? false, // marcar como atrasada se passou do prazo
           ]
         );

@@ -12,6 +12,9 @@ type DbTurmaRow = {
   professor_id: string | null;
   descricao: string | null;
   ativo: boolean;
+  data_inicio: string | null;
+  duracao_semanas: number;
+  cronograma_ativo: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -21,6 +24,9 @@ const createTurmaSchema = z.object({
   tipo: z.enum(["turma", "particular"]),
   professor_id: z.string().uuid("Professor ID inválido").optional().nullable(),
   descricao: z.string().optional().nullable(),
+  data_inicio: z.string().optional().nullable(),
+  duracao_semanas: z.number().int().min(1).max(52).default(12),
+  cronograma_ativo: z.boolean().default(false),
 });
 
 const updateTurmaSchema = createTurmaSchema.partial();
@@ -522,6 +528,128 @@ export function turmasRouter(jwtSecret: string) {
       );
 
       return res.json({ message: "Exercício removido da turma" });
+    }
+  );
+
+  // POST /turmas/:id/cronograma - Criar/atualizar cronograma completo
+  router.post(
+    "/turmas/:id/cronograma",
+    authGuard(jwtSecret),
+    requireRole(["admin", "professor"]),
+    async (req: AuthRequest, res) => {
+      const { id } = req.params;
+      const { semanas } = req.body;
+      const userId = req.user!.sub;
+      const userRole = req.user!.role;
+
+      try {
+        // Verificar se turma existe
+        const turmaCheck = await pool.query<DbTurmaRow>(
+          `SELECT * FROM turmas WHERE id = $1`,
+          [id]
+        );
+
+        if (turmaCheck.rows.length === 0) {
+          return res.status(404).json({ message: "Turma não encontrada" });
+        }
+
+        const turma = turmaCheck.rows[0];
+
+        // Verificar permissão
+        if (userRole === "professor" && turma.professor_id !== userId) {
+          return res.status(403).json({ message: "Sem permissão" });
+        }
+
+        // Limpar cronograma existente
+        await pool.query(`DELETE FROM cronograma_turma WHERE turma_id = $1`, [id]);
+
+        // Inserir novo cronograma
+        if (semanas && Array.isArray(semanas)) {
+          for (const s of semanas) {
+            if (!s.exercicios || !Array.isArray(s.exercicios)) continue;
+            for (let i = 0; i < s.exercicios.length; i++) {
+              await pool.query(
+                `INSERT INTO cronograma_turma (turma_id, exercicio_id, semana, ordem)
+                 VALUES ($1, $2, $3, $4)
+                 ON CONFLICT (turma_id, exercicio_id, semana) DO NOTHING`,
+                [id, s.exercicios[i], s.semana, i]
+              );
+            }
+          }
+        }
+
+        return res.json({ message: "Cronograma configurado com sucesso!" });
+      } catch (error) {
+        console.error("Erro ao configurar cronograma:", error);
+        return res.status(500).json({ message: "Erro ao configurar cronograma" });
+      }
+    }
+  );
+
+  // GET /turmas/:id/cronograma - Buscar cronograma
+  router.get(
+    "/turmas/:id/cronograma",
+    authGuard(jwtSecret),
+    async (req: AuthRequest, res) => {
+      const { id } = req.params;
+      const userId = req.user!.sub;
+      const userRole = req.user!.role;
+
+      try {
+        // Verificar se turma existe e se usuário tem acesso
+        const turmaCheck = await pool.query<DbTurmaRow>(
+          `SELECT * FROM turmas WHERE id = $1`,
+          [id]
+        );
+
+        if (turmaCheck.rows.length === 0) {
+          return res.status(404).json({ message: "Turma não encontrada" });
+        }
+
+        const turma = turmaCheck.rows[0];
+
+        // Verificar permissão
+        if (userRole === "professor" && turma.professor_id !== userId) {
+          return res.status(403).json({ message: "Sem permissão" });
+        } else if (userRole === "aluno") {
+          const hasAccess = await pool.query(
+            `SELECT 1 FROM aluno_turma WHERE aluno_id = $1 AND turma_id = $2`,
+            [userId, id]
+          );
+          if (hasAccess.rows.length === 0) {
+            return res.status(403).json({ message: "Sem permissão" });
+          }
+        }
+
+        const result = await pool.query(`
+          SELECT c.semana, c.ordem, e.id, e.titulo, e.modulo
+          FROM cronograma_turma c
+          JOIN exercicios e ON c.exercicio_id = e.id
+          WHERE c.turma_id = $1
+          ORDER BY c.semana, c.ordem
+        `, [id]);
+
+        // Agrupar por semana
+        const cronograma = result.rows.reduce((acc: any, row: any) => {
+          if (!acc[row.semana]) acc[row.semana] = [];
+          acc[row.semana].push({ id: row.id, titulo: row.titulo, modulo: row.modulo });
+          return acc;
+        }, {});
+
+        return res.json({
+          cronograma,
+          turma: {
+            id: turma.id,
+            nome: turma.nome,
+            dataInicio: turma.data_inicio,
+            duracaoSemanas: turma.duracao_semanas,
+            cronogramaAtivo: turma.cronograma_ativo,
+          }
+        });
+      } catch (error) {
+        console.error("Erro ao buscar cronograma:", error);
+        return res.status(500).json({ message: "Erro ao buscar cronograma" });
+      }
     }
   );
 

@@ -55,6 +55,7 @@ export type Exercicio = {
   tipoExercicio?: "codigo" | "texto" | null;
   is_template?: boolean;
   mouse_regras?: string | null;
+  multipla_regras?: string | null;
   createdAt: string;
   turmas?: Turma[];
 };
@@ -94,6 +95,8 @@ export async function criarExercicio(dados: {
   gabarito?: string | null;
   linguagem_esperada?: string | null;
   is_template?: boolean;
+  mouse_regras?: string | null;
+  multipla_regras?: string | null;
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>("/exercicios", {
     method: "POST",
@@ -111,6 +114,8 @@ export async function atualizarExercicio(id: string, dados: {
   gabarito?: string | null;
   linguagem_esperada?: string | null;
   is_template?: boolean;
+  mouse_regras?: string | null;
+  multipla_regras?: string | null;
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>(`/exercicios/${id}`, {
     method: "PUT",
@@ -173,8 +178,20 @@ export type Turma = {
   professorId: string | null;
   descricao: string | null;
   ativo: boolean;
+  dataInicio?: string | null;
+  duracaoSemanas?: number;
+  cronogramaAtivo?: boolean;
   createdAt: string;
   updatedAt?: string;
+};
+
+export type CronogramaSemana = {
+  semana: number;
+  exercicios: Array<{
+    id: string;
+    titulo: string;
+    modulo: string;
+  }>;
 };
 
 // Funções de Turma
@@ -203,6 +220,9 @@ export async function criarTurma(dados: {
   categoria?: "programacao" | "informatica";
   professor_id?: string | null;
   descricao?: string | null;
+  data_inicio?: string | null;
+  duracao_semanas?: number;
+  cronograma_ativo?: boolean;
 }) {
   return apiFetch<{ message: string; turma: Turma }>("/turmas", {
     method: "POST",
@@ -216,6 +236,9 @@ export async function atualizarTurma(id: string, dados: {
   categoria?: "programacao" | "informatica";
   professor_id?: string | null;
   descricao?: string | null;
+  data_inicio?: string | null;
+  duracao_semanas?: number;
+  cronograma_ativo?: boolean;
 }) {
   return apiFetch<{ message: string; turma: Turma }>(`/turmas/${id}`, {
     method: "PUT",
@@ -253,6 +276,29 @@ export async function removerExercicioDaTurma(turmaId: string, exercicioId: stri
   return apiFetch<{ message: string }>(`/turmas/${turmaId}/exercicios/${exercicioId}`, {
     method: "DELETE",
   });
+}
+
+export async function configurarCronograma(turmaId: string, semanas: Array<{
+  semana: number;
+  exercicios: string[];
+}>) {
+  return apiFetch<{ message: string }>(`/turmas/${turmaId}/cronograma`, {
+    method: "POST",
+    body: JSON.stringify({ semanas }),
+  });
+}
+
+export async function obterCronograma(turmaId: string) {
+  return apiFetch<{
+    cronograma: Record<number, Array<{ id: string; titulo: string; modulo: string }>>;
+    turma: {
+      id: string;
+      nome: string;
+      dataInicio: string | null;
+      duracaoSemanas: number;
+      cronogramaAtivo: boolean;
+    };
+  }>(`/turmas/${turmaId}/cronograma`);
 }
 
 export type User = {
