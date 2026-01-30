@@ -40,6 +40,11 @@ export default function TurmasPage() {
   const [saving, setSaving] = React.useState(false);
   const [editandoId, setEditandoId] = React.useState<string | null>(null);
 
+  // Cronograma
+  const [dataInicio, setDataInicio] = React.useState("");
+  const [duracaoSemanas, setDuracaoSemanas] = React.useState(12);
+  const [cronogramaAtivo, setCronogramaAtivo] = React.useState(false);
+
   // Modal
   const [modalDeletar, setModalDeletar] = React.useState<{
     isOpen: boolean;
@@ -129,6 +134,11 @@ export default function TurmasPage() {
           atualizarDados.professor_id = professorId || null;
         }
 
+        // Adicionar campos de cronograma
+        atualizarDados.data_inicio = dataInicio || null;
+        atualizarDados.duracao_semanas = duracaoSemanas;
+        atualizarDados.cronograma_ativo = cronogramaAtivo;
+
         await atualizarTurma(editandoId, atualizarDados);
         setOkMsg("Turma atualizada!");
         setEditandoId(null);
@@ -139,6 +149,11 @@ export default function TurmasPage() {
         if (role === "admin" && professorId) {
           criarDados.professor_id = professorId;
         }
+
+        // Adicionar campos de cronograma
+        criarDados.data_inicio = dataInicio || null;
+        criarDados.duracao_semanas = duracaoSemanas;
+        criarDados.cronograma_ativo = cronogramaAtivo;
 
         await criarTurma(criarDados);
         setOkMsg("Turma criada! Agora adicione alunos.");
@@ -160,6 +175,9 @@ export default function TurmasPage() {
       setCategoria("programacao");
       setDescricao("");
       setProfessorId("");
+      setDataInicio("");
+      setDuracaoSemanas(12);
+      setCronogramaAtivo(false);
 
       if (editandoId) {
         await load();
@@ -177,6 +195,9 @@ export default function TurmasPage() {
     setCategoria(turma.categoria);
     setDescricao(turma.descricao || "");
     setProfessorId(turma.professorId || "");
+    setDataInicio(turma.dataInicio ? turma.dataInicio.split('T')[0] : "");
+    setDuracaoSemanas(turma.duracaoSemanas || 12);
+    setCronogramaAtivo(turma.cronogramaAtivo || false);
     setEditandoId(turma.id);
     setOkMsg(null);
 
@@ -192,6 +213,9 @@ export default function TurmasPage() {
     setCategoria("programacao");
     setDescricao("");
     setProfessorId("");
+    setDataInicio("");
+    setDuracaoSemanas(12);
+    setCronogramaAtivo(false);
     setEditandoId(null);
     setOkMsg(null);
   }
@@ -381,6 +405,56 @@ export default function TurmasPage() {
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
                 />
+              </div>
+
+              {/* CRONOGRAMA */}
+              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid var(--border)" }}>
+                <h3 style={{ marginTop: 0, marginBottom: "16px", fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>
+                  📅 Configuração de Cronograma (Opcional)
+                </h3>
+
+                <div className="turmaInputGroup">
+                  <label className="turmaLabel">Data de Início da Turma</label>
+                  <input
+                    type="date"
+                    className="turmaInput"
+                    value={dataInicio}
+                    onChange={(e) => setDataInicio(e.target.value)}
+                  />
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, display: "block" }}>
+                    Data em que a turma começa (para liberação semanal de exercícios)
+                  </small>
+                </div>
+
+                <div className="turmaInputGroup">
+                  <label className="turmaLabel">Duração do Cronograma (semanas)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="52"
+                    className="turmaInput"
+                    value={duracaoSemanas}
+                    onChange={(e) => setDuracaoSemanas(parseInt(e.target.value) || 12)}
+                  />
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, display: "block" }}>
+                    Quantas semanas terá o cronograma (padrão: 12 semanas)
+                  </small>
+                </div>
+
+                <div className="turmaInputGroup">
+                  <label style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={cronogramaAtivo}
+                      onChange={(e) => setCronogramaAtivo(e.target.checked)}
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    <span className="turmaLabel" style={{ margin: 0 }}>Ativar Cronograma Automático</span>
+                  </label>
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, display: "block" }}>
+                    Se ativado, os exercícios serão liberados automaticamente cada dia, conforme o cronograma configurado
+                  </small>
+                </div>
               </div>
 
               <div className="turmaActions">
