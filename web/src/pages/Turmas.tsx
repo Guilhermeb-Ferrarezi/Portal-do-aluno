@@ -9,6 +9,8 @@ import {
   getRole,
   listarAlunos,
   adicionarAlunosNaTurma,
+  configurarCronograma,
+  obterCronograma,
   apiFetch,
   type Turma,
   type User,
@@ -135,6 +137,41 @@ export default function TurmasPage() {
     setTurmas(turmasAll.filter((turma) => turma.professorId === userId));
   }, [filtroTurmas, role, turmasAll, userId]);
 
+  async function adicionarTemplatesNoCronograma(turmaId: string) {
+    if (templatesSelecionados.length === 0) return;
+
+    const semanaFinal = Math.max(1, Math.min(semanaTemplates, duracaoSemanas || 1));
+
+    let cronogramaExistente: Record<number, Array<{ id: string }>> = {};
+
+    try {
+      const data = await obterCronograma(turmaId);
+      cronogramaExistente = data.cronograma || {};
+    } catch {
+      cronogramaExistente = {};
+    }
+
+    const mapa: Record<number, string[]> = {};
+    Object.entries(cronogramaExistente).forEach(([semana, exercicios]) => {
+      const ids = exercicios.map((ex) => ex.id);
+      mapa[Number(semana)] = ids;
+    });
+
+    const atuais = mapa[semanaFinal] ?? [];
+    const novos = templatesSelecionados.filter((id) => !atuais.includes(id));
+    mapa[semanaFinal] = [...atuais, ...novos];
+
+    const semanas = Object.entries(mapa)
+      .map(([semana, exercicios]) => ({
+        semana: Number(semana),
+        exercicios,
+      }))
+      .filter((item) => item.exercicios.length > 0)
+      .sort((a, b) => a.semana - b.semana);
+
+    await configurarCronograma(turmaId, semanas);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!nome.trim()) {
@@ -161,7 +198,20 @@ export default function TurmasPage() {
         atualizarDados.cronograma_ativo = cronogramaAtivo;
 
         await atualizarTurma(editandoId, atualizarDados);
-        setOkMsg("Turma atualizada!");
+
+        if (templatesSelecionados.length > 0) {
+          try {
+            await adicionarTemplatesNoCronograma(editandoId);
+            setOkMsg("Turma atualizada e templates adicionados!");
+          } catch (err) {
+            console.error("Erro ao adicionar templates no cronograma:", err);
+            setOkMsg("Turma atualizada!");
+            setErro("Falha ao adicionar templates ao cronograma.");
+          }
+        } else {
+          setOkMsg("Turma atualizada!");
+        }
+
         setEditandoId(null);
       } else {
         const criarDados: any = { nome, tipo, categoria, descricao: descricao || null };
@@ -180,19 +230,8 @@ export default function TurmasPage() {
         const turmaCriada = created.turma;
 
         if (templatesSelecionados.length > 0 && turmaCriada) {
-          const semanaFinal = Math.max(1, Math.min(semanaTemplates, duracaoSemanas || 1));
           try {
-            await apiFetch(`/turmas/${turmaCriada.id}/cronograma`, {
-              method: "POST",
-              body: JSON.stringify({
-                semanas: [
-                  {
-                    semana: semanaFinal,
-                    exercicios: templatesSelecionados,
-                  },
-                ],
-              }),
-            });
+            await adicionarTemplatesNoCronograma(turmaCriada.id);
             setOkMsg("Turma criada e templates adicionados! Agora adicione alunos.");
           } catch (err) {
             console.error("Erro ao adicionar templates no cronograma:", err);
@@ -438,7 +477,6 @@ export default function TurmasPage() {
                     Deixe em branco para nenhum responsável, ou selecione um admin/professor
                   </small>
                 </div>
-              )}
 
               <div className="turmaInputGroup">
                 <label className="turmaLabel">Descrição</label>
@@ -500,66 +538,64 @@ export default function TurmasPage() {
                 </div>
               </div>
 
-              {!editandoId && (
-                <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid var(--border)" }}>
-                  <h3 style={{ marginTop: 0, marginBottom: "16px", fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>
-                    Adicionar templates ao cronograma
-                  </h3>
+              <div style={{ marginTop: "24px", paddingTop: "24px", borderTop: "1px solid var(--border)" }}>
+                <h3 style={{ marginTop: 0, marginBottom: "16px", fontSize: "14px", fontWeight: 600, color: "var(--text)" }}>
+                  Adicionar templates ao cronograma
+                </h3>
 
-                  <div className="turmaInputGroup">
-                    <label className="turmaLabel">Semana para liberar</label>
-                    <input
-                      type="number"
-                      min="1"
-                      max={duracaoSemanas}
-                      className="turmaInput"
-                      value={semanaTemplates}
-                      onChange={(e) => setSemanaTemplates(parseInt(e.target.value) || 1)}
-                    />
-                    <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, display: "block" }}>
-                      Escolha a semana do cronograma para esses templates
-                    </small>
-                  </div>
-
-                  {carregandoTemplates ? (
-                    <div style={{ color: "var(--muted)", fontSize: 13 }}>Carregando templates...</div>
-                  ) : templatesDisponiveis.length === 0 ? (
-                    <div style={{ color: "var(--muted)", fontSize: 13 }}>Nenhum template cadastrado.</div>
-                  ) : (
-                    <div className="templatesSelectorList">
-                      {templatesDisponiveis.map((template) => (
-                        <label key={template.id} className="templateCheckboxItem">
-                          <input
-                            type="checkbox"
-                            checked={templatesSelecionados.includes(template.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setTemplatesSelecionados([...templatesSelecionados, template.id]);
-                              } else {
-                                setTemplatesSelecionados(
-                                  templatesSelecionados.filter((id) => id !== template.id)
-                                );
-                              }
-                            }}
-                          />
-                          <div className="templateCheckboxInfo">
-                            <div className="templateCheckboxTitle">{template.titulo}</div>
-                            <div className="templateCheckboxMeta">{template.modulo || "Sem modulo"}</div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  )}
-
-                  {!cronogramaAtivo && (
-                    <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 8, display: "block" }}>
-                      O cronograma esta desativado. Os templates serao salvos, mas nao serao liberados automaticamente.
-                    </small>
-                  )}
+                <div className="turmaInputGroup">
+                  <label className="turmaLabel">Semana para liberar</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max={duracaoSemanas}
+                    className="turmaInput"
+                    value={semanaTemplates}
+                    onChange={(e) => setSemanaTemplates(parseInt(e.target.value) || 1)}
+                  />
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4, display: "block" }}>
+                    Escolha a semana do cronograma para esses templates
+                  </small>
                 </div>
-              )}
 
-<div className="turmaActions">
+                {carregandoTemplates ? (
+                  <div style={{ color: "var(--muted)", fontSize: 13 }}>Carregando templates...</div>
+                ) : templatesDisponiveis.length === 0 ? (
+                  <div style={{ color: "var(--muted)", fontSize: 13 }}>Nenhum template cadastrado.</div>
+                ) : (
+                  <div className="templatesSelectorList">
+                    {templatesDisponiveis.map((template) => (
+                      <label key={template.id} className="templateCheckboxItem">
+                        <input
+                          type="checkbox"
+                          checked={templatesSelecionados.includes(template.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setTemplatesSelecionados([...templatesSelecionados, template.id]);
+                            } else {
+                              setTemplatesSelecionados(
+                                templatesSelecionados.filter((id) => id !== template.id)
+                              );
+                            }
+                          }}
+                        />
+                        <div className="templateCheckboxInfo">
+                          <div className="templateCheckboxTitle">{template.titulo}</div>
+                          <div className="templateCheckboxMeta">{template.modulo || "Sem modulo"}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {!cronogramaAtivo && (
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 8, display: "block" }}>
+                    O cronograma esta desativado. Os templates serao salvos, mas nao serao liberados automaticamente.
+                  </small>
+                )}
+              </div>
+
+              <div className="turmaActions">
                 <button
                   type="submit"
                   className="turmaSubmitBtn"
@@ -634,8 +670,7 @@ export default function TurmasPage() {
 
                   {turma.descricao && (
                     <p className="turmaCardDescription">{turma.descricao}</p>
-                  )}
-
+    
                   <div className="turmaCardStats">
                     <div className="statItem">
                       <span className="statIcon">👥</span>
@@ -725,7 +760,6 @@ export default function TurmasPage() {
                     </label>
                   ))}
                 </div>
-              )}
 
               <div className="modalActions">
                 <button
