@@ -25,10 +25,17 @@ export default function ExerciciosPage() {
   const [prazo, setPrazo] = React.useState(""); // datetime-local
   const [publishNow, setPublishNow] = React.useState(true); // Publicar agora ou agendar
   const [publishedAt, setPublishedAt] = React.useState(""); // datetime-local
+  const [isTemplate, setIsTemplate] = React.useState(false); // Template ou Atividade Normal
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
   const [editandoId, setEditandoId] = React.useState<string | null>(null);
+
+  // Filtros
+  const [moduloFiltro, setModuloFiltro] = React.useState("");
+  const [tipoFiltro, setTipoFiltro] = React.useState(""); // codigo, texto, todas
+  const [templateFiltro, setTemplateFiltro] = React.useState(""); // template, normal, todas
+  const [buscaFiltro, setBuscaFiltro] = React.useState("");
 
   // Turmas
   const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
@@ -81,6 +88,7 @@ export default function ExerciciosPage() {
         prazo: prazo ? new Date(prazo).toISOString() : null,
         publicado: publishNow,
         published_at: publishNow ? null : (publishedAt ? new Date(publishedAt).toISOString() : null),
+        is_template: isTemplate,
         ...(gabaritoLimpo ? { gabarito: gabaritoLimpo } : {}),
       };
 
@@ -107,6 +115,7 @@ export default function ExerciciosPage() {
       setPrazo("");
       setPublishNow(true);
       setPublishedAt("");
+      setIsTemplate(false);
       setTurmasSelecionadas([]);
 
       await load();
@@ -375,6 +384,29 @@ export default function ExerciciosPage() {
                 </div>
               )}
 
+              {/* TOGGLE TEMPLATE VS ATIVIDADE */}
+              <div className="exInputRow">
+                <div className="exInputGroup">
+                  <label className="exLabel" style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={isTemplate}
+                      onChange={(e) => setIsTemplate(e.target.checked)}
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    <span style={{ fontWeight: 600 }}>
+                      {isTemplate ? "📦 Template (Reutilizável)" : "📝 Atividade Padrão"}
+                    </span>
+                  </label>
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    {isTemplate
+                      ? "Este exercício será salvo como um template reutilizável"
+                      : "Este exercício será uma atividade padrão para a turma"
+                    }
+                  </small>
+                </div>
+              </div>
+
               <div style={{ display: "flex", gap: "12px" }}>
                 <button className="exSubmitBtn" onClick={handleSubmit} disabled={disabled} style={{ flex: 1 }}>
                   {saving ? "⏳ Salvando..." : editandoId ? "💾 Atualizar Exercício" : "✨ Publicar Exercício"}
@@ -401,25 +433,90 @@ export default function ExerciciosPage() {
           </div>
         )}
 
-        {/* FILTRO DE TURMAS */}
-        {turmasDisponiveis.length > 0 && (
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <label style={{ fontWeight: 600, whiteSpace: "nowrap" }}>Filtrar por turma:</label>
-            <select
-              className="exSelect"
-              value={turmaFiltro}
-              onChange={(e) => setTurmaFiltro(e.target.value)}
-              style={{ minWidth: 200 }}
-            >
-              <option value="todas">Todas as turmas</option>
-              {turmasDisponiveis.map((turma) => (
-                <option key={turma.id} value={turma.id}>
-                  {turma.nome}
-                </option>
-              ))}
-            </select>
+        {/* FILTROS DE EXERCÍCIOS */}
+        <div className="filtersSection">
+          <div className="filterRow">
+            {/* Busca por título */}
+            <div className="filterGroup">
+              <input
+                className="exInput"
+                type="text"
+                placeholder="🔍 Buscar por título..."
+                value={buscaFiltro}
+                onChange={(e) => setBuscaFiltro(e.target.value)}
+                style={{ minWidth: 200 }}
+              />
+            </div>
+
+            {/* Filtro de módulo */}
+            <div className="filterGroup">
+              <select
+                className="exSelect"
+                value={moduloFiltro}
+                onChange={(e) => setModuloFiltro(e.target.value)}
+                style={{ minWidth: 150 }}
+              >
+                <option value="">📚 Todos os Módulos</option>
+                {Array.from(new Set(items.map((ex) => ex.modulo)))
+                  .sort()
+                  .map((mod) => (
+                    <option key={mod} value={mod}>
+                      {mod}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Filtro de tipo */}
+            <div className="filterGroup">
+              <select
+                className="exSelect"
+                value={tipoFiltro}
+                onChange={(e) => setTipoFiltro(e.target.value)}
+                style={{ minWidth: 150 }}
+              >
+                <option value="">💻 Todos os Tipos</option>
+                <option value="codigo">💻 Código</option>
+                <option value="texto">✍️ Texto</option>
+              </select>
+            </div>
+
+            {/* Filtro de template */}
+            <div className="filterGroup">
+              <select
+                className="exSelect"
+                value={templateFiltro}
+                onChange={(e) => setTemplateFiltro(e.target.value)}
+                style={{ minWidth: 150 }}
+              >
+                <option value="">📦 Todos</option>
+                <option value="template">📦 Templates</option>
+                <option value="normal">📝 Atividades</option>
+              </select>
+            </div>
           </div>
-        )}
+
+          {/* Filtro de turmas - se aplicável */}
+          {turmasDisponiveis.length > 0 && (
+            <div className="filterRow">
+              <div className="filterGroup">
+                <select
+                  className="exSelect"
+                  value={turmaFiltro}
+                  onChange={(e) => setTurmaFiltro(e.target.value)}
+                  style={{ minWidth: 200 }}
+                >
+                  <option value="todas">👥 Todas as turmas</option>
+                  {turmasDisponiveis.map((turma) => (
+                    <option key={turma.id} value={turma.id}>
+                      {turma.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
 
         {/* LISTA DE EXERCÍCIOS */}
         <div>
@@ -440,6 +537,33 @@ export default function ExerciciosPage() {
             <div className="exercisesList">
               {items
                 .filter((ex) => {
+                  // Filtro de busca por título
+                  if (
+                    buscaFiltro &&
+                    !ex.titulo.toLowerCase().includes(buscaFiltro.toLowerCase())
+                  ) {
+                    return false;
+                  }
+
+                  // Filtro de módulo
+                  if (moduloFiltro && ex.modulo !== moduloFiltro) {
+                    return false;
+                  }
+
+                  // Filtro de tipo
+                  if (tipoFiltro && ex.tipoExercicio !== tipoFiltro) {
+                    return false;
+                  }
+
+                  // Filtro de template
+                  if (templateFiltro === "template" && !ex.is_template) {
+                    return false;
+                  }
+                  if (templateFiltro === "normal" && ex.is_template) {
+                    return false;
+                  }
+
+                  // Filtro de turma
                   if (turmaFiltro === "todas") return true;
                   return ex.turmas?.some((t) => t.id === turmaFiltro);
                 })
@@ -485,6 +609,11 @@ export default function ExerciciosPage() {
                     <div className="exerciseInfo">
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <h3 className="exerciseTitle">{ex.titulo}</h3>
+                        {ex.is_template && (
+                          <span className="exerciseBadge" style={{ background: "#8b5cf6", color: "white" }} title="Este é um template reutilizável">
+                            📦 Template
+                          </span>
+                        )}
                         {ex.publishedAt && new Date(ex.publishedAt) > new Date() && (
                           <span className="exerciseBadge" style={{ background: "#3b82f6", color: "white" }} title="Exercício programado para publicação">
                             📅 Programado

@@ -53,6 +53,7 @@ export type Exercicio = {
   prazo: string | null;
   publishedAt: string | null;
   tipoExercicio?: "codigo" | "texto" | null;
+  is_template?: boolean;
   createdAt: string;
   turmas?: Turma[];
 };
@@ -91,6 +92,7 @@ export async function criarExercicio(dados: {
   publicado?: boolean;
   gabarito?: string | null;
   linguagem_esperada?: string | null;
+  is_template?: boolean;
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>("/exercicios", {
     method: "POST",
@@ -107,6 +109,7 @@ export async function atualizarExercicio(id: string, dados: {
   publicado?: boolean;
   gabarito?: string | null;
   linguagem_esperada?: string | null;
+  is_template?: boolean;
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>(`/exercicios/${id}`, {
     method: "PUT",
