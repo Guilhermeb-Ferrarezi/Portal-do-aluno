@@ -183,9 +183,12 @@ export default function TurmaDetailPage() {
   }
 
   async function carregarTemplates() {
+    // Apenas admins podem carregar templates
+    if (role !== "admin") return;
+
     try {
-      const data = await apiFetch<Exercicio[]>("/exercicios?tipo=template");
-      setTemplates(data);
+      const data = await apiFetch<{ templates: Exercicio[] }>("/templates");
+      setTemplates(data.templates);
     } catch (e) {
       console.error("Erro ao carregar templates:", e);
     }
@@ -196,7 +199,7 @@ export default function TurmaDetailPage() {
       carregarCronograma();
       carregarTemplates();
     }
-  }, [abaSelecionada, id]);
+  }, [abaSelecionada, id, role]);
 
   async function handleAdicionarTemplateSemana(semana: number) {
     if (!id || !templateSelecionado) {
@@ -559,7 +562,8 @@ export default function TurmaDetailPage() {
                   </div>
                 ) : (
                   <>
-                    {/* Seletor para adicionar template */}
+                    {/* Seletor para adicionar template - apenas para admins */}
+                    {role === "admin" ? (
                     <div style={{
                       padding: "16px",
                       border: "1px solid var(--border)",
@@ -635,6 +639,19 @@ export default function TurmaDetailPage() {
                         </button>
                       </div>
                     </div>
+                    ) : (
+                    <div style={{
+                      padding: "16px",
+                      background: "#fef3c7",
+                      borderRadius: "8px",
+                      marginBottom: "20px",
+                      border: "1px solid #fcd34d"
+                    }}>
+                      <p style={{ margin: 0, fontSize: "14px" }}>
+                        ℹ️ Apenas administradores podem adicionar templates ao cronograma.
+                      </p>
+                    </div>
+                    )}
 
                     {/* Visualização do cronograma */}
                     <div>

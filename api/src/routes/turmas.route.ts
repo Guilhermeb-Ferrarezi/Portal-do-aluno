@@ -567,12 +567,74 @@ export function turmasRouter(jwtSecret: string) {
         if (semanas && Array.isArray(semanas)) {
           for (const s of semanas) {
             if (!s.exercicios || !Array.isArray(s.exercicios)) continue;
+
             for (let i = 0; i < s.exercicios.length; i++) {
+              const exercicioId = s.exercicios[i];
+
+              // Verificar se é um template
+              const checkTemplate = await pool.query<{
+                is_template: boolean;
+                titulo: string;
+                descricao: string;
+                modulo: string;
+                tema: string | null;
+                prazo: string | null;
+                gabarito: string | null;
+                linguagem_esperada: string | null;
+                mouse_regras: string | null;
+                multipla_regras: string | null;
+                tipo_exercicio: string | null;
+              }>(
+                `SELECT is_template, titulo, descricao, modulo, tema, prazo, gabarito, linguagem_esperada, mouse_regras, multipla_regras, tipo_exercicio FROM exercicios WHERE id = $1`,
+                [exercicioId]
+              );
+
+              let finalExercicioId = exercicioId;
+
+              // Se for um template, duplicar em um novo exercício
+              if (checkTemplate.rows.length > 0 && checkTemplate.rows[0].is_template) {
+                const template = checkTemplate.rows[0];
+
+                // Duplicar o template com um novo ID
+                const duplicateResult = await pool.query<{ id: string }>(
+                  `INSERT INTO exercicios (
+                    id, titulo, descricao, modulo, tema, prazo, publicado, published_at,
+                    created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template,
+                    mouse_regras, multipla_regras, created_at, updated_at
+                  )
+                  VALUES (
+                    gen_random_uuid(), $1, $2, $3, $4, $5, true, null,
+                    $6, $7, $8, $9, false,
+                    $10, $11, NOW(), NOW()
+                  )
+                  RETURNING id`,
+                  [
+                    template.titulo,
+                    template.descricao,
+                    template.modulo,
+                    template.tema,
+                    template.prazo,
+                    userId,
+                    template.tipo_exercicio,
+                    template.gabarito,
+                    template.linguagem_esperada,
+                    template.mouse_regras,
+                    template.multipla_regras,
+                  ]
+                );
+
+                if (duplicateResult.rows.length > 0) {
+                  finalExercicioId = duplicateResult.rows[0].id;
+                  console.log(`✅ Template "${template.titulo}" duplicado em novo exercício: ${finalExercicioId}`);
+                }
+              }
+
+              // Adicionar ao cronograma com o exercício final (seja original ou duplicado)
               await pool.query(
                 `INSERT INTO cronograma_turma (turma_id, exercicio_id, semana, ordem)
                  VALUES ($1, $2, $3, $4)
                  ON CONFLICT (turma_id, exercicio_id, semana) DO NOTHING`,
-                [id, s.exercicios[i], s.semana, i]
+                [id, finalExercicioId, s.semana, i]
               );
             }
           }
