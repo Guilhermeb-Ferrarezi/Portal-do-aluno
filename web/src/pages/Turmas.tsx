@@ -477,6 +477,7 @@ export default function TurmasPage() {
                     Deixe em branco para nenhum responsável, ou selecione um admin/professor
                   </small>
                 </div>
+              )}
 
               <div className="turmaInputGroup">
                 <label className="turmaLabel">Descrição</label>
@@ -670,7 +671,8 @@ export default function TurmasPage() {
 
                   {turma.descricao && (
                     <p className="turmaCardDescription">{turma.descricao}</p>
-    
+                  )}
+
                   <div className="turmaCardStats">
                     <div className="statItem">
                       <span className="statIcon">👥</span>
@@ -760,6 +762,7 @@ export default function TurmasPage() {
                     </label>
                   ))}
                 </div>
+              )}
 
               <div className="modalActions">
                 <button
