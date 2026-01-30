@@ -9,6 +9,7 @@ import { submissoesRouter } from "./routes/submissoes.route";
 import { turmasRouter } from "./routes/turmas.route";
 import { materiaisRouter } from "./routes/materiais.route";
 import { startPublishScheduledExercisesJob } from "./jobs/publishScheduledExercises";
+import { runMigrations } from "./migrations/runner";
 
 const envSchema = z.object({
   PORT: z.coerce.number().default(3000),
@@ -76,9 +77,14 @@ app.use(
   }
 );
 
-// Iniciar jobs agendados
-startPublishScheduledExercisesJob();
+// Executar migrações e iniciar server
+(async () => {
+  await runMigrations();
 
-app.listen(env.PORT, "0.0.0.0", () => {
-  console.log(`API rodando na porta ${env.PORT}`);
-});
+  // Iniciar jobs agendados
+  startPublishScheduledExercisesJob();
+
+  app.listen(env.PORT, "0.0.0.0", () => {
+    console.log(`API rodando na porta ${env.PORT}`);
+  });
+})();
