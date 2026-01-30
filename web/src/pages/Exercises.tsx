@@ -26,6 +26,9 @@ export default function ExerciciosPage() {
   const [publishNow, setPublishNow] = React.useState(true); // Publicar agora ou agendar
   const [publishedAt, setPublishedAt] = React.useState(""); // datetime-local
   const [isTemplate, setIsTemplate] = React.useState(false); // Template ou Atividade Normal
+  const [categoria, setCategoria] = React.useState("programacao"); // programacao ou informatica
+  const [componenteInterativo, setComponenteInterativo] = React.useState(""); // mouse, multipla, ou vazio
+  const [diaNumero, setDiaNumero] = React.useState(1); // Número do dia para componentes interativos
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
@@ -80,16 +83,26 @@ export default function ExerciciosPage() {
 
       const gabaritoLimpo = gabarito.trim();
 
+      // Auto-gerar descrição se for componente interativo em informatica
+      let descricaoFinal = descricao.trim();
+      let tituloFinal = titulo.trim();
+
+      if (categoria === "informatica" && componenteInterativo) {
+        const nomeComponente = componenteInterativo === "mouse" ? "Mouse" : "Pergunta Múltipla";
+        tituloFinal = `Dia ${diaNumero}: ${nomeComponente}`;
+        descricaoFinal = `Dia ${diaNumero}: ${nomeComponente}`;
+      }
+
       const dados: any = {
-        titulo: titulo.trim(),
-        descricao: descricao.trim(),
+        titulo: tituloFinal,
+        descricao: descricaoFinal,
         modulo: modulo.trim(),
         tema: tema.trim() ? tema.trim() : null,
         prazo: prazo ? new Date(prazo).toISOString() : null,
         publicado: publishNow,
         published_at: publishNow ? null : (publishedAt ? new Date(publishedAt).toISOString() : null),
         is_template: isTemplate,
-        ...(gabaritoLimpo ? { gabarito: gabaritoLimpo } : {}),
+        ...(gabaritoLimpo && categoria === "programacao" ? { gabarito: gabaritoLimpo } : {}),
       };
 
       if (turmasSelecionadas.length > 0) {
@@ -116,6 +129,9 @@ export default function ExerciciosPage() {
       setPublishNow(true);
       setPublishedAt("");
       setIsTemplate(false);
+      setCategoria("programacao");
+      setComponenteInterativo("");
+      setDiaNumero(1);
       setTurmasSelecionadas([]);
 
       await load();
@@ -171,6 +187,9 @@ export default function ExerciciosPage() {
     setTema("");
     setPrazo("");
     setIsTemplate(false);
+    setCategoria("programacao");
+    setComponenteInterativo("");
+    setDiaNumero(1);
     setTurmasSelecionadas([]);
     setEditandoId(null);
     setOkMsg(null);
@@ -210,11 +229,13 @@ export default function ExerciciosPage() {
     abrirModalDeletar(id, exercicio?.titulo || "Exercício");
   }
 
+  // Validação especial para componentes interativos em informatica
+  const isInteractiveComponent = categoria === "informatica" && componenteInterativo !== "";
   const disabled =
     saving ||
-    titulo.trim().length < 2 ||
-    descricao.trim().length < 2 ||
-    modulo.trim().length < 1;
+    modulo.trim().length < 1 ||
+    (!isInteractiveComponent && titulo.trim().length < 2) ||
+    (!isInteractiveComponent && descricao.trim().length < 2);
 
   return (
     <DashboardLayout title="Exercícios" subtitle="Veja e pratique os exercícios disponíveis">
@@ -277,23 +298,123 @@ export default function ExerciciosPage() {
                   placeholder="Descreva o exercício em detalhes..."
                   value={descricao}
                   onChange={(e) => setDescricao(e.target.value)}
+                  disabled={categoria === "informatica" && componenteInterativo !== ""}
                 />
               </div>
 
-              <div className="exInputGroup">
-                <label className="exLabel">Gabarito / Codigo esperado</label>
-                <MonacoEditor
-                  value={gabarito}
-                  onChange={(v) => setGabarito(v || "")}
-                  language={gabaritoLang}
-                  onLanguageChange={setGabaritoLang}
-                  height="240px"
-                  theme="light"
-                />
-                <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                  Esse texto sera usado para comparar se a resposta do aluno esta parecida com o esperado.
-                </small>
+              {/* CATEGORIA - PROGRAMAÇÃO vs INFORMATICA */}
+              <div className="exInputRow">
+                <div className="exInputGroup">
+                  <label className="exLabel" style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="categoria"
+                      value="programacao"
+                      checked={categoria === "programacao"}
+                      onChange={(e) => {
+                        setCategoria(e.target.value as any);
+                        setComponenteInterativo("");
+                      }}
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    <span style={{ fontWeight: 600 }}>💻 Programação</span>
+                  </label>
+                </div>
+
+                <div className="exInputGroup">
+                  <label className="exLabel" style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                    <input
+                      type="radio"
+                      name="categoria"
+                      value="informatica"
+                      checked={categoria === "informatica"}
+                      onChange={(e) => {
+                        setCategoria(e.target.value as any);
+                        setComponenteInterativo("");
+                      }}
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    <span style={{ fontWeight: 600 }}>📚 Informática</span>
+                  </label>
+                </div>
               </div>
+
+              {/* TOGGLE TEMPLATE VS ATIVIDADE */}
+              <div className="exInputRow">
+                <div className="exInputGroup">
+                  <label className="exLabel" style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={isTemplate}
+                      onChange={(e) => setIsTemplate(e.target.checked)}
+                      style={{ marginRight: "8px", cursor: "pointer" }}
+                    />
+                    <span style={{ fontWeight: 600 }}>
+                      {isTemplate ? "📦 Template (Reutilizável)" : "📝 Atividade Padrão"}
+                    </span>
+                  </label>
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    {isTemplate
+                      ? "Este exercício será salvo como um template reutilizável"
+                      : "Este exercício será uma atividade padrão para a turma"
+                    }
+                  </small>
+                </div>
+              </div>
+
+              {/* GABARITO / CÓDIGO ESPERADO - Apenas para Programação */}
+              {categoria === "programacao" && (
+                <div className="exInputGroup">
+                  <label className="exLabel">Gabarito / Codigo esperado</label>
+                  <MonacoEditor
+                    value={gabarito}
+                    onChange={(v) => setGabarito(v || "")}
+                    language={gabaritoLang}
+                    onLanguageChange={setGabaritoLang}
+                    height="240px"
+                    theme="light"
+                  />
+                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                    Esse texto sera usado para comparar se a resposta do aluno esta parecida com o esperado.
+                  </small>
+                </div>
+              )}
+
+              {/* COMPONENTES INTERATIVOS - Apenas para Informática */}
+              {categoria === "informatica" && (
+                <>
+                  <div className="exInputGroup">
+                    <label className="exLabel">Componente Interativo</label>
+                    <select
+                      className="exSelect"
+                      value={componenteInterativo}
+                      onChange={(e) => setComponenteInterativo(e.target.value)}
+                    >
+                      <option value="">Nenhum (Exercício Normal)</option>
+                      <option value="mouse">🖱️ Mouse</option>
+                      <option value="multipla">❓ Múltipla Escolha</option>
+                    </select>
+                  </div>
+
+                  {/* Campo "Dia #" quando um componente é selecionado */}
+                  {componenteInterativo && (
+                    <div className="exInputGroup">
+                      <label className="exLabel">Dia #</label>
+                      <input
+                        className="exInput"
+                        type="number"
+                        min="1"
+                        value={diaNumero}
+                        onChange={(e) => setDiaNumero(parseInt(e.target.value) || 1)}
+                        placeholder="Digite o número do dia"
+                      />
+                      <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                        Título será: "Dia {diaNumero}: {componenteInterativo === "mouse" ? "Mouse" : "Pergunta Múltipla"}"
+                      </small>
+                    </div>
+                  )}
+                </>
+              )}
 
               <div className="exInputRow">
                 <div className="exInputGroup">
@@ -385,29 +506,6 @@ export default function ExerciciosPage() {
                   </small>
                 </div>
               )}
-
-              {/* TOGGLE TEMPLATE VS ATIVIDADE */}
-              <div className="exInputRow">
-                <div className="exInputGroup">
-                  <label className="exLabel" style={{ display: "flex", alignItems: "center", cursor: "pointer" }}>
-                    <input
-                      type="checkbox"
-                      checked={isTemplate}
-                      onChange={(e) => setIsTemplate(e.target.checked)}
-                      style={{ marginRight: "8px", cursor: "pointer" }}
-                    />
-                    <span style={{ fontWeight: 600 }}>
-                      {isTemplate ? "📦 Template (Reutilizável)" : "📝 Atividade Padrão"}
-                    </span>
-                  </label>
-                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                    {isTemplate
-                      ? "Este exercício será salvo como um template reutilizável"
-                      : "Este exercício será uma atividade padrão para a turma"
-                    }
-                  </small>
-                </div>
-              </div>
 
               <div style={{ display: "flex", gap: "12px" }}>
                 <button className="exSubmitBtn" onClick={handleSubmit} disabled={disabled} style={{ flex: 1 }}>
