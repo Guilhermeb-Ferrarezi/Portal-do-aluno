@@ -54,6 +54,7 @@ export type Exercicio = {
   publishedAt: string | null;
   tipoExercicio?: "codigo" | "texto" | null;
   is_template?: boolean;
+  mouse_regras?: string | null;
   createdAt: string;
   turmas?: Turma[];
 };

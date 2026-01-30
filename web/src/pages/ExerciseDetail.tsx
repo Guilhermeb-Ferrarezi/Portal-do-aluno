@@ -47,6 +47,9 @@ export default function ExerciseDetail() {
   // Para exercícios do Dia 1 (múltipla escolha e interativos)
   const [respostasMultipla, setRespostasMultipla] = React.useState<Record<string, string>>({});
 
+  // Para exercícios com Mouse Interativo
+  const [mouseCompleted, setMouseCompleted] = React.useState(false);
+
   // Carregar exercício
   React.useEffect(() => {
     if (!id) return;
@@ -519,6 +522,65 @@ export default function ExerciseDetail() {
                     />
                   </div>
                 )}
+
+                {/* NOVO: Exercícios com Mouse Interativo criados dinamicamente */}
+                {exercicio && /^Dia \d+: Mouse$/.test(exercicio.titulo) && (() => {
+                  const mouseRegras = exercicio.mouse_regras
+                    ? JSON.parse(exercicio.mouse_regras)
+                    : { clicksSimples: 0, duplosClicks: 0, clicksDireitos: 0 };
+
+                  return (
+                    <div>
+                      <div style={{ marginBottom: "20px", padding: "16px", background: "#f0f9ff", border: "1px solid #bfdbfe", borderRadius: "8px" }}>
+                        <p style={{ fontSize: 14, color: "#1e40af", margin: "0 0 8px 0", fontWeight: 600 }}>
+                          📋 Descrição do Desafio:
+                        </p>
+                        <p style={{ fontSize: 13, color: "#1e40af", margin: 0 }}>
+                          {exercicio.descricao}
+                        </p>
+                        {(mouseRegras.clicksSimples || mouseRegras.duplosClicks || mouseRegras.clicksDireitos) && (
+                          <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid #bfdbfe" }}>
+                            <p style={{ fontSize: 12, color: "#1e40af", margin: "0 0 6px 0", fontWeight: 600 }}>
+                              🎯 Regras de Sucesso:
+                            </p>
+                            <ul style={{ fontSize: 12, color: "#1e40af", margin: 0, paddingLeft: "20px" }}>
+                              {mouseRegras.clicksSimples > 0 && <li>🖱️ {mouseRegras.clicksSimples} cliques esquerdos</li>}
+                              {mouseRegras.duplosClicks > 0 && <li>🖱️🖱️ {mouseRegras.duplosClicks} duplos cliques</li>}
+                              {mouseRegras.clicksDireitos > 0 && <li>🖱️→ {mouseRegras.clicksDireitos} cliques direitos</li>}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+
+                      <MouseInteractiveBox
+                        title={exercicio.titulo}
+                        instruction="Realize os cliques conforme as regras acima. Você verá seu progresso em tempo real!"
+                        rules={mouseRegras}
+                        onComplete={() => {
+                          setMouseCompleted(true);
+                          setSucessoMsg("✅ Parabéns! Você completou o desafio do Mouse!");
+                        }}
+                      />
+
+                      {mouseCompleted && (
+                        <div style={{ marginTop: "16px", padding: "12px", background: "#dcfce7", border: "1px solid #86efac", borderRadius: "8px" }}>
+                          <p style={{ fontSize: 13, fontWeight: 600, color: "#166534", margin: 0 }}>
+                            ✅ Desafio completado! Agora você pode enviar sua submissão.
+                          </p>
+                        </div>
+                      )}
+
+                      <textarea
+                        className="edTextarea"
+                        placeholder="Descreva sua experiência realizando este desafio de mouse..."
+                        value={resposta}
+                        onChange={(e) => setResposta(e.target.value)}
+                        rows={6}
+                        style={{ marginTop: "16px" }}
+                      />
+                    </div>
+                  );
+                })()}
 
                 {/* Exercícios normais de código */}
                 {!exercicio.titulo.startsWith("Dia 1:") && tipoExercicio === "codigo" && (
