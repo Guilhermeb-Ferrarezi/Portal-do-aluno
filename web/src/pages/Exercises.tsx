@@ -31,6 +31,12 @@ export default function ExerciciosPage() {
   const [categoria, setCategoria] = React.useState("programacao"); // programacao ou informatica
   const [componenteInterativo, setComponenteInterativo] = React.useState(""); // mouse, multipla, ou vazio
   const [diaNumero, setDiaNumero] = React.useState(1); // Número do dia para componentes interativos
+  // Regras para Mouse Interativo
+  const [mouseRegras, setMouseRegras] = React.useState({
+    clicksSimples: 0,
+    duplosClicks: 0,
+    clicksDireitos: 0,
+  });
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
@@ -105,6 +111,10 @@ export default function ExerciciosPage() {
         published_at: publishNow ? null : (publishedAt ? new Date(publishedAt).toISOString() : null),
         is_template: isTemplate,
         ...(gabaritoLimpo && categoria === "programacao" ? { gabarito: gabaritoLimpo } : {}),
+        // Adicionar regras do mouse se for componente interativo
+        ...(componenteInterativo === "mouse" ? {
+          mouse_regras: JSON.stringify(mouseRegras)
+        } : {}),
       };
 
       if (turmasSelecionadas.length > 0) {
@@ -134,6 +144,7 @@ export default function ExerciciosPage() {
       setCategoria("programacao");
       setComponenteInterativo("");
       setDiaNumero(1);
+      setMouseRegras({ clicksSimples: 0, duplosClicks: 0, clicksDireitos: 0 });
       setTurmasSelecionadas([]);
 
       await load();
@@ -192,6 +203,7 @@ export default function ExerciciosPage() {
     setCategoria("programacao");
     setComponenteInterativo("");
     setDiaNumero(1);
+    setMouseRegras({ clicksSimples: 0, duplosClicks: 0, clicksDireitos: 0 });
     setTurmasSelecionadas([]);
     setEditandoId(null);
     setOkMsg(null);
@@ -428,6 +440,58 @@ export default function ExerciciosPage() {
                         Título será: "Dia {diaNumero}: {componenteInterativo === "mouse" ? "Mouse" : "Pergunta Múltipla"}"
                       </small>
                     </div>
+                  )}
+
+                  {/* REGRAS DO MOUSE - Apenas para componente Mouse */}
+                  {componenteInterativo === "mouse" && (
+                    <>
+                      <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "14px", marginTop: "12px" }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#1e40af", margin: "0 0 12px 0" }}>
+                          ⚙️ Definir Regras de Sucesso:
+                        </p>
+
+                        <div className="exInputRow">
+                          <div className="exInputGroup">
+                            <label className="exLabel">Cliques Esquerdos</label>
+                            <input
+                              className="exInput"
+                              type="number"
+                              min="0"
+                              value={mouseRegras.clicksSimples}
+                              onChange={(e) => setMouseRegras({ ...mouseRegras, clicksSimples: parseInt(e.target.value) || 0 })}
+                              placeholder="Ex: 5"
+                            />
+                            <small style={{ fontSize: 11, color: "var(--muted)" }}>Quantos cliques simples são necessários?</small>
+                          </div>
+
+                          <div className="exInputGroup">
+                            <label className="exLabel">Duplos Cliques</label>
+                            <input
+                              className="exInput"
+                              type="number"
+                              min="0"
+                              value={mouseRegras.duplosClicks}
+                              onChange={(e) => setMouseRegras({ ...mouseRegras, duplosClicks: parseInt(e.target.value) || 0 })}
+                              placeholder="Ex: 3"
+                            />
+                            <small style={{ fontSize: 11, color: "var(--muted)" }}>Quantos duplos cliques são necessários?</small>
+                          </div>
+
+                          <div className="exInputGroup">
+                            <label className="exLabel">Cliques Direitos</label>
+                            <input
+                              className="exInput"
+                              type="number"
+                              min="0"
+                              value={mouseRegras.clicksDireitos}
+                              onChange={(e) => setMouseRegras({ ...mouseRegras, clicksDireitos: parseInt(e.target.value) || 0 })}
+                              placeholder="Ex: 2"
+                            />
+                            <small style={{ fontSize: 11, color: "var(--muted)" }}>Quantos cliques direitos são necessários?</small>
+                          </div>
+                        </div>
+                      </div>
+                    </>
                   )}
 
                   {/* PREVIEW DO COMPONENTE MOUSE */}

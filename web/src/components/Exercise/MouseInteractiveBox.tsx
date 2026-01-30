@@ -8,21 +8,49 @@ type MouseEvent = {
   timestamp: number;
 };
 
+type MouseRules = {
+  clicksSimples?: number;
+  duplosClicks?: number;
+  clicksDireitos?: number;
+};
+
 type MouseInteractiveBoxProps = {
   title: string;
   instruction: string;
   onInteraction?: (events: MouseEvent[]) => void;
+  rules?: MouseRules;
+  onComplete?: () => void;
 };
 
 export default function MouseInteractiveBox({
   title,
   instruction,
   onInteraction,
+  rules,
+  onComplete,
 }: MouseInteractiveBoxProps) {
   const boxRef = React.useRef<HTMLDivElement>(null);
   const [events, setEvents] = React.useState<MouseEvent[]>([]);
   const [cursor, setCursor] = React.useState({ x: 0, y: 0 });
+  const [isComplete, setIsComplete] = React.useState(false);
   const clickTimeoutRef = React.useRef<any>(undefined);
+
+  // Função para validar se as regras foram atingidas
+  const checkRulesCompletion = React.useCallback((currentEvents: MouseEvent[]) => {
+    if (!rules || Object.values(rules).every(v => v === 0 || v === undefined)) {
+      return false; // Sem regras definidas
+    }
+
+    const clicksCount = currentEvents.filter(e => e.type === "click").length;
+    const doubleClicksCount = currentEvents.filter(e => e.type === "double-click").length;
+    const rightClicksCount = currentEvents.filter(e => e.type === "right-click").length;
+
+    const hasClicksSimples = !rules.clicksSimples || clicksCount >= rules.clicksSimples;
+    const hasDuplosClicks = !rules.duplosClicks || doubleClicksCount >= rules.duplosClicks;
+    const hasClicksDireitos = !rules.clicksDireitos || rightClicksCount >= rules.clicksDireitos;
+
+    return hasClicksSimples && hasDuplosClicks && hasClicksDireitos;
+  }, [rules]);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!boxRef.current) return;
@@ -57,6 +85,12 @@ export default function MouseInteractiveBox({
       const updatedEvents = [...events, newEvent];
       setEvents(updatedEvents);
       onInteraction?.(updatedEvents);
+
+      // Validar regras
+      if (checkRulesCompletion(updatedEvents) && !isComplete) {
+        setIsComplete(true);
+        onComplete?.();
+      }
       clickTimeoutRef.current = undefined;
     } else {
       const newEvent: MouseEvent = {
@@ -68,6 +102,12 @@ export default function MouseInteractiveBox({
       const updatedEvents = [...events, newEvent];
       setEvents(updatedEvents);
       onInteraction?.(updatedEvents);
+
+      // Validar regras
+      if (checkRulesCompletion(updatedEvents) && !isComplete) {
+        setIsComplete(true);
+        onComplete?.();
+      }
 
       clickTimeoutRef.current = setTimeout(() => {
         clickTimeoutRef.current = undefined;
@@ -93,6 +133,12 @@ export default function MouseInteractiveBox({
     const updatedEvents = [...events, newEvent];
     setEvents(updatedEvents);
     onInteraction?.(updatedEvents);
+
+    // Validar regras
+    if (checkRulesCompletion(updatedEvents) && !isComplete) {
+      setIsComplete(true);
+      onComplete?.();
+    }
   };
 
   const resetEvents = () => {
@@ -159,6 +205,39 @@ export default function MouseInteractiveBox({
           <p className="mouseBoxHint">👈 Clique, duplo-clique ou clique direito aqui</p>
         </div>
       </div>
+
+      {/* PROGRESSO E REGRAS */}
+      {rules && Object.values(rules).some(v => v && v > 0) && (
+        <div style={{
+          background: isComplete ? "#dcfce7" : "#f0fdf4",
+          border: `2px solid ${isComplete ? "#86efac" : "#bbf7d0"}`,
+          borderRadius: "8px",
+          padding: "12px",
+          marginTop: "12px",
+        }}>
+          <p style={{ fontSize: 13, fontWeight: 600, color: isComplete ? "#166534" : "#22c55e", margin: "0 0 8px 0" }}>
+            {isComplete ? "✅ Desafio Completo!" : "📋 Progresso do Desafio:"}
+          </p>
+
+          <div style={{ fontSize: 12, color: isComplete ? "#166534" : "#166534", lineHeight: "1.6" }}>
+            {rules.clicksSimples && rules.clicksSimples > 0 && (
+              <div style={{ marginBottom: "4px" }}>
+                🖱️ Cliques esquerdos: <strong>{events.filter(e => e.type === "click").length} / {rules.clicksSimples}</strong>
+              </div>
+            )}
+            {rules.duplosClicks && rules.duplosClicks > 0 && (
+              <div style={{ marginBottom: "4px" }}>
+                🖱️🖱️ Duplos cliques: <strong>{events.filter(e => e.type === "double-click").length} / {rules.duplosClicks}</strong>
+              </div>
+            )}
+            {rules.clicksDireitos && rules.clicksDireitos > 0 && (
+              <div style={{ marginBottom: "4px" }}>
+                🖱️→ Cliques direitos: <strong>{events.filter(e => e.type === "right-click").length} / {rules.clicksDireitos}</strong>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Histórico de eventos */}
       {events.length > 0 && (
