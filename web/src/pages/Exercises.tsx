@@ -132,6 +132,7 @@ export default function ExerciciosPage() {
     setGabarito("");
     setModulo(exercicio.modulo);
     setTema(exercicio.tema || "");
+    setIsTemplate(exercicio.is_template || false);
 
     // Converter data de ISO para formato datetime-local
     if (exercicio.prazo) {
@@ -169,6 +170,7 @@ export default function ExerciciosPage() {
     setModulo("");
     setTema("");
     setPrazo("");
+    setIsTemplate(false);
     setTurmasSelecionadas([]);
     setEditandoId(null);
     setOkMsg(null);

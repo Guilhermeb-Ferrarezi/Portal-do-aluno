@@ -136,6 +136,7 @@ export function exerciciosRouter(jwtSecret: string) {
         prazo: row.prazo,
         publishedAt: row.published_at,
         tipoExercicio: row.tipo_exercicio,
+        is_template: row.is_template,
         createdAt: row.created_at,
       }))
     );
@@ -169,6 +170,7 @@ export function exerciciosRouter(jwtSecret: string) {
       tipoExercicio: row.tipo_exercicio,
       gabarito: row.gabarito, // Não retornar gabarito para alunos? Considerar isso
       linguagemEsperada: row.linguagem_esperada,
+      is_template: row.is_template,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
     });
