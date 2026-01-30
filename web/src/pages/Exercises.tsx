@@ -12,7 +12,6 @@ export default function ExerciciosPage() {
   const navigate = useNavigate();
   const role = getRole() ?? "aluno";
   const canCreate = role === "admin" || role === "professor";
-  const isAluno = role === "aluno";
   const canManageTemplates = role === "admin";
 
   const [items, setItems] = React.useState<Exercicio[]>([]);
@@ -62,7 +61,6 @@ export default function ExerciciosPage() {
   // Filtros
   const [moduloFiltro, setModuloFiltro] = React.useState("");
   const [tipoFiltro, setTipoFiltro] = React.useState(""); // codigo, texto, todas
-  const [templateFiltro, setTemplateFiltro] = React.useState(""); // template, normal, todas
   const [buscaFiltro, setBuscaFiltro] = React.useState("");
 
   // Turmas
@@ -303,7 +301,7 @@ export default function ExerciciosPage() {
                 className="templateScheduleBtn"
                 onClick={() => navigate("/dashboard/templates")}
               >
-                ?? Cronograma (Templates)
+                Cronograma (Templates)
               </button>
             )}
           </div>
@@ -867,27 +865,27 @@ export default function ExerciciosPage() {
         {/* FILTROS DE EXERCÍCIOS */}
         <div className="filtersSection">
           <div className="filterRow">
-            {/* Busca por título */}
+            {/* Busca por titulo */}
             <div className="filterGroup">
               <input
                 className="exInput"
                 type="text"
-                placeholder="🔍 Buscar por título..."
+                placeholder="Buscar por titulo..."
                 value={buscaFiltro}
                 onChange={(e) => setBuscaFiltro(e.target.value)}
                 style={{ minWidth: 200 }}
               />
             </div>
 
-            {/* Filtro de módulo */}
+            {/* Filtro de modulo */}
             <div className="filterGroup">
               <select
-                  className="exSelect"
+                className="exSelect"
                 value={moduloFiltro}
                 onChange={(e) => setModuloFiltro(e.target.value)}
-                  style={{ minWidth: 150 }}
+                style={{ minWidth: 150 }}
               >
-                <option value="">📚 Todos os Módulos</option>
+                <option value="">Todos os Modulos</option>
                 {Array.from(new Set(items.map((ex) => ex.modulo)))
                   .sort()
                   .map((mod) => (
@@ -901,34 +899,19 @@ export default function ExerciciosPage() {
             {/* Filtro de tipo */}
             <div className="filterGroup">
               <select
-                  className="exSelect"
+                className="exSelect"
                 value={tipoFiltro}
                 onChange={(e) => setTipoFiltro(e.target.value)}
-                  style={{ minWidth: 150 }}
+                style={{ minWidth: 150 }}
               >
-                <option value="">💻 Todos os Tipos</option>
-                <option value="codigo">💻 Código</option>
-                <option value="texto">✍️ Texto</option>
+                <option value="">Todos os Tipos</option>
+                <option value="codigo">Codigo</option>
+                <option value="texto">Texto</option>
               </select>
             </div>
-
-            {!isAluno && (
-              <div className="filterGroup">
-                <select
-                  className="exSelect"
-                  value={templateFiltro}
-                  onChange={(e) => setTemplateFiltro(e.target.value)}
-                  style={{ minWidth: 150 }}
-              >
-                <option value="">📦 Todos</option>
-                <option value="template">📦 Templates</option>
-                <option value="normal">📝 Atividades</option>
-                </select>
-              </div>
-            )}
           </div>
 
-          {/* Filtro de turmas - se aplicável */}
+          {/* Filtro de turmas - se aplicavel */}
           {turmasDisponiveis.length > 0 && (
             <div className="filterRow">
               <div className="filterGroup">
@@ -969,7 +952,7 @@ export default function ExerciciosPage() {
             <div className="exercisesList">
               {items
                 .filter((ex) => {
-                  if (isAluno && ex.is_template) return false;
+                  if (ex.is_template) return false;
                   // Filtro de busca por título
                   if (
                     buscaFiltro &&
@@ -988,11 +971,8 @@ export default function ExerciciosPage() {
                     return false;
                   }
 
-                  // Filtro de template
-                  if (templateFiltro === "template" && !ex.is_template) {
                     return false;
                   }
-                  if (templateFiltro === "normal" && ex.is_template) {
                     return false;
                   }
 
@@ -1042,11 +1022,7 @@ export default function ExerciciosPage() {
                     <div className="exerciseInfo">
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <h3 className="exerciseTitle">{ex.titulo}</h3>
-                        {!isAluno && ex.is_template && (
-                          <span className="exerciseBadge" style={{ background: "#8b5cf6", color: "white" }} title="Este é um template reutilizável">
-                            📦 Template
-                          </span>
-                        )}
+                        {}
                         {ex.publishedAt && new Date(ex.publishedAt) > new Date() && (
                           <span className="exerciseBadge" style={{ background: "#3b82f6", color: "white" }} title="Exercício programado para publicação">
                             📅 Programado

@@ -44,7 +44,7 @@ export default function ExerciseTemplates() {
     (async () => {
       try {
         setLoading(true);
-        const data = await apiFetch<{ templates: Template[] }>("/exercicios/templates");
+        const data = await apiFetch<{ templates: Template[] }>("/templates");
         setTemplates(data.templates);
       } catch (error) {
         setErro(error instanceof Error ? error.message : "Erro ao carregar templates");
@@ -65,7 +65,7 @@ export default function ExerciseTemplates() {
     try {
       setDuplicando(templateId);
       const response = await apiFetch<any>(
-        `/exercicios/templates/${templateId}/duplicate`,
+        `/templates/${templateId}/duplicate`,
         {
           method: "POST",
           body: JSON.stringify({ nova_titulo: novoTitulo }),

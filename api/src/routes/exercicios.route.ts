@@ -123,8 +123,7 @@ export function exerciciosRouter(jwtSecret: string) {
 
   // GET /exercicios - Listar todos os exercícios públicos
   router.get("/exercicios", authGuard(jwtSecret), async (req: AuthRequest, res) => {
-    const isAluno = req.user?.role === "aluno";
-    const filtroTemplate = isAluno ? " AND is_template = false" : "";
+    const filtroTemplate = " AND is_template = false";
 
     const r = await pool.query<ExercicioRow>(
       `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, created_at, updated_at
