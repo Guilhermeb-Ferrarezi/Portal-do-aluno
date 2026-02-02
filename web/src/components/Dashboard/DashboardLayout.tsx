@@ -42,6 +42,7 @@ export default function DashboardLayout({
 
   const isDashboard = location.pathname === "/dashboard";
   const isExercicios = location.pathname === "/dashboard/exercicios";
+  const isTemplates = location.pathname === "/dashboard/templates";
   const isTrilha = location.pathname === "/dashboard/trilha";
   const isMateriais = location.pathname === "/dashboard/materiais";
   const isVideoaulas = location.pathname === "/dashboard/videoaulas";
@@ -110,6 +111,12 @@ export default function DashboardLayout({
             </span>
             Exercícios
           </Link>
+          <Link className={`sbItem ${isTemplates ? "active" : ""}`} to="/dashboard/templates">
+            <span className="sbIcon" aria-hidden="true">
+              📦
+            </span>
+            Templates
+          </Link>
           <Link className={`sbItem ${isMateriais ? "active" : ""}`} to="/dashboard/materiais">
             <span className="sbIcon" aria-hidden="true">
               📄
@@ -146,7 +153,7 @@ export default function DashboardLayout({
                   onClick={() => setExpandirTurmas(!expandirTurmas)}
                 >
                   <span className="sbIcon" aria-hidden="true">📋</span>
-                  <span>Turmas</span>
+                  <span>Minha turmas</span>
                   <span className="sideExpand" aria-hidden="true">
                     {expandirTurmas ? "▼" : "▶"}
                   </span>
