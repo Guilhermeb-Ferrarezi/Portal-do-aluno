@@ -29,6 +29,13 @@ export default function ExerciciosPage() {
   const [publishNow, setPublishNow] = React.useState(true); // Publicar agora ou agendar
   const [publishedAt, setPublishedAt] = React.useState(""); // datetime-local
   const [isTemplate, setIsTemplate] = React.useState(false); // Template ou Atividade Normal
+
+  // Quando marca como template, forçar publicação imediata
+  React.useEffect(() => {
+    if (isTemplate && !publishNow) {
+      setPublishNow(true);
+    }
+  }, [isTemplate, publishNow]);
   const [categoria, setCategoria] = React.useState("programacao"); // programacao ou informatica
   const [componenteInterativo, setComponenteInterativo] = React.useState(""); // mouse, multipla, ou vazio
   const [diaNumero, setDiaNumero] = React.useState(1); // Número do dia para componentes interativos
@@ -786,6 +793,7 @@ export default function ExerciciosPage() {
                       type="checkbox"
                       checked={publishNow}
                       onChange={(e) => setPublishNow(e.target.checked)}
+                      disabled={isTemplate}
                       style={{ marginRight: "8px" }}
                     />
                     Publicar agora
@@ -793,7 +801,7 @@ export default function ExerciciosPage() {
                 </div>
               </div>
 
-              {!publishNow && (
+              {!publishNow && !isTemplate && (
                 <div className="exInputRow">
                   <div className="exInputGroup">
                     <label className="exLabel">📅 Agendar Publicação</label>
@@ -808,6 +816,12 @@ export default function ExerciciosPage() {
                       O exercício será visível a partir dessa data e hora
                     </small>
                   </div>
+                </div>
+              )}
+
+              {isTemplate && (
+                <div style={{ padding: "12px", background: "#dbeafe", borderRadius: "4px", color: "#075985", fontSize: "14px", marginTop: "12px" }}>
+                  ℹ️ Templates são sempre publicados imediatamente para poderem ser reutilizados
                 </div>
               )}
 
