@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { getRole } from "../auth/auth";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
+import Pagination from "../components/Pagination";
 import { apiFetch, type Turma } from "../services/api";
 import "./ExerciseTemplates.css";
 
@@ -35,6 +36,11 @@ export default function ExerciseTemplates() {
   const [semanaSelecionada, setSemanaSelecionada] = React.useState<number>(1);
   const [enviandoTarefa, setEnviandoTarefa] = React.useState(false);
   const [carregandoTurmas, setCarregandoTurmas] = React.useState(false);
+  const [turmaBuscaFiltro, setTurmaBuscaFiltro] = React.useState("");
+
+  // Paginação
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   // Carregar templates
   React.useEffect(() => {
@@ -128,6 +134,7 @@ export default function ExerciseTemplates() {
       setTemplateSelecionado(templateId);
       setTurmasSelecionadas([]);
       setSemanaSelecionada(1);
+      setTurmaBuscaFiltro("");
       setModalAberto(true);
     } catch (error) {
       setErro(error instanceof Error ? error.message : "Erro ao carregar turmas");
@@ -165,6 +172,7 @@ export default function ExerciseTemplates() {
       setModalAberto(false);
       setTemplateSelecionado(null);
       setTurmasSelecionadas([]);
+      setTurmaBuscaFiltro("");
 
       setTimeout(() => setMensagem(null), 3000);
     } catch (error) {
@@ -237,9 +245,17 @@ export default function ExerciseTemplates() {
             </button>
           </div>
         ) : (
-          <div className="templatesGrid">
-            {templates.map((template) => (
-              <div key={template.id} className="templateCard">
+          <>
+            {(() => {
+              const startIndex = (currentPage - 1) * itemsPerPage;
+              const endIndex = startIndex + itemsPerPage;
+              const paginatedTemplates = templates.slice(startIndex, endIndex);
+
+              return (
+                <>
+                  <div className="templatesGrid">
+                    {paginatedTemplates.map((template) => (
+                      <div key={template.id} className="templateCard">
                 <div className="templateCardHeader">
                   <div className="templateInfo">
                     <h3 className="templateTitle">{template.titulo}</h3>
@@ -302,8 +318,20 @@ export default function ExerciseTemplates() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
+                    ))}
+                  </div>
+
+                  <Pagination
+                    currentPage={currentPage}
+                    itemsPerPage={itemsPerPage}
+                    totalItems={templates.length}
+                    onPageChange={setCurrentPage}
+                    onItemsPerPageChange={setItemsPerPage}
+                  />
+                </>
+              );
+            })()}
+          </>
         )}
 
         {/* MODAL ENVIAR TAREFA */}
@@ -311,7 +339,10 @@ export default function ExerciseTemplates() {
           const templateAtual = templates.find(t => t.id === templateSelecionado);
           const isInformatica = templateAtual?.categoria === "informatica";
           return (
-            <div className="modalOverlay" onClick={() => setModalAberto(false)}>
+            <div className="modalOverlay" onClick={() => {
+              setModalAberto(false);
+              setTurmaBuscaFiltro("");
+            }}>
               <div className="modalContent" onClick={(e) => e.stopPropagation()}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
                   <h3 style={{ margin: 0 }}>📤 Enviar Template para Turmas</h3>
@@ -382,8 +413,26 @@ export default function ExerciseTemplates() {
                         <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, fontSize: "14px" }}>
                           Turmas ({turmasSelecionadas.length} selecionada{turmasSelecionadas.length !== 1 ? "s" : ""}):
                         </label>
+                        <input
+                          type="text"
+                          placeholder="🔍 Buscar turmas..."
+                          value={turmaBuscaFiltro}
+                          onChange={(e) => setTurmaBuscaFiltro(e.target.value)}
+                          style={{
+                            width: "100%",
+                            padding: "8px 12px",
+                            border: "1px solid var(--border)",
+                            borderRadius: "4px",
+                            fontSize: "14px",
+                            marginBottom: "12px",
+                          }}
+                        />
                         <div style={{ maxHeight: "250px", overflow: "auto", border: "1px solid var(--border)", borderRadius: "4px" }}>
-                          {turmas.map((turma) => (
+                          {turmas
+                            .filter((turma) =>
+                              turma.nome.toLowerCase().includes(turmaBuscaFiltro.toLowerCase())
+                            )
+                            .map((turma) => (
                             <label
                               key={turma.id}
                               style={{
@@ -423,7 +472,10 @@ export default function ExerciseTemplates() {
 
               <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", marginTop: "20px" }}>
                 <button
-                  onClick={() => setModalAberto(false)}
+                  onClick={() => {
+                    setModalAberto(false);
+                    setTurmaBuscaFiltro("");
+                  }}
                   disabled={enviandoTarefa}
                   style={{
                     padding: "10px 16px",

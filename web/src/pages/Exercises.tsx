@@ -79,6 +79,9 @@ export default function ExerciciosPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
+  // Filtros de turma
+  const [turmaBuscaFiltro, setTurmaBuscaFiltro] = React.useState("");
+
   // Modal de confirmação
   const [modalDeletar, setModalDeletar] = React.useState<{
     isOpen: boolean;
@@ -1136,6 +1139,16 @@ export default function ExerciciosPage() {
           {turmasDisponiveis.length > 0 && (
             <div className="filterRow">
               <div className="filterGroup">
+                <input
+                  className="exInput"
+                  type="text"
+                  placeholder="🔍 Buscar turmas..."
+                  value={turmaBuscaFiltro}
+                  onChange={(e) => setTurmaBuscaFiltro(e.target.value)}
+                  style={{ minWidth: 150 }}
+                />
+              </div>
+              <div className="filterGroup">
                 <select
                   className="exSelect"
                   value={turmaFiltro}
@@ -1143,11 +1156,15 @@ export default function ExerciciosPage() {
                   style={{ minWidth: 200 }}
                 >
                   <option value="todas">👥 Todas as turmas</option>
-                  {turmasDisponiveis.map((turma) => (
-                    <option key={turma.id} value={turma.id}>
-                      {turma.nome}
-                    </option>
-                  ))}
+                  {turmasDisponiveis
+                    .filter((turma) =>
+                      turma.nome.toLowerCase().includes(turmaBuscaFiltro.toLowerCase())
+                    )
+                    .map((turma) => (
+                      <option key={turma.id} value={turma.id}>
+                        {turma.nome}
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
