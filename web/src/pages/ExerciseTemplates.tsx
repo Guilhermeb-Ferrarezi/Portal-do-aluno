@@ -25,6 +25,7 @@ export default function ExerciseTemplates() {
   const [erro, setErro] = React.useState<string | null>(null);
   const [mensagem, setMensagem] = React.useState<string | null>(null);
   const [duplicando, setDuplicando] = React.useState<string | null>(null);
+  const [deletando, setDeletando] = React.useState<string | null>(null);
 
   // Modal para enviar tarefa
   const [modalAberto, setModalAberto] = React.useState(false);
@@ -81,6 +82,28 @@ export default function ExerciseTemplates() {
       setErro(error instanceof Error ? error.message : "Erro ao duplicar template");
     } finally {
       setDuplicando(null);
+    }
+  };
+
+  const handleDeletar = async (templateId: string, templateTitulo: string) => {
+    if (!window.confirm(`Tem certeza que deseja deletar o template "${templateTitulo}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      setDeletando(templateId);
+      setErro(null);
+      await apiFetch(`/exercicios/${templateId}`, {
+        method: "DELETE",
+      });
+
+      setMensagem("✅ Template deletado com sucesso!");
+      setTemplates(templates.filter(t => t.id !== templateId));
+      setTimeout(() => setMensagem(null), 3000);
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : "Erro ao deletar template");
+    } finally {
+      setDeletando(null);
     }
   };
 
@@ -263,6 +286,18 @@ export default function ExerciseTemplates() {
                       onClick={() => navigate(`/dashboard/exercicios/${template.id}`)}
                     >
                       Ver →
+                    </button>
+                    <button
+                      className="templateBtnView"
+                      onClick={() => handleDeletar(template.id, template.titulo)}
+                      disabled={deletando === template.id}
+                      title="Deletar template"
+                      style={{
+                        background: deletando === template.id ? "#fee2e2" : "#fee2e2",
+                        color: "#991b1b",
+                      }}
+                    >
+                      {deletando === template.id ? "⏳" : "🗑️"}
                     </button>
                   </div>
                 </div>
