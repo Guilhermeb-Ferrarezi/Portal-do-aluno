@@ -652,6 +652,11 @@ body {
   }
 }
 
+/* HAMBURGER - APENAS EM MOBILE */
+.hamburger {
+  display: none !important;
+}
+
 /* RESPONSIVO - DESKTOP MÉDIO (sem hamburger) */
 @media (max-width: 1100px) and (min-width: 769px) {
   /* Sidebar colapsada mas ainda visível */
@@ -722,7 +727,7 @@ body {
   }
 
   .hamburger {
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     width: 44px;

@@ -45,11 +45,12 @@
 
 /* INFO CARD */
 .turmaInfoCard {
-  background: linear-gradient(135deg, #ffffff 0%, #f9f9fb 100%);
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  padding: 24px;
-  box-shadow: var(--shadow);
+  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  border: 1px solid rgba(225, 29, 46, 0.1);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 8px 32px rgba(225, 29, 46, 0.08);
+  transition: all 0.3s ease;
 }
 
 .turmaInfoHeader {
@@ -60,11 +61,12 @@
 }
 
 .turmaInfoTitle {
-  font-size: 28px;
+  font-size: 32px;
   font-weight: 900;
   color: var(--text);
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
   line-height: 1.2;
+  letter-spacing: -0.5px;
 }
 
 .turmaInfoMeta {
@@ -76,21 +78,24 @@
 }
 
 .btnBack {
-  padding: 10px 16px;
-  border: 1px solid var(--line);
+  padding: 11px 18px;
+  border: 1.5px solid #e5e7eb;
   background: white;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   color: var(--text);
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .btnBack:hover {
   border-color: var(--red);
-  background: #fafbfc;
+  background: rgba(225, 29, 46, 0.06);
   color: var(--red);
+  box-shadow: 0 4px 12px rgba(225, 29, 46, 0.15);
+  transform: translateY(-2px);
 }
 
 /* RESPONSAVEL */
@@ -135,29 +140,59 @@
 
 .responsavelSelect {
   min-width: 220px;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  padding: 11px 14px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 12px;
   background: white;
   font-weight: 600;
   color: var(--text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.responsavelSelect:hover {
+  border-color: #d1d5db;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.responsavelSelect:focus {
+  outline: 0;
+  border-color: var(--red);
+  box-shadow: 0 0 0 4px rgba(225, 29, 46, 0.12);
 }
 
 .responsavelBtn {
-  padding: 10px 14px;
+  padding: 11px 16px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: linear-gradient(135deg, var(--red), #d41c28);
   color: white;
-  font-weight: 700;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(225, 29, 46, 0.2);
-  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(225, 29, 46, 0.28);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.responsavelBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.15);
+  transition: left 0.4s ease;
+}
+
+.responsavelBtn:hover:not(:disabled)::before {
+  left: 100%;
 }
 
 .responsavelBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(225, 29, 46, 0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(225, 29, 46, 0.35);
 }
 
 .responsavelBtn:disabled {
@@ -179,12 +214,13 @@
 }
 
 .turmaSectionTitle {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
   color: var(--text);
   margin: 0;
-  padding-bottom: 12px;
+  padding-bottom: 14px;
   border-bottom: 2px solid var(--line);
+  letter-spacing: -0.3px;
 }
 
 .emptySection {
@@ -205,19 +241,20 @@
 
 .alunoCard {
   background: white;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
   padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.2s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .alunoCard:hover {
-  border-color: var(--red);
-  box-shadow: 0 4px 12px rgba(225, 29, 46, 0.1);
+  border-color: rgba(225, 29, 46, 0.3);
+  box-shadow: 0 8px 20px rgba(225, 29, 46, 0.1);
+  transform: translateY(-2px);
 }
 
 .alunoInfo {
