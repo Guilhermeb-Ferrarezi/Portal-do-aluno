@@ -232,14 +232,22 @@ export default function ExerciciosPage() {
 
       const gabaritoLimpo = gabarito.trim();
 
-      // Auto-gerar descrição se for componente interativo em informatica
+      // Auto-gerar descrição se for componente interativo
       let descricaoFinal = descricao.trim();
       let tituloFinal = titulo.trim();
 
-      if (categoria === "informatica" && componenteInterativo) {
-        const nomeComponente = componenteInterativo === "mouse" ? "Mouse" : "Pergunta Múltipla";
-        tituloFinal = `Dia ${diaNumero}: ${nomeComponente}`;
-        descricaoFinal = `Dia ${diaNumero}: ${nomeComponente}`;
+      if (componenteInterativo && (categoria === "informatica" || categoria === "programacao")) {
+        let nomeComponente = "";
+        if (componenteInterativo === "mouse") {
+          nomeComponente = "Mouse";
+        } else if (componenteInterativo === "multipla") {
+          nomeComponente = "Múltipla Escolha";
+        }
+
+        if (categoria === "informatica" || (categoria === "programacao" && componenteInterativo !== "")) {
+          tituloFinal = `Dia ${diaNumero}: ${nomeComponente}`;
+          descricaoFinal = `Dia ${diaNumero}: ${nomeComponente}`;
+        }
       }
 
       const dados: any = {
@@ -409,13 +417,14 @@ export default function ExerciciosPage() {
     abrirModalDeletar(id, exercicio?.titulo || "Exercício");
   }
 
-  // Validação especial para componentes interativos em informatica
-  const isInteractiveComponent = categoria === "informatica" && componenteInterativo !== "";
+  // Validação especial para componentes interativos
+  const isInteractiveComponent = componenteInterativo !== "" && (categoria === "informatica" || categoria === "programacao");
   const disabled =
     saving ||
     modulo.trim().length < 1 ||
     (!isInteractiveComponent && titulo.trim().length < 2) ||
-    (!isInteractiveComponent && descricao.trim().length < 2);
+    (!isInteractiveComponent && descricao.trim().length < 2) ||
+    (componenteInterativo === "multipla" && multiplaQuestoes.some(q => !q.pergunta || !q.respostaCorreta || q.opcoes.some(o => !o.text)));
 
   return (
     <DashboardLayout title="Exercícios" subtitle="Veja e pratique os exercícios disponíveis">
@@ -599,22 +608,264 @@ export default function ExerciciosPage() {
                 </div>
               </div>
 
-              {/* GABARITO / CÓDIGO ESPERADO - Apenas para Programação */}
+              {/* COMPONENTES INTERATIVOS - Para Programação */}
               {categoria === "programacao" && (
-                <div className="exInputGroup">
-                  <label className="exLabel">Gabarito / Codigo esperado</label>
-                  <MonacoEditor
-                    value={gabarito}
-                    onChange={(v) => setGabarito(v || "")}
-                    language={gabaritoLang}
-                    onLanguageChange={setGabaritoLang}
-                    height="240px"
-                    theme="light"
-                  />
-                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                    Esse texto sera usado para comparar se a resposta do aluno esta parecida com o esperado.
-                  </small>
-                </div>
+                <>
+                  <div className="exInputGroup">
+                    <label className="exLabel">Tipo de Exercício</label>
+                    <select
+                      className="exSelect"
+                      value={componenteInterativo}
+                      onChange={(e) => setComponenteInterativo(e.target.value)}
+                    >
+                      <option value="">💻 Código (Monaco)</option>
+                      <option value="multipla">❓ Múltipla Escolha</option>
+                      <option value="mouse">🖱️ Mouse Interativo</option>
+                    </select>
+                    <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                      Selecione o tipo de exercício para Programação
+                    </small>
+                  </div>
+
+                  {/* GABARITO / CÓDIGO ESPERADO - Apenas para tipo Código */}
+                  {componenteInterativo === "" && (
+                    <div className="exInputGroup">
+                      <label className="exLabel">Gabarito / Codigo esperado</label>
+                      <MonacoEditor
+                        value={gabarito}
+                        onChange={(v) => setGabarito(v || "")}
+                        language={gabaritoLang}
+                        onLanguageChange={setGabaritoLang}
+                        height="240px"
+                        theme="light"
+                      />
+                      <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                        Esse texto sera usado para comparar se a resposta do aluno esta parecida com o esperado.
+                      </small>
+                    </div>
+                  )}
+
+                  {/* Campo "Dia #" quando um componente interativo é selecionado (não código) */}
+                  {componenteInterativo && (
+                    <div className="exInputGroup">
+                      <label className="exLabel">Dia #</label>
+                      <input
+                        className="exInput"
+                        type="number"
+                        min="1"
+                        value={diaNumero}
+                        onChange={(e) => setDiaNumero(parseInt(e.target.value) || 1)}
+                        placeholder="Digite o número do dia"
+                      />
+                      <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                        Título será: "Dia {diaNumero}: {componenteInterativo === "mouse" ? "Mouse" : "Múltipla Escolha"}"
+                      </small>
+                    </div>
+                  )}
+
+                  {/* REGRAS DO MOUSE - Para Programação */}
+                  {componenteInterativo === "mouse" && (
+                    <>
+                      <div style={{ background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "8px", padding: "14px", marginTop: "12px" }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#1e40af", margin: "0 0 12px 0" }}>
+                          ⚙️ Definir Regras de Sucesso:
+                        </p>
+
+                        <div className="exInputRow">
+                          <div className="exInputGroup">
+                            <label className="exLabel">Cliques Esquerdos</label>
+                            <input
+                              className="exInput"
+                              type="number"
+                              min="0"
+                              value={mouseRegras.clicksSimples}
+                              onChange={(e) => setMouseRegras({ ...mouseRegras, clicksSimples: parseInt(e.target.value) || 0 })}
+                              placeholder="Ex: 5"
+                            />
+                            <small style={{ fontSize: 11, color: "var(--muted)" }}>Quantos cliques simples são necessários?</small>
+                          </div>
+
+                          <div className="exInputGroup">
+                            <label className="exLabel">Duplos Cliques</label>
+                            <input
+                              className="exInput"
+                              type="number"
+                              min="0"
+                              value={mouseRegras.duplosClicks}
+                              onChange={(e) => setMouseRegras({ ...mouseRegras, duplosClicks: parseInt(e.target.value) || 0 })}
+                              placeholder="Ex: 3"
+                            />
+                            <small style={{ fontSize: 11, color: "var(--muted)" }}>Quantos duplos cliques são necessários?</small>
+                          </div>
+
+                          <div className="exInputGroup">
+                            <label className="exLabel">Cliques Direitos</label>
+                            <input
+                              className="exInput"
+                              type="number"
+                              min="0"
+                              value={mouseRegras.clicksDireitos}
+                              onChange={(e) => setMouseRegras({ ...mouseRegras, clicksDireitos: parseInt(e.target.value) || 0 })}
+                              placeholder="Ex: 2"
+                            />
+                            <small style={{ fontSize: 11, color: "var(--muted)" }}>Quantos cliques direitos são necessários?</small>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px", marginTop: "12px" }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#166534", margin: 0 }}>
+                          🖱️ Pré-visualização do Mouse Interativo
+                        </p>
+                        <MouseInteractiveBox
+                          title="Pré-visualização"
+                          instruction="Clique aqui para testar"
+                          rules={mouseRegras}
+                          onComplete={() => console.log("Mouse interativo completo")}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {/* QUESTÕES DE MÚLTIPLA ESCOLHA - Para Programação */}
+                  {componenteInterativo === "multipla" && (
+                    <>
+                      <div style={{ background: "#fef3c7", border: "1px solid #fcd34d", borderRadius: "8px", padding: "14px", marginTop: "12px" }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#92400e", margin: "0 0 12px 0" }}>
+                          ❓ Configurar Questões de Múltipla Escolha:
+                        </p>
+
+                        {multiplaQuestoes.map((questao, qIndex) => (
+                          <div key={qIndex} style={{ background: "white", padding: "12px", borderRadius: "6px", marginBottom: "12px", border: "1px solid #fde68a" }}>
+                            <h4 style={{ margin: "0 0 8px 0", fontSize: 13 }}>Questão {qIndex + 1}</h4>
+
+                            <div style={{ marginBottom: "8px" }}>
+                              <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: "4px" }}>Pergunta:</label>
+                              <input
+                                className="exInput"
+                                type="text"
+                                value={questao.pergunta}
+                                onChange={(e) => {
+                                  const novas = [...multiplaQuestoes];
+                                  novas[qIndex].pergunta = e.target.value;
+                                  setMultiplaQuestoes(novas);
+                                }}
+                                placeholder="Digite a pergunta"
+                              />
+                            </div>
+
+                            <div style={{ marginBottom: "8px" }}>
+                              <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: "4px" }}>Opções:</label>
+                              {questao.opcoes.map((opcao, oIndex) => (
+                                <input
+                                  key={oIndex}
+                                  className="exInput"
+                                  type="text"
+                                  value={opcao.text}
+                                  onChange={(e) => {
+                                    const novas = [...multiplaQuestoes];
+                                    novas[qIndex].opcoes[oIndex].text = e.target.value;
+                                    setMultiplaQuestoes(novas);
+                                  }}
+                                  placeholder={`Opção ${opcao.letter}`}
+                                  style={{ marginBottom: "6px" }}
+                                />
+                              ))}
+                            </div>
+
+                            <div style={{ marginBottom: "8px" }}>
+                              <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: "4px" }}>Resposta Correta:</label>
+                              <select
+                                className="exSelect"
+                                value={questao.respostaCorreta}
+                                onChange={(e) => {
+                                  const novas = [...multiplaQuestoes];
+                                  novas[qIndex].respostaCorreta = e.target.value;
+                                  setMultiplaQuestoes(novas);
+                                }}
+                              >
+                                <option value="">-- Selecione --</option>
+                                {questao.opcoes.map((opcao) => (
+                                  <option key={opcao.letter} value={opcao.letter}>
+                                    {opcao.letter}: {opcao.text}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            {multiplaQuestoes.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setMultiplaQuestoes(multiplaQuestoes.filter((_, i) => i !== qIndex));
+                                }}
+                                style={{
+                                  padding: "6px 12px",
+                                  background: "#fee2e2",
+                                  color: "#991b1b",
+                                  border: "none",
+                                  borderRadius: "4px",
+                                  cursor: "pointer",
+                                  fontSize: 12,
+                                  fontWeight: 600,
+                                }}
+                              >
+                                🗑️ Remover Questão
+                              </button>
+                            )}
+                          </div>
+                        ))}
+
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMultiplaQuestoes([
+                              ...multiplaQuestoes,
+                              {
+                                pergunta: "",
+                                opcoes: [
+                                  { letter: "A", text: "" },
+                                  { letter: "B", text: "" },
+                                  { letter: "C", text: "" },
+                                  { letter: "D", text: "" }
+                                ],
+                                respostaCorreta: ""
+                              }
+                            ]);
+                          }}
+                          style={{
+                            padding: "8px 16px",
+                            background: "#dcfce7",
+                            color: "#166534",
+                            border: "1px solid #86efac",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            marginTop: "8px",
+                          }}
+                        >
+                          ➕ Adicionar Outra Questão
+                        </button>
+                      </div>
+
+                      <div style={{ background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: "8px", padding: "12px", marginTop: "12px" }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "#166534", margin: "0 0 12px 0" }}>
+                          👁️ Pré-visualização:
+                        </p>
+                        {multiplaQuestoes.map((questao, idx) => (
+                          <div key={idx} style={{ marginBottom: "16px" }}>
+                            <MultipleChoiceQuestion
+                              question={`Q${idx + 1}: ${questao.pergunta}`}
+                              options={questao.opcoes}
+                              selectedAnswer=""
+                              onAnswer={() => {}}
+                            />
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </>
               )}
 
               {/* COMPONENTES INTERATIVOS - Apenas para Informática */}

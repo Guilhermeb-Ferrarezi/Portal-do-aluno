@@ -42,6 +42,7 @@ function detectarTipoExercicio(titulo: string, descricao: string): TipoExercicio
     "algoritmo",
     "script",
     "class",
+    "classe",
     "def",
     "function",
     "const",
