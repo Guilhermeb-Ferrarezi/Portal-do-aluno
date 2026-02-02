@@ -172,7 +172,8 @@
 
 .exFormGrid {
   display: grid;
-  gap: 14px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
 }
 
 .exInputGroup {
@@ -626,6 +627,10 @@
 
   .exerciseMeta {
     align-items: flex-start;
+  }
+
+  .exFormGrid {
+    grid-template-columns: 1fr;
   }
 
   .exInputRow {
