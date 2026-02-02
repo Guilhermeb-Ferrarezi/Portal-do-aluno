@@ -213,8 +213,8 @@
 
 .exFormGrid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
+  grid-template-columns: 1fr;
+  gap: 24px;
   margin-bottom: 16px;
   animation: formGridEntry 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -822,7 +822,6 @@
   }
 
   .exFormGrid {
-    grid-template-columns: 1fr;
     gap: 20px;
   }
 
