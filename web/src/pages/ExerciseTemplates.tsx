@@ -91,10 +91,16 @@ export default function ExerciseTemplates() {
       // Buscar template para pegar categoria
       const templateAtual = templates.find(t => t.id === templateId);
       const data = await apiFetch<Turma[]>("/turmas");
+
+      // Categoria padrão é "programacao"
+      const categoriaTemplate = templateAtual?.categoria || "programacao";
+
       // Filtrar apenas turmas com cronograma ativo e mesma categoria
-      const turmasComCronograma = data.filter(t =>
-        t.dataInicio && t.cronogramaAtivo && t.categoria === templateAtual?.categoria
-      );
+      const turmasComCronograma = data.filter(t => {
+        const categoriaTurma = t.categoria || "programacao";
+        return t.dataInicio && t.cronogramaAtivo && categoriaTurma === categoriaTemplate;
+      });
+
       setTurmas(turmasComCronograma);
       setTemplateSelecionado(templateId);
       setTurmasSelecionadas([]);
