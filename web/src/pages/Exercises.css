@@ -132,13 +132,13 @@
 /* SEÇÃO DE CRIAR EXERCÍCIO */
 .createExerciseCard {
   background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-  border: 1.5px solid rgba(225, 29, 46, 0.12);
+  border: 1.5px solid rgba(225, 29, 46, 0.14);
   border-radius: 20px;
-  padding: 36px;
-  box-shadow: 0 12px 40px rgba(225, 29, 46, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  padding: 40px;
+  box-shadow: 0 16px 48px rgba(225, 29, 46, 0.12), inset 0 2px 4px rgba(255, 255, 255, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   overflow: hidden;
   position: relative;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .createExerciseCard::before {
@@ -148,33 +148,33 @@
   right: 0;
   width: 280px;
   height: 280px;
-  background: radial-gradient(circle, rgba(225, 29, 46, 0.06), transparent);
+  background: radial-gradient(circle, rgba(225, 29, 46, 0.07), transparent);
   border-radius: 0 20px 0 999px;
   pointer-events: none;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .createExerciseCard::after {
   content: '';
   position: absolute;
-  bottom: -1px;
+  bottom: 0;
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(225, 29, 46, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(225, 29, 46, 0.15), transparent);
   pointer-events: none;
 }
 
 .createExerciseCard:hover {
-  box-shadow: 0 20px 50px rgba(225, 29, 46, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  border-color: rgba(225, 29, 46, 0.18);
-  transform: translateY(-2px);
+  box-shadow: 0 24px 60px rgba(225, 29, 46, 0.18), inset 0 2px 4px rgba(255, 255, 255, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+  border-color: rgba(225, 29, 46, 0.20);
+  transform: translateY(-3px);
 }
 
 .createExerciseCard:hover::before {
-  width: 320px;
-  height: 320px;
-  background: radial-gradient(circle, rgba(225, 29, 46, 0.08), transparent);
+  width: 340px;
+  height: 340px;
+  background: radial-gradient(circle, rgba(225, 29, 46, 0.10), transparent);
 }
 
 .exFormTitle {
@@ -255,29 +255,32 @@
 .exInput,
 .exTextarea,
 .exSelect {
-  padding: 14px 16px;
-  border: 2px solid #e5e7eb;
+  padding: 16px 18px;
+  border: 2px solid #dbeafe;
   border-radius: 14px;
   font-size: 14px;
   font-family: inherit;
-  background: #fafbfc;
+  background: linear-gradient(to right, #fafbfc 0%, #fcfdfe 100%);
   color: var(--text);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   z-index: 1;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .exInput::placeholder,
 .exTextarea::placeholder {
-  color: #d1d5db;
+  color: #cbd5e1;
+  font-weight: 400;
 }
 
 .exInput:hover,
 .exTextarea:hover,
 .exSelect:hover {
-  border-color: #d1d5db;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-color: #60a5fa;
+  background: linear-gradient(to right, white 0%, #fcfdfe 100%);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 8px 20px rgba(59, 130, 246, 0.08);
+  transform: translateY(-2px);
 }
 
 .exInput:focus,
@@ -286,7 +289,8 @@
   outline: 0;
   border-color: var(--red);
   background: white;
-  box-shadow: 0 0 0 4px rgba(225, 29, 46, 0.1), 0 8px 16px rgba(225, 29, 46, 0.12);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 0 0 6px rgba(225, 29, 46, 0.1), 0 12px 28px rgba(225, 29, 46, 0.16);
+  transform: translateY(-3px);
 }
 
 .exTextarea {
@@ -308,21 +312,22 @@
   color: white;
   border: 0;
   font-weight: 800;
-  padding: 18px 32px;
+  padding: 20px 36px;
   border-radius: 14px;
   cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 0.4px;
-  margin-top: 16px;
-  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  box-shadow: 0 10px 28px rgba(225, 29, 46, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  margin-top: 20px;
+  transition: all 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 14px 32px rgba(225, 29, 46, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
   width: 100%;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
+  font-family: inherit;
 }
 
 .exSubmitBtn::before {
@@ -332,19 +337,28 @@
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-  transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
 }
 
 .exSubmitBtn::after {
   content: '📤';
-  font-size: 18px;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 20px;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.exSubmitBtn span {
+  position: relative;
+  z-index: 2;
 }
 
 .exSubmitBtn:hover:not(:disabled) {
-  transform: translateY(-4px);
-  box-shadow: 0 16px 40px rgba(225, 29, 46, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: translateY(-5px);
+  box-shadow: 0 20px 48px rgba(225, 29, 46, 0.45), inset 0 2px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 rgba(0, 0, 0, 0.15);
 }
 
 .exSubmitBtn:hover:not(:disabled)::before {
@@ -352,16 +366,17 @@
 }
 
 .exSubmitBtn:hover:not(:disabled)::after {
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.15);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 
 .exSubmitBtn:active:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(225, 29, 46, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(225, 29, 46, 0.35), inset 0 2px 0 rgba(255, 255, 255, 0.25), inset 0 -2px 0 rgba(0, 0, 0, 0.1);
 }
 
 .exSubmitBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.45;
   cursor: not-allowed;
   transform: none;
 }
@@ -369,35 +384,38 @@
 .exFormNote {
   font-size: 13px;
   color: #4b5563;
-  padding: 16px 18px;
+  padding: 18px 20px;
   background: linear-gradient(135deg, #fafbfc 0%, #f5f6f8 100%);
   border-radius: 12px;
-  border: 1.5px solid #e0e7ff;
-  border-left: 5px solid var(--red);
-  margin-top: 12px;
+  border: 1.5px solid #fecaca;
+  border-left: 6px solid var(--red);
+  margin-top: 16px;
   font-weight: 500;
-  line-height: 1.6;
+  line-height: 1.7;
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
   position: relative;
   overflow: hidden;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02), 0 2px 8px rgba(225, 29, 46, 0.06);
 }
 
 .exFormNote::before {
   content: '💡';
-  font-size: 16px;
+  font-size: 18px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
-  height: 20px;
+  height: 22px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 .exFormNote:hover {
-  background: linear-gradient(135deg, #fafbfc 0%, #f0f4ff 100%);
-  border-color: rgba(225, 29, 46, 0.15);
-  box-shadow: 0 4px 12px rgba(225, 29, 46, 0.08);
+  background: linear-gradient(135deg, #fafbfc 0%, #fef5f5 100%);
+  border-color: var(--red);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02), 0 6px 16px rgba(225, 29, 46, 0.12);
+  transform: translateY(-1px);
 }
 
 /* LISTA DE EXERCÍCIOS */
