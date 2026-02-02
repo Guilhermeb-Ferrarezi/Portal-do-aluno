@@ -266,31 +266,56 @@ export default function ExerciseTemplates() {
         )}
 
         {/* MODAL ENVIAR TAREFA */}
-        {modalAberto && (
-          <div className="modalOverlay" onClick={() => setModalAberto(false)}>
-            <div className="modalContent" onClick={(e) => e.stopPropagation()}>
-              <h3 style={{ marginTop: 0 }}>📤 Enviar Template para Turmas</h3>
-
-              {carregandoTurmas ? (
-                <div style={{ textAlign: "center", padding: "20px" }}>
-                  <div className="spinner" />
-                  Carregando turmas...
-                </div>
-              ) : (
-                <>
-                  {erro && (
-                    <div style={{ padding: "12px", background: "#fee2e2", borderRadius: "4px", marginBottom: "16px", color: "#991b1b" }}>
-                      ❌ {erro}
-                    </div>
+        {modalAberto && (() => {
+          const templateAtual = templates.find(t => t.id === templateSelecionado);
+          const isInformatica = templateAtual?.categoria === "informatica";
+          return (
+            <div className="modalOverlay" onClick={() => setModalAberto(false)}>
+              <div className="modalContent" onClick={(e) => e.stopPropagation()}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "16px" }}>
+                  <h3 style={{ margin: 0 }}>📤 Enviar Template para Turmas</h3>
+                  {templateAtual && (
+                    <span style={{
+                      padding: "4px 12px",
+                      background: isInformatica ? "#dbeafe" : "#dcfce7",
+                      color: isInformatica ? "#075985" : "#166534",
+                      borderRadius: "20px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                    }}>
+                      {isInformatica ? "💻 Informática" : "🖥️ Programação"}
+                    </span>
                   )}
+                </div>
+
+                {carregandoTurmas ? (
+                  <div style={{ textAlign: "center", padding: "20px" }}>
+                    <div className="spinner" />
+                    Carregando turmas...
+                  </div>
+                ) : (
+                  <>
+                    {erro && (
+                      <div style={{ padding: "12px", background: "#fee2e2", borderRadius: "4px", marginBottom: "16px", color: "#991b1b" }}>
+                        ❌ {erro}
+                      </div>
+                    )}
 
                   {turmas.length === 0 ? (
                     <div style={{ padding: "20px", textAlign: "center", color: "var(--muted)" }}>
                       <p>Nenhuma turma com cronograma ativo encontrada.</p>
-                      <small>Configure a data de início e ative o cronograma nas turmas.</small>
+                      <small>
+                        {isInformatica
+                          ? "Configure turmas de Informática com cronograma ativo."
+                          : "Configure turmas de Programação com cronograma ativo."}
+                      </small>
                     </div>
                   ) : (
                     <>
+                      <div style={{ padding: "12px", background: isInformatica ? "#f0f9ff" : "#f7fee7", borderRadius: "4px", marginBottom: "16px", fontSize: "13px", color: isInformatica ? "#075985" : "#166534" }}>
+                        📚 Mostrando turmas de <strong>{isInformatica ? "Informática" : "Programação"}</strong> com cronograma ativo
+                      </div>
+
                       <div style={{ marginBottom: "20px" }}>
                         <label style={{ display: "block", marginBottom: "8px", fontWeight: 600, fontSize: "14px" }}>
                           Semana:
@@ -389,7 +414,8 @@ export default function ExerciseTemplates() {
               </div>
             </div>
           </div>
-        )}
+          );
+        })()}
       </div>
     </DashboardLayout>
   );
