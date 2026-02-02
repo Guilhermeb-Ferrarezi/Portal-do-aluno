@@ -8,6 +8,110 @@ import MultipleChoiceQuestion from "../components/Exercise/MultipleChoiceQuestio
 import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, listarTurmas, getRole, type Exercicio, type Turma } from "../services/api";
 import "./Exercises.css";
 
+// Templates pré-definidos de múltipla escolha
+const TEMPLATES_PREDEFINIDOS = {
+  programacao: [
+    {
+      titulo: "Qual é a diferença entre var, let e const?",
+      descricao: "Escolha a alternativa correta sobre as diferenças entre var, let e const em JavaScript.",
+      modulo: "JavaScript Avançado",
+      tema: "Escopo e Hoisting",
+      categoria: "programacao",
+      questoes: [{
+        pergunta: "Qual é a diferença entre var, let e const?",
+        opcoes: [
+          { letter: "A", text: "var é function-scoped, let é block-scoped, const é block-scoped e imutável" },
+          { letter: "B", text: "Todos têm o mesmo escopo" },
+          { letter: "C", text: "const pode ser reatribuído" }
+        ],
+        respostaCorreta: "A"
+      }]
+    },
+    {
+      titulo: "O que é 'this' em JavaScript?",
+      descricao: "Qual é o comportamento da palavra-chave 'this' em JavaScript?",
+      modulo: "JavaScript Avançado",
+      tema: "Contexto e Binding",
+      categoria: "programacao",
+      questoes: [{
+        pergunta: "O que é 'this' em JavaScript?",
+        opcoes: [
+          { letter: "A", text: "Uma variável que referencia o objeto que chama o método" },
+          { letter: "B", text: "Uma constante que sempre aponta para window" },
+          { letter: "C", text: "Uma palavra reservada que não pode ser usada" }
+        ],
+        respostaCorreta: "A"
+      }]
+    },
+    {
+      titulo: "O que é uma Promise?",
+      descricao: "Qual das alternativas melhor descreve uma Promise?",
+      modulo: "JavaScript Avançado",
+      tema: "Assincronismo",
+      categoria: "programacao",
+      questoes: [{
+        pergunta: "O que é uma Promise?",
+        opcoes: [
+          { letter: "A", text: "Um objeto que representa a eventual conclusão de uma operação assíncrona" },
+          { letter: "B", text: "Uma função que sempre retorna um valor imediatamente" },
+          { letter: "C", text: "Um tipo de variável que não pode ser modificada" }
+        ],
+        respostaCorreta: "A"
+      }]
+    }
+  ],
+  informatica: [
+    {
+      titulo: "O que é um endereço IP?",
+      descricao: "Qual é a função de um endereço IP em uma rede?",
+      modulo: "Redes de Computadores",
+      tema: "Conceitos Básicos",
+      categoria: "informatica",
+      questoes: [{
+        pergunta: "O que é um endereço IP?",
+        opcoes: [
+          { letter: "A", text: "Um identificador único que permite que computadores se comuniquem em uma rede" },
+          { letter: "B", text: "Uma senha para acessar a internet" },
+          { letter: "C", text: "Um tipo de arquivo de dados" }
+        ],
+        respostaCorreta: "A"
+      }]
+    },
+    {
+      titulo: "Qual é a função do DNS?",
+      descricao: "O que o DNS faz em uma rede?",
+      modulo: "Redes de Computadores",
+      tema: "Protocolos",
+      categoria: "informatica",
+      questoes: [{
+        pergunta: "Qual é a função do DNS?",
+        opcoes: [
+          { letter: "A", text: "Traduzir nomes de domínio em endereços IP" },
+          { letter: "B", text: "Enviar emails pela internet" },
+          { letter: "C", text: "Proteger arquivos contra vírus" }
+        ],
+        respostaCorreta: "A"
+      }]
+    },
+    {
+      titulo: "Qual é a diferença entre HTTP e HTTPS?",
+      descricao: "Identifique a principal diferença entre os protocolos HTTP e HTTPS.",
+      modulo: "Redes de Computadores",
+      tema: "Segurança Web",
+      categoria: "informatica",
+      questoes: [{
+        pergunta: "Qual é a diferença entre HTTP e HTTPS?",
+        opcoes: [
+          { letter: "A", text: "HTTPS usa criptografia para proteger os dados, HTTP não" },
+          { letter: "B", text: "HTTP é mais rápido que HTTPS" },
+          { letter: "C", text: "Não há diferença entre eles" }
+        ],
+        respostaCorreta: "A"
+      }]
+    }
+  ]
+};
+
 export default function ExerciciosPage() {
   const navigate = useNavigate();
   const role = getRole() ?? "aluno";
@@ -92,6 +196,21 @@ export default function ExerciciosPage() {
     } finally {
       setLoading(false);
     }
+  }
+
+  function aplicarTemplatePredefinido(templateId: string) {
+    const [categ, index] = templateId.split("-");
+    const template = (TEMPLATES_PREDEFINIDOS as any)[categ]?.[parseInt(index)];
+
+    if (!template) return;
+
+    setTitulo(template.titulo);
+    setDescricao(template.descricao);
+    setModulo(template.modulo);
+    setTema(template.tema);
+    setCategoria(template.categoria);
+    setComponenteInterativo("multipla");
+    setMultiplaQuestoes(template.questoes);
   }
 
   React.useEffect(() => {
@@ -370,6 +489,40 @@ export default function ExerciciosPage() {
                   onChange={(e) => setDescricao(e.target.value)}
                   disabled={categoria === "informatica" && componenteInterativo !== ""}
                 />
+              </div>
+
+              {/* TEMPLATES PRÉ-DEFINIDOS */}
+              <div className="exInputGroup">
+                <label className="exLabel">📋 Templates Pré-definidos (Múltipla Escolha)</label>
+                <select
+                  className="exSelect"
+                  defaultValue=""
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      aplicarTemplatePredefinido(e.target.value);
+                      e.target.value = ""; // Reset select
+                    }
+                  }}
+                >
+                  <option value="">-- Selecione um template --</option>
+                  <optgroup label="🖥️ Programação">
+                    {TEMPLATES_PREDEFINIDOS.programacao.map((t, i) => (
+                      <option key={`prog-${i}`} value={`programacao-${i}`}>
+                        {t.titulo}
+                      </option>
+                    ))}
+                  </optgroup>
+                  <optgroup label="💻 Informática">
+                    {TEMPLATES_PREDEFINIDOS.informatica.map((t, i) => (
+                      <option key={`info-${i}`} value={`informatica-${i}`}>
+                        {t.titulo}
+                      </option>
+                    ))}
+                  </optgroup>
+                </select>
+                <small style={{ color: "var(--muted)", marginTop: "4px" }}>
+                  Selecione um template para auto-preencher o formulário com perguntas de múltipla escolha
+                </small>
               </div>
 
               {/* CATEGORIA - PROGRAMAÇÃO vs INFORMATICA */}
