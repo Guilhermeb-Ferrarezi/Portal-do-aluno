@@ -23,6 +23,7 @@ type DbTurmaRow = {
 const createTurmaSchema = z.object({
   nome: z.string().min(2, "Nome obrigatório"),
   tipo: z.enum(["turma", "particular"]),
+  categoria: z.enum(["programacao", "informatica"]).default("programacao"),
   professor_id: z.string().uuid("Professor ID inválido").optional().nullable(),
   descricao: z.string().optional().nullable(),
   data_inicio: z.string().optional().nullable(),
@@ -214,17 +215,17 @@ export function turmasRouter(jwtSecret: string) {
         });
       }
 
-      const { nome, tipo, professor_id, descricao } = parsed.data;
+      const { nome, tipo, categoria, professor_id, descricao, data_inicio, duracao_semanas, cronograma_ativo } = parsed.data;
       const userId = req.user!.sub;
 
       // Admin pode se auto-atribuir ou atribuir a outro professor
       const finalProfessorId = professor_id ?? userId;
 
       const created = await pool.query<DbTurmaRow>(
-        `INSERT INTO turmas (nome, tipo, professor_id, descricao)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO turmas (nome, tipo, categoria, professor_id, descricao, data_inicio, duracao_semanas, cronograma_ativo)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING *`,
-        [nome, tipo, finalProfessorId, descricao ?? null]
+        [nome, tipo, categoria ?? "programacao", finalProfessorId, descricao ?? null, data_inicio ?? null, duracao_semanas ?? 12, cronograma_ativo ?? false]
       );
 
       const row = created.rows[0];
@@ -283,7 +284,7 @@ export function turmasRouter(jwtSecret: string) {
         return res.status(403).json({ message: "Sem permissão" });
       }
 
-      const { nome, tipo, professor_id, descricao } = parsed.data;
+      const { nome, tipo, categoria, professor_id, descricao, data_inicio, duracao_semanas, cronograma_ativo } = parsed.data;
 
       const campos: string[] = [];
       const valores: any[] = [];
@@ -299,9 +300,29 @@ export function turmasRouter(jwtSecret: string) {
         valores.push(tipo);
       }
 
+      if (categoria !== undefined) {
+        campos.push(`categoria = $${idx++}`);
+        valores.push(categoria);
+      }
+
       if (descricao !== undefined) {
         campos.push(`descricao = $${idx++}`);
         valores.push(descricao);
+      }
+
+      if (data_inicio !== undefined) {
+        campos.push(`data_inicio = $${idx++}`);
+        valores.push(data_inicio ?? null);
+      }
+
+      if (duracao_semanas !== undefined) {
+        campos.push(`duracao_semanas = $${idx++}`);
+        valores.push(duracao_semanas);
+      }
+
+      if (cronograma_ativo !== undefined) {
+        campos.push(`cronograma_ativo = $${idx++}`);
+        valores.push(cronograma_ativo);
       }
 
       const temProfessorId = Object.prototype.hasOwnProperty.call(parsed.data, "professor_id");
