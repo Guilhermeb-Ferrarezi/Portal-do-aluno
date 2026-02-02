@@ -1,5 +1,6 @@
 import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
+import Pagination from "../components/Pagination";
 import { hasRole } from "../auth/auth";
 import "./VideoaulaBonus.css";
 
@@ -25,6 +26,10 @@ export default function VideoaulaBonusPage() {
   const [busca, setBusca] = React.useState<string>("");
   const [modalAberto, setModalAberto] = React.useState(false);
   const [videoSelecionado, setVideoSelecionado] = React.useState<Videoaula | null>(null);
+
+  // Paginação
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
   const [formData, setFormData] = React.useState({
     titulo: "",
     descricao: "",
@@ -247,9 +252,20 @@ export default function VideoaulaBonusPage() {
               </p>
             </div>
           ) : (
-            <div className="videoaulasGrid">
-              {videoaulasFiltradas.map((videoaula) => (
-                <div key={videoaula.id} className="videoaulaCard">
+            <>
+              {(() => {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedVideoaulas = videoaulasFiltradas.slice(
+                  startIndex,
+                  endIndex
+                );
+
+                return (
+                  <>
+                    <div className="videoaulasGrid">
+                      {paginatedVideoaulas.map((videoaula) => (
+                        <div key={videoaula.id} className="videoaulaCard">
                   <div
                     className="videoaulaThumbnail"
                     onClick={() => handleAssistir(videoaula)}
@@ -292,8 +308,20 @@ export default function VideoaulaBonusPage() {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+                      ))}
+                    </div>
+
+                    <Pagination
+                      currentPage={currentPage}
+                      itemsPerPage={itemsPerPage}
+                      totalItems={videoaulasFiltradas.length}
+                      onPageChange={setCurrentPage}
+                      onItemsPerPageChange={setItemsPerPage}
+                    />
+                  </>
+                );
+              })()}
+            </>
           )}
         </div>
 

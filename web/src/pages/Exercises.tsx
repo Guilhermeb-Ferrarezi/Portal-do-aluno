@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import ConfirmModal from "../components/ConfirmModal";
+import Pagination from "../components/Pagination";
 import MonacoEditor from "../components/MonacoEditor";
 import MouseInteractiveBox from "../components/Exercise/MouseInteractiveBox";
 import MultipleChoiceQuestion from "../components/Exercise/MultipleChoiceQuestion";
@@ -73,6 +74,10 @@ export default function ExerciciosPage() {
   // Turmas
   const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
   const [turmaFiltro, setTurmaFiltro] = React.useState("todas");
+
+  // Paginação
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   // Modal de confirmação
   const [modalDeletar, setModalDeletar] = React.useState<{
@@ -1165,33 +1170,43 @@ export default function ExerciciosPage() {
               </p>
             </div>
           ) : (
-            <div className="exercisesList">
-              {items
-                .filter((ex) => {
-                  if (ex.is_template) return false;
-                  // Filtro de busca por titulo
-                  if (
-                    buscaFiltro &&
-                    !ex.titulo.toLowerCase().includes(buscaFiltro.toLowerCase())
-                  ) {
-                    return false;
-                  }
+            <>
+              {/* Filtros e Paginação */}
+              <div style={{ marginBottom: "16px" }}>
+                {(() => {
+                  const filteredExercises = items.filter((ex) => {
+                    if (ex.is_template) return false;
+                    // Filtro de busca por titulo
+                    if (
+                      buscaFiltro &&
+                      !ex.titulo.toLowerCase().includes(buscaFiltro.toLowerCase())
+                    ) {
+                      return false;
+                    }
 
-                  // Filtro de modulo
-                  if (moduloFiltro && ex.modulo !== moduloFiltro) {
-                    return false;
-                  }
+                    // Filtro de modulo
+                    if (moduloFiltro && ex.modulo !== moduloFiltro) {
+                      return false;
+                    }
 
-                  // Filtro de tipo
-                  if (tipoFiltro && ex.tipoExercicio !== tipoFiltro) {
-                    return false;
-                  }
+                    // Filtro de tipo
+                    if (tipoFiltro && ex.tipoExercicio !== tipoFiltro) {
+                      return false;
+                    }
 
-                  // Filtro de turma
-                  if (turmaFiltro === "todas") return true;
-                  return ex.turmas?.some((t) => t.id === turmaFiltro);
-                })
-                .map((ex) => (
+                    // Filtro de turma
+                    if (turmaFiltro === "todas") return true;
+                    return ex.turmas?.some((t) => t.id === turmaFiltro);
+                  });
+
+                  const startIndex = (currentPage - 1) * itemsPerPage;
+                  const endIndex = startIndex + itemsPerPage;
+                  const paginatedExercises = filteredExercises.slice(startIndex, endIndex);
+
+                  return (
+                    <>
+                      <div className="exercisesList">
+                        {paginatedExercises.map((ex) => (
                 <div
                   key={ex.id}
                   className={`exerciseCard ${canCreate ? "canEdit" : ""}`}
@@ -1281,8 +1296,21 @@ export default function ExerciciosPage() {
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
+                        ))}
+                      </div>
+
+                      <Pagination
+                        currentPage={currentPage}
+                        itemsPerPage={itemsPerPage}
+                        totalItems={filteredExercises.length}
+                        onPageChange={setCurrentPage}
+                        onItemsPerPageChange={setItemsPerPage}
+                      />
+                    </>
+                  );
+                })()}
+              </div>
+            </>
           )}
         </div>
 

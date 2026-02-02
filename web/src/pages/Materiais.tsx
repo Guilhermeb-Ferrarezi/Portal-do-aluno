@@ -1,5 +1,6 @@
 import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
+import Pagination from "../components/Pagination";
 import { hasRole } from "../auth/auth";
 import {
   listarMateriais,
@@ -39,6 +40,10 @@ export default function MateriaisPage() {
   } | null>(null);
   const [deleteTarget, setDeleteTarget] = React.useState<Material | null>(null);
   const [deleting, setDeleting] = React.useState(false);
+
+  // Paginação
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   // Carregar materiais ao montar
   React.useEffect(() => {
@@ -310,9 +315,20 @@ export default function MateriaisPage() {
               </p>
             </div>
           ) : (
-            <div className="materiaisGrid">
-              {materiaisFiltrados.map((material) => (
-                <div key={material.id} className="materialCard">
+            <>
+              {(() => {
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const paginatedMateriais = materiaisFiltrados.slice(
+                  startIndex,
+                  endIndex
+                );
+
+                return (
+                  <>
+                    <div className="materiaisGrid">
+                      {paginatedMateriais.map((material) => (
+                        <div key={material.id} className="materialCard">
                   <div className="materialHeader">
                     <div className="materialIcon">
                       {material.tipo === "arquivo" ? "📄" : "🔗"}
@@ -354,8 +370,20 @@ export default function MateriaisPage() {
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
+                      ))}
+                    </div>
+
+                    <Pagination
+                      currentPage={currentPage}
+                      itemsPerPage={itemsPerPage}
+                      totalItems={materiaisFiltrados.length}
+                      onPageChange={setCurrentPage}
+                      onItemsPerPageChange={setItemsPerPage}
+                    />
+                  </>
+                );
+              })()}
+            </>
           )}
         </div>
 
