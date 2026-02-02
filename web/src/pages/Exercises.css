@@ -421,8 +421,13 @@
 /* LISTA DE EXERCÍCIOS */
 .exercisesList {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(320px, 360px);
   gap: 16px;
+  overflow-x: auto;
+  padding: 4px 6px 12px;
+  scroll-snap-type: x proximity;
+  scrollbar-gutter: stable both-edges;
 }
 
 .exerciseCard {
@@ -435,6 +440,10 @@
   cursor: pointer;
   position: relative;
   overflow: visible;
+  display: flex;
+  flex-direction: column;
+  min-height: 220px;
+  scroll-snap-align: start;
 }
 
 .exerciseCard::before {
@@ -770,10 +779,33 @@
   flex-shrink: 0;
 }
 
+.exercisesList::-webkit-scrollbar {
+  height: 10px;
+}
+
+.exercisesList::-webkit-scrollbar-track {
+  background: rgba(17, 24, 39, 0.08);
+  border-radius: 999px;
+}
+
+.exercisesList::-webkit-scrollbar-thumb {
+  background: rgba(17, 24, 39, 0.2);
+  border-radius: 999px;
+}
+
+.exercisesList:hover::-webkit-scrollbar-thumb {
+  background: rgba(17, 24, 39, 0.3);
+}
+
 /* RESPONSIVO */
 @media (max-width: 768px) {
   .exercisesContainer {
     gap: 16px;
+  }
+
+  .exercisesList {
+    grid-auto-columns: 85%;
+    padding-bottom: 8px;
   }
 
   .exerciseHeader {
@@ -825,5 +857,11 @@
   .monacoEditorHeader {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .exercisesList {
+    grid-auto-columns: 92%;
   }
 }
