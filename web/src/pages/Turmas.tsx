@@ -24,6 +24,7 @@ type Template = {
   titulo: string;
   modulo: string;
   tema?: string | null;
+  categoria?: string;
 };
 
 export default function TurmasPage() {
@@ -561,33 +562,40 @@ export default function TurmasPage() {
 
                 {carregandoTemplates ? (
                   <div style={{ color: "var(--muted)", fontSize: 13 }}>Carregando templates...</div>
-                ) : templatesDisponiveis.length === 0 ? (
-                  <div style={{ color: "var(--muted)", fontSize: 13 }}>Nenhum template cadastrado.</div>
-                ) : (
-                  <div className="templatesSelectorList">
-                    {templatesDisponiveis.map((template) => (
-                      <label key={template.id} className="templateCheckboxItem">
-                        <input
-                          type="checkbox"
-                          checked={templatesSelecionados.includes(template.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setTemplatesSelecionados([...templatesSelecionados, template.id]);
-                            } else {
-                              setTemplatesSelecionados(
-                                templatesSelecionados.filter((id) => id !== template.id)
-                              );
-                            }
-                          }}
-                        />
-                        <div className="templateCheckboxInfo">
-                          <div className="templateCheckboxTitle">{template.titulo}</div>
-                          <div className="templateCheckboxMeta">{template.modulo || "Sem modulo"}</div>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                )}
+                ) : (() => {
+                  const filtrados = templatesDisponiveis.filter((template) => (template.categoria || "programacao") === categoria);
+                  return filtrados.length === 0 ? (
+                    <div style={{ color: "var(--muted)", fontSize: 13 }}>
+                      {templatesDisponiveis.length === 0
+                        ? "Nenhum template cadastrado."
+                        : `Nenhum template de ${categoria === "informatica" ? "Informática" : "Programação"} encontrado.`}
+                    </div>
+                  ) : (
+                    <div className="templatesSelectorList">
+                      {filtrados.map((template) => (
+                        <label key={template.id} className="templateCheckboxItem">
+                          <input
+                            type="checkbox"
+                            checked={templatesSelecionados.includes(template.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setTemplatesSelecionados([...templatesSelecionados, template.id]);
+                              } else {
+                                setTemplatesSelecionados(
+                                  templatesSelecionados.filter((id) => id !== template.id)
+                                );
+                              }
+                            }}
+                          />
+                          <div className="templateCheckboxInfo">
+                            <div className="templateCheckboxTitle">{template.titulo}</div>
+                            <div className="templateCheckboxMeta">{template.modulo || "Sem modulo"}</div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  );
+                })()}
 
                 {!cronogramaAtivo && (
                   <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 8, display: "block" }}>

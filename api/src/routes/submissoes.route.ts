@@ -158,6 +158,32 @@ function corrigirAutomaticamente(
   return null;
 }
 
+function validarMultiplaEscolhaCompleta(resposta: string, multipla_regras: string): { completa: boolean; mensagem?: string } {
+  try {
+    const respostaObj = JSON.parse(resposta);
+    const regrasObj = JSON.parse(multipla_regras);
+
+    if (!regrasObj.questoes || !Array.isArray(regrasObj.questoes)) {
+      return { completa: false, mensagem: "Formato de regras inválido" };
+    }
+
+    const numQuestoes = regrasObj.questoes.length;
+    for (let i = 0; i < numQuestoes; i++) {
+      if (!respostaObj[`q${i}`]) {
+        return {
+          completa: false,
+          mensagem: `Responda todas as ${numQuestoes} questões antes de enviar.`
+        };
+      }
+    }
+
+    return { completa: true };
+  } catch (error) {
+    console.error("Erro ao validar múltipla escolha:", error);
+    return { completa: false, mensagem: "Formato de resposta inválido" };
+  }
+}
+
 function validarMultiplaEscolha(resposta: string, multipla_regras: string): number {
   try {
     const respostaObj = JSON.parse(resposta);
@@ -232,6 +258,16 @@ export function submissoesRouter(jwtSecret: string) {
         }
 
         const { resposta, tipo_resposta, linguagem } = parsed.data;
+
+        // Validar múltipla escolha completude
+        if (multiplaRegras) {
+          const validacao = validarMultiplaEscolhaCompleta(resposta, multiplaRegras);
+          if (!validacao.completa) {
+            return res.status(400).json({
+              message: validacao.mensagem || "Responda todas as questões antes de enviar."
+            });
+          }
+        }
 
         // Detectar tipo de exercício e validar
         let notaAuto = null;

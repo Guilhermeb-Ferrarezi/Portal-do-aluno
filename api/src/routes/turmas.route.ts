@@ -622,8 +622,9 @@ export function turmasRouter(jwtSecret: string) {
                 mouse_regras: string | null;
                 multipla_regras: string | null;
                 tipo_exercicio: string | null;
+                categoria: string;
               }>(
-                `SELECT is_template, titulo, descricao, modulo, tema, prazo, gabarito, linguagem_esperada, mouse_regras, multipla_regras, tipo_exercicio FROM exercicios WHERE id = $1`,
+                `SELECT is_template, titulo, descricao, modulo, tema, prazo, gabarito, linguagem_esperada, mouse_regras, multipla_regras, tipo_exercicio, categoria FROM exercicios WHERE id = $1`,
                 [exercicioId]
               );
 
@@ -638,12 +639,12 @@ export function turmasRouter(jwtSecret: string) {
                   `INSERT INTO exercicios (
                     id, titulo, descricao, modulo, tema, prazo, publicado, published_at,
                     created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template,
-                    mouse_regras, multipla_regras, created_at, updated_at
+                    mouse_regras, multipla_regras, categoria, created_at, updated_at
                   )
                   VALUES (
                     gen_random_uuid(), $1, $2, $3, $4, $5, true, null,
                     $6, $7, $8, $9, false,
-                    $10, $11, NOW(), NOW()
+                    $10, $11, $12, NOW(), NOW()
                   )
                   RETURNING id`,
                   [
@@ -658,6 +659,7 @@ export function turmasRouter(jwtSecret: string) {
                     template.linguagem_esperada,
                     template.mouse_regras,
                     template.multipla_regras,
+                    template.categoria ?? 'programacao',
                   ]
                 );
 

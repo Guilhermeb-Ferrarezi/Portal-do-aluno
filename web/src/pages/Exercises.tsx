@@ -225,6 +225,40 @@ export default function ExerciciosPage() {
       setTurmasSelecionadas([]);
     }
 
+    // Restaurar categoria
+    setCategoria(exercicio.categoria || "programacao");
+
+    // Restaurar componente interativo baseado em regras
+    if (exercicio.mouse_regras) {
+      setComponenteInterativo("mouse");
+      try {
+        const regras = JSON.parse(exercicio.mouse_regras);
+        setMouseRegras(regras);
+      } catch (e) {
+        console.error("Erro ao parsear mouse_regras:", e);
+        setComponenteInterativo("");
+      }
+    } else if (exercicio.multipla_regras) {
+      setComponenteInterativo("multipla");
+      try {
+        const regras = JSON.parse(exercicio.multipla_regras);
+        setMultiplaQuestoes(regras.questoes || []);
+      } catch (e) {
+        console.error("Erro ao parsear multipla_regras:", e);
+        setComponenteInterativo("");
+      }
+    } else {
+      setComponenteInterativo("");
+    }
+
+    // Restaurar diaNumero do título (se aplicável)
+    const diaMatch = exercicio.titulo.match(/^Dia (\d+):/);
+    if (diaMatch) {
+      setDiaNumero(parseInt(diaMatch[1], 10));
+    } else {
+      setDiaNumero(1);
+    }
+
     setEditandoId(exercicio.id);
     setOkMsg(null);
     setErro(null);

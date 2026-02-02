@@ -93,6 +93,20 @@ function detectarTipoExercicio(titulo: string, descricao: string): TipoExercicio
     "redação",
   ];
 
+  // Verificar se contém tipos especiais (mouse ou múltipla escolha)
+  if (titulo.includes("Mouse") || descricao.includes("mouse") || titulo.includes("mouse")) {
+    return "texto"; // Mouse exercises armazenam regras em mouse_regras
+  }
+  if (
+    titulo.includes("Múltipla Escolha") ||
+    titulo.includes("multipla escolha") ||
+    titulo.includes("pergunta múltipla") ||
+    descricao.includes("múltipla escolha") ||
+    descricao.includes("multipla escolha")
+  ) {
+    return "texto"; // Múltipla escolha exercises armazenam regras em multipla_regras
+  }
+
   const scoreCodigo = palavrasCodigo.filter((p) => texto.includes(p)).length;
   const scoreTexto = palavrasTexto.filter((p) => texto.includes(p)).length;
 
@@ -439,9 +453,9 @@ export function exerciciosRouter(jwtSecret: string) {
         const result = await pool.query<ExercicioRow>(
           `INSERT INTO exercicios (
             id, titulo, descricao, modulo, tema, prazo, publicado, published_at,
-            created_by, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, created_at, updated_at
+            created_by, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, categoria, tipo_exercicio, created_at, updated_at
           ) VALUES (
-            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false, $11, $12, NOW(), NOW()
+            gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, false, $11, $12, $13, $14, NOW(), NOW()
           ) RETURNING *`,
           [
             nova_titulo || template.titulo,
@@ -456,6 +470,8 @@ export function exerciciosRouter(jwtSecret: string) {
             template.linguagem_esperada,
             template.mouse_regras,
             template.multipla_regras,
+            template.categoria ?? 'programacao',
+            template.tipo_exercicio ?? 'texto',
           ]
         );
 

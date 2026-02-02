@@ -54,7 +54,7 @@ export type Exercicio = {
   publishedAt: string | null;
   tipoExercicio?: "codigo" | "texto" | null;
   is_template?: boolean;
-  categoria?: string;
+  categoria?: "programacao" | "informatica";
   mouse_regras?: string | null;
   multipla_regras?: string | null;
   createdAt: string;
@@ -96,9 +96,10 @@ export async function criarExercicio(dados: {
   gabarito?: string | null;
   linguagem_esperada?: string | null;
   is_template?: boolean;
-  categoria?: string;
+  categoria?: "programacao" | "informatica";
   mouse_regras?: string | null;
   multipla_regras?: string | null;
+  turma_ids?: string[];
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>("/exercicios", {
     method: "POST",
@@ -116,9 +117,10 @@ export async function atualizarExercicio(id: string, dados: {
   gabarito?: string | null;
   linguagem_esperada?: string | null;
   is_template?: boolean;
-  categoria?: string;
+  categoria?: "programacao" | "informatica";
   mouse_regras?: string | null;
   multipla_regras?: string | null;
+  turma_ids?: string[];
 }) {
   return apiFetch<{ message: string; exercicio: unknown }>(`/exercicios/${id}`, {
     method: "PUT",

@@ -9,7 +9,8 @@ export async function runMigrations() {
     await pool.query(`
       ALTER TABLE exercicios
       ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false,
-      ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) DEFAULT 'programacao';
+      ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) DEFAULT 'programacao',
+      ADD COLUMN IF NOT EXISTS tipo_exercicio VARCHAR(20) DEFAULT 'texto';
     `);
 
     // Migração: Adicionar coluna mouse_regras à tabela exercicios

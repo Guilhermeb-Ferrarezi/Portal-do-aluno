@@ -670,7 +670,7 @@ export default function ExerciseDetail() {
                 })()}
 
                 {/* Exercícios normais de código */}
-                {!exercicio.titulo.startsWith("Dia 1:") && tipoExercicio === "codigo" && (
+                {!exercicio.titulo.match(/^Dia \d+: (Mouse|Múltipla Escolha|Pergunta Múltipla)$/) && tipoExercicio === "codigo" && (
                   <>
                     <MonacoEditor
                       value={resposta}
@@ -711,7 +711,7 @@ export default function ExerciseDetail() {
                 )}
 
                 {/* Exercícios normais de texto */}
-                {!exercicio.titulo.startsWith("Dia 1:") && tipoExercicio === "texto" && (
+                {!exercicio.titulo.match(/^Dia \d+: (Mouse|Múltipla Escolha|Pergunta Múltipla)$/) && tipoExercicio === "texto" && (
                   <textarea
                     className="edTextarea"
                     placeholder="Digite sua resposta aqui..."
