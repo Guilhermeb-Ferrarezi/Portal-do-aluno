@@ -125,6 +125,7 @@ export default function ExerciciosPage() {
         publicado: publishNow,
         published_at: publishNow ? null : (publishedAt ? new Date(publishedAt).toISOString() : null),
         is_template: isTemplate,
+        categoria: categoria,
         ...(gabaritoLimpo && categoria === "programacao" ? { gabarito: gabaritoLimpo } : {}),
         // Adicionar regras do mouse se for componente interativo
         ...(componenteInterativo === "mouse" ? {

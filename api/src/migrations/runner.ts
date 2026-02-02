@@ -8,7 +8,8 @@ export async function runMigrations() {
     console.log("📋 Adicionando coluna is_template...");
     await pool.query(`
       ALTER TABLE exercicios
-      ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false;
+      ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false,
+      ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) DEFAULT 'programacao';
     `);
 
     // Migração: Adicionar coluna mouse_regras à tabela exercicios

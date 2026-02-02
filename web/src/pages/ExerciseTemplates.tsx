@@ -11,6 +11,7 @@ type Template = {
   descricao: string;
   modulo: string;
   tema: string | null;
+  categoria: string;
   tipoExercicio: string;
   createdAt: string;
 };
@@ -87,9 +88,13 @@ export default function ExerciseTemplates() {
     try {
       setCarregandoTurmas(true);
       setErro(null);
+      // Buscar template para pegar categoria
+      const templateAtual = templates.find(t => t.id === templateId);
       const data = await apiFetch<Turma[]>("/turmas");
-      // Filtrar apenas turmas com cronograma ativo
-      const turmasComCronograma = data.filter(t => t.dataInicio && t.cronogramaAtivo);
+      // Filtrar apenas turmas com cronograma ativo e mesma categoria
+      const turmasComCronograma = data.filter(t =>
+        t.dataInicio && t.cronogramaAtivo && t.categoria === templateAtual?.categoria
+      );
       setTurmas(turmasComCronograma);
       setTemplateSelecionado(templateId);
       setTurmasSelecionadas([]);
@@ -212,6 +217,9 @@ export default function ExerciseTemplates() {
                     <p className="templateMeta">
                       <span className="templateModule">{template.modulo}</span>
                       {template.tema && <span className="templateTheme">{template.tema}</span>}
+                      <span className={`templateCategory category-${template.categoria}`}>
+                        {template.categoria === "informatica" ? "💻 Informática" : "🖥️ Programação"}
+                      </span>
                       <span className={`templateType type-${template.tipoExercicio}`}>
                         {template.tipoExercicio === "codigo" ? "💻 Código" : "✍️ Texto"}
                       </span>

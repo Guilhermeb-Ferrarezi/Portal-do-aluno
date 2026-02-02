@@ -22,6 +22,7 @@ type ExercicioRow = {
   gabarito: string | null;
   linguagem_esperada: string | null;
   is_template: boolean;
+  categoria: string;
   mouse_regras: string | null;
   multipla_regras: string | null;
   created_at: DBDate;
@@ -114,6 +115,7 @@ const createSchema = z.object({
   gabarito: z.string().optional().nullable(),
   linguagem_esperada: z.string().optional().nullable(),
   is_template: z.boolean().optional().default(false),
+  categoria: z.string().optional().default("programacao"),
   mouse_regras: z.string().optional().nullable(),
   multipla_regras: z.string().optional().nullable(),
 });
@@ -126,7 +128,7 @@ export function exerciciosRouter(jwtSecret: string) {
     const filtroTemplate = " AND is_template = false";
 
     const r = await pool.query<ExercicioRow>(
-      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, created_at, updated_at
+      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, categoria, mouse_regras, multipla_regras, created_at, updated_at
        FROM exercicios
        WHERE publicado = true AND (published_at IS NULL OR published_at <= NOW())${filtroTemplate}
        ORDER BY created_at DESC`
@@ -143,6 +145,7 @@ export function exerciciosRouter(jwtSecret: string) {
         publishedAt: row.published_at,
         tipoExercicio: row.tipo_exercicio,
         is_template: row.is_template,
+        categoria: row.categoria,
         mouse_regras: row.mouse_regras,
         multipla_regras: row.multipla_regras,
         createdAt: row.created_at,
@@ -157,7 +160,7 @@ export function exerciciosRouter(jwtSecret: string) {
     const { id } = req.params;
 
     const r = await pool.query<ExercicioRow>(
-      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, created_at, updated_at
+      `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, categoria, mouse_regras, multipla_regras, created_at, updated_at
        FROM exercicios
        WHERE id = $1 AND publicado = true AND (published_at IS NULL OR published_at <= NOW())${filtroTemplate}`,
       [id]
@@ -181,6 +184,7 @@ export function exerciciosRouter(jwtSecret: string) {
       gabarito: row.gabarito, // Não retornar gabarito para alunos? Considerar isso
       linguagemEsperada: row.linguagem_esperada,
       is_template: row.is_template,
+      categoria: row.categoria,
       mouse_regras: row.mouse_regras,
       multipla_regras: row.multipla_regras,
       createdAt: row.created_at,
@@ -202,7 +206,7 @@ export function exerciciosRouter(jwtSecret: string) {
         });
       }
 
-      const { titulo, descricao, modulo, tema, prazo, publicado, published_at, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras } = parsed.data;
+      const { titulo, descricao, modulo, tema, prazo, publicado, published_at, gabarito, linguagem_esperada, is_template, categoria, mouse_regras, multipla_regras } = parsed.data;
 
       // Detectar tipo automaticamente
       const tipoExercicio = detectarTipoExercicio(titulo, descricao);
@@ -211,9 +215,9 @@ export function exerciciosRouter(jwtSecret: string) {
       const shouldPublish = published_at ? false : (publicado ?? true);
 
       const created = await pool.query<ExercicioRow>(
-        `INSERT INTO exercicios (titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-         RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, mouse_regras, multipla_regras, created_at, updated_at`,
+        `INSERT INTO exercicios (titulo, descricao, modulo, tema, prazo, publicado, published_at, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, categoria, mouse_regras, multipla_regras)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+         RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, categoria, mouse_regras, multipla_regras, created_at, updated_at`,
         [
           titulo,
           descricao,
@@ -227,6 +231,7 @@ export function exerciciosRouter(jwtSecret: string) {
           gabarito ?? null,
           linguagem_esperada ?? null,
           is_template ?? false,
+          categoria ?? "programacao",
           mouse_regras ?? null,
           multipla_regras ?? null,
         ]
@@ -246,6 +251,8 @@ export function exerciciosRouter(jwtSecret: string) {
           tipoExercicio: row.tipo_exercicio,
           gabarito: row.gabarito,
           linguagemEsperada: row.linguagem_esperada,
+          categoria: row.categoria,
+          is_template: row.is_template,
           mouse_regras: row.mouse_regras,
           multipla_regras: row.multipla_regras,
           createdAt: row.created_at,
@@ -280,7 +287,7 @@ export function exerciciosRouter(jwtSecret: string) {
         return res.status(404).json({ message: "Exercício não encontrado" });
       }
 
-      const { titulo, descricao, modulo, tema, prazo, publicado, gabarito, linguagem_esperada, mouse_regras, multipla_regras } = parsed.data;
+      const { titulo, descricao, modulo, tema, prazo, publicado, gabarito, linguagem_esperada, categoria, mouse_regras, multipla_regras } = parsed.data;
 
       // Detectar tipo automaticamente
       const tipoExercicio = detectarTipoExercicio(titulo, descricao);
@@ -289,9 +296,9 @@ export function exerciciosRouter(jwtSecret: string) {
         `UPDATE exercicios
          SET titulo = $1, descricao = $2, modulo = $3, tema = $4, prazo = $5,
              publicado = $6, tipo_exercicio = $7, gabarito = $8, linguagem_esperada = $9,
-             mouse_regras = $10, multipla_regras = $11, updated_at = NOW()
-         WHERE id = $12
-         RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, mouse_regras, multipla_regras, created_at, updated_at`,
+             categoria = $10, mouse_regras = $11, multipla_regras = $12, updated_at = NOW()
+         WHERE id = $13
+         RETURNING id, titulo, descricao, modulo, tema, prazo, publicado, created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, categoria, mouse_regras, multipla_regras, created_at, updated_at`,
         [
           titulo,
           descricao,
@@ -302,6 +309,7 @@ export function exerciciosRouter(jwtSecret: string) {
           tipoExercicio,
           gabarito ?? null,
           linguagem_esperada ?? null,
+          categoria ?? "programacao",
           mouse_regras ?? null,
           multipla_regras ?? null,
           id,
@@ -322,6 +330,8 @@ export function exerciciosRouter(jwtSecret: string) {
           tipoExercicio: row.tipo_exercicio,
           gabarito: row.gabarito,
           linguagemEsperada: row.linguagem_esperada,
+          categoria: row.categoria,
+          is_template: row.is_template,
           mouse_regras: row.mouse_regras,
           multipla_regras: row.multipla_regras,
           createdAt: row.created_at,
@@ -374,11 +384,11 @@ export function exerciciosRouter(jwtSecret: string) {
       try {
         const result = await pool.query<ExercicioRow>(
           `SELECT id, titulo, descricao, modulo, tema, prazo, publicado, published_at,
-                   created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template,
+                   created_by, tipo_exercicio, gabarito, linguagem_esperada, is_template, categoria,
                    mouse_regras, multipla_regras, created_at, updated_at
            FROM exercicios
            WHERE is_template = true
-           ORDER BY modulo, titulo ASC`
+           ORDER BY categoria, modulo, titulo ASC`
         );
 
         return res.json({
@@ -388,6 +398,7 @@ export function exerciciosRouter(jwtSecret: string) {
             descricao: row.descricao,
             modulo: row.modulo,
             tema: row.tema,
+            categoria: row.categoria,
             tipoExercicio: row.tipo_exercicio,
             mouse_regras: row.mouse_regras,
             multipla_regras: row.multipla_regras,
