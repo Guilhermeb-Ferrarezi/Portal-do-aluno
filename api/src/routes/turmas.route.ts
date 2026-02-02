@@ -9,6 +9,7 @@ type DbTurmaRow = {
   id: string;
   nome: string;
   tipo: "turma" | "particular";
+  categoria: string;
   professor_id: string | null;
   descricao: string | null;
   ativo: boolean;
@@ -40,7 +41,7 @@ export function turmasRouter(jwtSecret: string) {
     const userRole = req.user!.role;
 
     let query = `
-      SELECT id, nome, tipo, professor_id, descricao, ativo, created_at, updated_at
+      SELECT id, nome, tipo, categoria, professor_id, descricao, ativo, data_inicio, duracao_semanas, cronograma_ativo, created_at, updated_at
       FROM turmas
       WHERE ativo = true
     `;
@@ -74,9 +75,13 @@ export function turmasRouter(jwtSecret: string) {
         id: row.id,
         nome: row.nome,
         tipo: row.tipo,
+        categoria: row.categoria || "programacao",
         professorId: row.professor_id,
         descricao: row.descricao,
         ativo: row.ativo,
+        dataInicio: row.data_inicio,
+        duracaoSemanas: row.duracao_semanas,
+        cronogramaAtivo: row.cronograma_ativo,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
       }))
@@ -172,9 +177,13 @@ export function turmasRouter(jwtSecret: string) {
       id: turma.id,
       nome: turma.nome,
       tipo: turma.tipo,
+      categoria: turma.categoria || "programacao",
       professorId: turma.professor_id,
       descricao: turma.descricao,
       ativo: turma.ativo,
+      dataInicio: turma.data_inicio,
+      duracaoSemanas: turma.duracao_semanas,
+      cronogramaAtivo: turma.cronograma_ativo,
       createdAt: turma.created_at,
       updatedAt: turma.updated_at,
       alunos: alunosR.rows.map((row) => ({
@@ -225,9 +234,13 @@ export function turmasRouter(jwtSecret: string) {
           id: row.id,
           nome: row.nome,
           tipo: row.tipo,
+          categoria: row.categoria || "programacao",
           professorId: row.professor_id,
           descricao: row.descricao,
           ativo: row.ativo,
+          dataInicio: row.data_inicio,
+          duracaoSemanas: row.duracao_semanas,
+          cronogramaAtivo: row.cronograma_ativo,
           createdAt: row.created_at,
           updatedAt: row.updated_at,
         },
@@ -313,9 +326,13 @@ export function turmasRouter(jwtSecret: string) {
           id: row.id,
           nome: row.nome,
           tipo: row.tipo,
+          categoria: row.categoria || "programacao",
           professorId: row.professor_id,
           descricao: row.descricao,
           ativo: row.ativo,
+          dataInicio: row.data_inicio,
+          duracaoSemanas: row.duracao_semanas,
+          cronogramaAtivo: row.cronograma_ativo,
           createdAt: row.created_at,
           updatedAt: row.updated_at,
         },

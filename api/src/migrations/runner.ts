@@ -4,6 +4,13 @@ export async function runMigrations() {
   try {
     console.log("🔄 Iniciando migrações do banco de dados...");
 
+    // Migração: Adicionar coluna is_template à tabela exercicios
+    console.log("📋 Adicionando coluna is_template...");
+    await pool.query(`
+      ALTER TABLE exercicios
+      ADD COLUMN IF NOT EXISTS is_template BOOLEAN DEFAULT false;
+    `);
+
     // Migração: Adicionar coluna mouse_regras à tabela exercicios
     console.log("📋 Adicionando coluna mouse_regras...");
     await pool.query(`
@@ -44,10 +51,31 @@ export async function runMigrations() {
       console.warn("⚠️  Coluna multipla_regras não encontrada após criar");
     }
 
+    // Migração: Adicionar coluna is_late à tabela submissoes
+    console.log("📋 Adicionando coluna is_late...");
+    await pool.query(`
+      ALTER TABLE submissoes
+      ADD COLUMN IF NOT EXISTS is_late BOOLEAN DEFAULT false;
+    `);
+
+    // Verificar se a coluna foi adicionada
+    const resultIsLate = await pool.query(`
+      SELECT column_name, data_type
+      FROM information_schema.columns
+      WHERE table_name = 'submissoes' AND column_name = 'is_late';
+    `);
+
+    if (resultIsLate.rows.length > 0) {
+      console.log("✅ Coluna is_late verificada:", resultIsLate.rows[0]);
+    } else {
+      console.warn("⚠️  Coluna is_late não encontrada após criar");
+    }
+
     // Migração: Adicionar campos de cronograma em turmas
     console.log("📅 Adicionando campos de cronograma em turmas...");
     await pool.query(`
       ALTER TABLE turmas
+      ADD COLUMN IF NOT EXISTS categoria VARCHAR(50) DEFAULT 'programacao',
       ADD COLUMN IF NOT EXISTS data_inicio DATE,
       ADD COLUMN IF NOT EXISTS duracao_semanas INTEGER DEFAULT 12,
       ADD COLUMN IF NOT EXISTS cronograma_ativo BOOLEAN DEFAULT false;
