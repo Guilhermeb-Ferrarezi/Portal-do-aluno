@@ -2,6 +2,7 @@ import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import Pagination from "../components/Pagination";
 import { hasRole } from "../auth/auth";
+import { listarExercicios } from "../services/api";
 import "./VideoaulaBonus.css";
 
 type Videoaula = {
@@ -30,6 +31,10 @@ export default function VideoaulaBonusPage() {
   // Paginação
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
+
+  // Módulos de exercícios
+  const [exerciseModulos, setExerciseModulos] = React.useState<string[]>([]);
+
   const [formData, setFormData] = React.useState({
     titulo: "",
     descricao: "",
@@ -39,6 +44,18 @@ export default function VideoaulaBonusPage() {
     arquivo: null as File | null,
     duracao: "",
   });
+
+  // Carregar módulos de exercícios
+  const carregarModulosExercicios = async () => {
+    try {
+      const exercicios = await listarExercicios();
+      const modulos = Array.from(new Set(exercicios.map((ex) => ex.modulo)))
+        .sort();
+      setExerciseModulos(modulos);
+    } catch (err) {
+      console.error("Erro ao carregar módulos de exercícios:", err);
+    }
+  };
 
   // Videoaulas de exemplo
   const videoaulasExemplo: Videoaula[] = [
@@ -90,6 +107,9 @@ export default function VideoaulaBonusPage() {
       setVideoaulas(videoaulasExemplo);
       localStorage.setItem("videoaulas", JSON.stringify(videoaulasExemplo));
     }
+
+    // Carregar módulos de exercícios
+    carregarModulosExercicios();
   }, []);
 
   // Filtrar videoaulas
@@ -234,6 +254,50 @@ export default function VideoaulaBonusPage() {
             </button>
           )}
         </div>
+
+        {/* SEÇÃO DE MÓDULOS DE EXERCÍCIOS */}
+        {exerciseModulos.length > 0 && (
+          <div style={{ marginTop: "32px", marginBottom: "32px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "var(--text)" }}>
+              📋 Módulos com Exercícios
+            </h3>
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: "8px"
+            }}>
+              {exerciseModulos.map((modulo) => (
+                <button
+                  key={modulo}
+                  onClick={() => setFiltroModulo(modulo)}
+                  style={{
+                    padding: "8px 16px",
+                    background: filtroModulo === modulo ? "var(--primary)" : "var(--background-secondary)",
+                    color: filtroModulo === modulo ? "#fff" : "var(--text)",
+                    border: filtroModulo === modulo ? "1px solid var(--primary)" : "1px solid var(--border)",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "13px",
+                    fontWeight: 500,
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (filtroModulo !== modulo) {
+                      (e.target as HTMLButtonElement).style.background = "var(--background-hover)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (filtroModulo !== modulo) {
+                      (e.target as HTMLButtonElement).style.background = "var(--background-secondary)";
+                    }
+                  }}
+                >
+                  {modulo}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* GRID DE VIDEOAULAS */}
         <div>

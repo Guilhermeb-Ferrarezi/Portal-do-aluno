@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
+import Pagination from "../components/Pagination";
 import {
   listarTurmas,
   criarTurma,
@@ -39,6 +40,10 @@ export default function TurmasPage() {
   const [loading, setLoading] = React.useState(false);
   const [erro, setErro] = React.useState<string | null>(null);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
+
+  // Paginação
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
   // Form
   const [nome, setNome] = React.useState("");
@@ -647,76 +652,92 @@ export default function TurmasPage() {
               </p>
             </div>
           ) : (
-            <div className="turmasList">
-              {turmas.map((turma) => (
-                <div key={turma.id} className="turmaCard">
-                  <div className="turmaCardHeader">
-                    <div className="turmaCardInfo">
-                      <h3 className="turmaCardTitle">{turma.nome}</h3>
-                      <span className={`turmaBadge tipo-${turma.tipo}`}>
-                        {turma.tipo === "turma" ? "👥 Grupo" : "👤 Particular"}
-                      </span>
-                    </div>
-                    {canCreate && (
-                      <div className="turmaCardActions">
+            <>
+              <div className="turmasList">
+                {(() => {
+                  const startIndex = (currentPage - 1) * itemsPerPage;
+                  const endIndex = startIndex + itemsPerPage;
+                  const paginatedTurmas = turmas.slice(startIndex, endIndex);
+
+                  return paginatedTurmas.map((turma) => (
+                    <div key={turma.id} className="turmaCard">
+                      <div className="turmaCardHeader">
+                        <div className="turmaCardInfo">
+                          <h3 className="turmaCardTitle">{turma.nome}</h3>
+                          <span className={`turmaBadge tipo-${turma.tipo}`}>
+                            {turma.tipo === "turma" ? "👥 Grupo" : "👤 Particular"}
+                          </span>
+                        </div>
+                        {canCreate && (
+                          <div className="turmaCardActions">
+                            <button
+                              className="turmaEditBtn"
+                              onClick={() => handleEdit(turma)}
+                              title="Editar turma"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              className="turmaDeleteBtn"
+                              onClick={() => abrirModalDeletar(turma.id, turma.nome)}
+                              title="Deletar turma"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        )}
+                      </div>
+
+                      {turma.descricao && (
+                        <p className="turmaCardDescription">{turma.descricao}</p>
+                      )}
+
+                      <div className="turmaCardStats">
+                        <div className="statItem">
+                          <span className="statIcon">👥</span>
+                          <span className="statText">Alunos</span>
+                        </div>
+                        <div className="statItem">
+                          <span className="statIcon">📅</span>
+                          <span className="statText">
+                            {new Date(turma.createdAt).toLocaleDateString("pt-BR", {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            })}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="turmaCardFooter">
+                        {canCreate && (
+                          <button
+                            className="turmaManageBtn"
+                            onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
+                          >
+                            👥 Gerenciar Alunos
+                          </button>
+                        )}
                         <button
-                          className="turmaEditBtn"
-                          onClick={() => handleEdit(turma)}
-                          title="Editar turma"
+                          className="turmaViewBtn"
+                          onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
                         >
-                          ✏️
-                        </button>
-                        <button
-                          className="turmaDeleteBtn"
-                          onClick={() => abrirModalDeletar(turma.id, turma.nome)}
-                          title="Deletar turma"
-                        >
-                          🗑️
+                          Ver Detalhes →
                         </button>
                       </div>
-                    )}
-                  </div>
-
-                  {turma.descricao && (
-                    <p className="turmaCardDescription">{turma.descricao}</p>
-                  )}
-
-                  <div className="turmaCardStats">
-                    <div className="statItem">
-                      <span className="statIcon">👥</span>
-                      <span className="statText">Alunos</span>
                     </div>
-                    <div className="statItem">
-                      <span className="statIcon">📅</span>
-                      <span className="statText">
-                        {new Date(turma.createdAt).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </span>
-                    </div>
-                  </div>
+                  ));
+                })()}
+              </div>
 
-                  <div className="turmaCardFooter">
-                    {canCreate && (
-                      <button
-                        className="turmaManageBtn"
-                        onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
-                      >
-                        👥 Gerenciar Alunos
-                      </button>
-                    )}
-                    <button
-                      className="turmaViewBtn"
-                      onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
-                    >
-                      Ver Detalhes →
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+              <Pagination
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={turmas.length}
+                onPageChange={setCurrentPage}
+                onItemsPerPageChange={setItemsPerPage}
+              />
+            </>
           )}
         </div>
 

@@ -238,7 +238,7 @@ export default function Dashboard() {
           <div className="card">
             <div className="cardHead">
               <div>
-                <div className="kicker">MINHAS TURMAS</div>
+                <div className="kicker">Turmas</div>
                 <div className="big">{role === "aluno" ? turmas.length : turmasResponsavel}</div>
               </div>
             </div>
