@@ -99,7 +99,7 @@
 
 /* Topbar */
 :root[data-theme="dark"] .topbar {
-  background: var(--background-secondary);
+  background: var(--header);
   border-bottom-color: var(--line);
 }
 
