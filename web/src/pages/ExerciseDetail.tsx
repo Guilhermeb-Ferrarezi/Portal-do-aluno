@@ -363,7 +363,7 @@ export default function ExerciseDetail() {
 
             {canReview && (
               <div className="edCard edTentativas">
-                <h3 className="edSubtitle">?? Respostas dos alunos ({submissoesRecebidas.length})</h3>
+                <h3 className="edSubtitle">📝 Respostas dos alunos ({submissoesRecebidas.length})</h3>
 
                 {loadingRecebidas ? (
                   <div style={{ padding: "12px", opacity: 0.6, textAlign: "center" }}>

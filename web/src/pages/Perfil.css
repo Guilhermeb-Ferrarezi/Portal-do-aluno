@@ -177,6 +177,20 @@
   box-shadow: 0 6px 16px rgba(225, 29, 46, 0.3);
 }
 
+.btnSalvar:disabled,
+.btnConfirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.btnSalvar:disabled:hover,
+.btnConfirm:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
 /* INFO GRID */
 .infoGrid {
   display: grid;

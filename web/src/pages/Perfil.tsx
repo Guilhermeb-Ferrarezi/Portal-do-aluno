@@ -101,7 +101,7 @@ export default function PerfilPage() {
           console.error("Erro ao carregar turmas:", e);
         }
       } catch (error) {
-        setErro(error instanceof Error ? error.message : "Erro ao carregar usu?rio");
+        setErro(error instanceof Error ? error.message : "Erro ao carregar usuário");
       } finally {
         setLoading(false);
       }
@@ -118,28 +118,36 @@ export default function PerfilPage() {
 
 
   const handleChangeSenha = async () => {
+    console.log("🔐 handleChangeSenha iniciado");
+
     if (!senhaAtual || !novaSenha || !confirmarSenha) {
+      console.log("❌ Campos vazios", { senhaAtual, novaSenha, confirmarSenha });
       setFeedback({ type: "error", message: "Preencha todos os campos da senha." });
       return;
     }
 
     if (novaSenha.length < 6) {
+      console.log("❌ Senha muito curta");
       setFeedback({ type: "error", message: "A nova senha deve ter ao menos 6 caracteres." });
       return;
     }
 
     if (novaSenha !== confirmarSenha) {
-      setFeedback({ type: "error", message: "As senhas n?o coincidem." });
+      console.log("❌ Senhas não coincidem");
+      setFeedback({ type: "error", message: "As senhas não coincidem." });
       return;
     }
 
     try {
       setSavingSenha(true);
       setFeedback(null);
+      console.log("📤 Enviando requisição de alteração de senha...");
       const result = await alterarMinhaSenha({ senhaAtual, novaSenha });
+      console.log("✅ Senha alterada com sucesso:", result);
       closeSenhaModal();
       setFeedback({ type: "success", message: result.message });
     } catch (error) {
+      console.error("❌ Erro ao alterar senha:", error);
       setFeedback({
         type: "error",
         message: error instanceof Error ? error.message : "Erro ao alterar senha",
@@ -201,7 +209,7 @@ export default function PerfilPage() {
     return (
       <DashboardLayout title="Perfil" subtitle="Erro">
         <div style={{ textAlign: "center", padding: "24px", color: "var(--red)" }}>
-          Erro ao carregar usu?rio: {erro}
+          Erro ao carregar usuário: {erro}
         </div>
       </DashboardLayout>
     );
@@ -212,7 +220,7 @@ export default function PerfilPage() {
       <div className="perfilContainer">
         {feedback && (
           <div className={`perfilMessage ${feedback.type}`}>
-            <span>{feedback.type === "success" ? "?" : "?"}</span>
+            <span>{feedback.type === "success" ? "✅" : "❌"}</span>
             <span>{feedback.message}</span>
           </div>
         )}
@@ -313,7 +321,7 @@ export default function PerfilPage() {
 
             <div className="settingsItem">
               <div className="settingsInfo">
-                <h3>Perfil p?blico</h3>
+                <h3>Perfil público</h3>
                 <p>Permitir que outros alunos vejam seu progresso</p>
               </div>
               <label className="switch">
@@ -334,7 +342,7 @@ export default function PerfilPage() {
             <div className="settingsItem">
               <div className="settingsInfo">
                 <h3>Modo compacto</h3>
-                <p>Reduza o espa?amento para ver mais conte?do</p>
+                <p>Reduza o espaçamento para ver mais conteúdo</p>
               </div>
               <label className="switch">
                 <input
@@ -375,7 +383,7 @@ export default function PerfilPage() {
 
           <div className="settingsActions">
             <button className="btnCancel" onClick={handleResetSettings}>
-              Restaurar padr?es
+              Restaurar padrões
             </button>
             <button
               className="btnSalvar"
@@ -502,7 +510,7 @@ export default function PerfilPage() {
                   autoComplete="new-password"
                 />
                 {confirmarSenha && novaSenha !== confirmarSenha && (
-                  <small className="formHint error">As senhas n?o coincidem</small>
+                  <small className="formHint error">As senhas não coincidem</small>
                 )}
               </div>
 
@@ -510,8 +518,13 @@ export default function PerfilPage() {
                 <button className="btnCancel" onClick={closeSenhaModal}>
                   Cancelar
                 </button>
-                <button className="btnConfirm" onClick={handleChangeSenha} disabled={savingSenha || senhaInvalida}>
-                  {savingSenha ? "Alterando..." : "Alterar Senha"}
+                <button
+                  className="btnConfirm"
+                  onClick={handleChangeSenha}
+                  disabled={savingSenha || senhaInvalida}
+                  title={senhaInvalida ? "Preencha todos os campos corretamente" : ""}
+                >
+                  {savingSenha ? "⏳ Alterando..." : "✅ Alterar Senha"}
                 </button>
               </div>
             </div>
