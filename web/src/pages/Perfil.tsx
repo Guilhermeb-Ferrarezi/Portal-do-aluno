@@ -120,34 +120,47 @@ export default function PerfilPage() {
   const handleChangeSenha = async () => {
     console.log("🔐 handleChangeSenha iniciado");
 
-    if (!senhaAtual || !novaSenha || !confirmarSenha) {
-      console.log("❌ Campos vazios", { senhaAtual, novaSenha, confirmarSenha });
-      setFeedback({ type: "error", message: "Preencha todos os campos da senha." });
+    // Validações
+    if (!senhaAtual?.trim()) {
+      setFeedback({ type: "error", message: "Preencha a senha atual." });
       return;
     }
-
-    if (novaSenha.length < 6) {
-      console.log("❌ Senha muito curta");
+    if (!novaSenha?.trim()) {
+      setFeedback({ type: "error", message: "Preencha a nova senha." });
+      return;
+    }
+    if (!confirmarSenha?.trim()) {
+      setFeedback({ type: "error", message: "Preencha a confirmação da senha." });
+      return;
+    }
+    if (novaSenha.trim().length < 6) {
       setFeedback({ type: "error", message: "A nova senha deve ter ao menos 6 caracteres." });
       return;
     }
-
-    if (novaSenha !== confirmarSenha) {
-      console.log("❌ Senhas não coincidem");
+    if (novaSenha.trim() !== confirmarSenha.trim()) {
       setFeedback({ type: "error", message: "As senhas não coincidem." });
       return;
     }
 
+    setSavingSenha(true);
+    setFeedback(null);
+
     try {
-      setSavingSenha(true);
-      setFeedback(null);
-      console.log("📤 Enviando requisição de alteração de senha...");
-      const result = await alterarMinhaSenha({ senhaAtual, novaSenha });
-      console.log("✅ Senha alterada com sucesso:", result);
+      console.log("📤 Enviando requisição...");
+      const result = await alterarMinhaSenha({
+        senhaAtual: senhaAtual.trim(),
+        novaSenha: novaSenha.trim()
+      });
+
+      console.log("✅ Sucesso:", result);
       closeSenhaModal();
-      setFeedback({ type: "success", message: result.message });
+      setFeedback({
+        type: "success",
+        message: result.message || "Senha alterada com sucesso!"
+      });
+
     } catch (error) {
-      console.error("❌ Erro ao alterar senha:", error);
+      console.error("❌ Erro:", error);
       setFeedback({
         type: "error",
         message: error instanceof Error ? error.message : "Erro ao alterar senha",
@@ -515,10 +528,15 @@ export default function PerfilPage() {
               </div>
 
               <div className="modalActions">
-                <button className="btnCancel" onClick={closeSenhaModal}>
+                <button
+                  type="button"
+                  className="btnCancel"
+                  onClick={closeSenhaModal}
+                >
                   Cancelar
                 </button>
                 <button
+                  type="button"
                   className="btnConfirm"
                   onClick={handleChangeSenha}
                   disabled={savingSenha || senhaInvalida}
