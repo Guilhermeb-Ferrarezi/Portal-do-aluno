@@ -38,7 +38,7 @@ export function authRouter(jwtSecret: string) {
       const result = await pool.query<DbUserRow>(
         `SELECT id, usuario, nome, senha_hash, role, ativo
          FROM users
-         WHERE usuario = $1
+         WHERE LOWER(usuario) = LOWER($1)
          LIMIT 1`,
         [usuario]
       );
