@@ -166,9 +166,9 @@ export default function PerfilPage() {
         new CustomEvent('perfil-settings-changed', { detail: settings })
       );
 
-      setFeedback({ type: "success", message: "Configura??es salvas com sucesso!" });
+      setFeedback({ type: "success", message: "Configurações salvas com sucesso!" });
     } catch {
-      setFeedback({ type: "error", message: "N?o foi poss?vel salvar as configura??es." });
+      setFeedback({ type: "error", message: "Não foi possível salvar as configurações." });
     } finally {
       setSavingSettings(false);
     }
@@ -177,7 +177,7 @@ export default function PerfilPage() {
   const handleResetSettings = () => {
     setSettings(defaultSettings);
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(defaultSettings));
-    setFeedback({ type: "success", message: "Configura??es restauradas." });
+    setFeedback({ type: "success", message: "Configurações restauradas." });
   };
 
   const senhaInvalida =
@@ -208,7 +208,7 @@ export default function PerfilPage() {
   }
 
   return (
-    <DashboardLayout title="Perfil" subtitle="Gerencie suas informa??es pessoais">
+    <DashboardLayout title="Perfil" subtitle="Gerencie suas informações pessoais">
       <div className="perfilContainer">
         {feedback && (
           <div className={`perfilMessage ${feedback.type}`}>
@@ -217,10 +217,10 @@ export default function PerfilPage() {
           </div>
         )}
 
-        {/* SECTION 1: INFORMA??ES B?SICAS */}
+        {/* SECTION 1: INFORMAÇÕES BÁSICAS */}
         <section className="perfilCard">
           <div className="cardHeader">
-            <h2>Minhas Informa??es</h2>
+            <h2>Minhas Informações</h2>
           </div>
 
           <div className="infoGrid">
@@ -229,11 +229,11 @@ export default function PerfilPage() {
               <div className="infoValue">{formData.nome}</div>
             </div>
             <div className="infoItem">
-              <div className="infoLabel">Usu?rio</div>
+              <div className="infoLabel">Usuário</div>
               <div className="infoValue">@{formData.usuario}</div>
             </div>
             <div className="infoItem">
-              <div className="infoLabel">Fun??o</div>
+              <div className="infoLabel">Função</div>
               <div className="infoValue">
                 {role === "admin"
                   ? "Administrador"
@@ -245,10 +245,10 @@ export default function PerfilPage() {
           </div>
         </section>
 
-        {/* SECTION 2: SEGURAN?A */}
+        {/* SECTION 2: SEGURANÇA */}
         <section className="perfilCard">
           <div className="cardHeader">
-            <h2>Seguran?a</h2>
+            <h2>Segurança</h2>
           </div>
 
           <div className="securityContent">
@@ -264,16 +264,16 @@ export default function PerfilPage() {
           </div>
         </section>
 
-        {/* SECTION 3: CONFIGURA??ES */}
+        {/* SECTION 3: CONFIGURAÇÕES */}
         <section className="perfilCard">
           <div className="cardHeader">
-            <h2>Configura??es</h2>
+            <h2>Configurações</h2>
           </div>
 
           <div className="settingsGrid">
             <div className="settingsItem">
               <div className="settingsInfo">
-                <h3>Notifica??es por e-mail</h3>
+                <h3>Notificações por e-mail</h3>
                 <p>Receba alertas sobre novas atividades e avisos</p>
               </div>
               <label className="switch">
@@ -293,7 +293,7 @@ export default function PerfilPage() {
 
             <div className="settingsItem">
               <div className="settingsInfo">
-                <h3>Notifica??es no app</h3>
+                <h3>Notificações no app</h3>
                 <p>Mostre avisos dentro do portal quando houver novidades</p>
               </div>
               <label className="switch">
@@ -382,12 +382,12 @@ export default function PerfilPage() {
               onClick={handleSaveSettings}
               disabled={savingSettings}
             >
-              {savingSettings ? "Salvando..." : "Salvar configura??es"}
+              {savingSettings ? "Salvando..." : "Salvar configurações"}
             </button>
           </div>
         </section>
 
-        {/* SECTION 4: ESTAT?STICAS */}
+        {/* SECTION 4: ESTATÍSTICAS */}
         <section className="perfilCard">
           <div className="cardHeader">
             <h2>Seu Desempenho</h2>
@@ -395,23 +395,23 @@ export default function PerfilPage() {
 
           <div className="statsGrid">
             <div className="statCard">
-              <div className="statIcon">??</div>
+              <div className="statIcon">✅</div>
               <div className="statInfo">
                 <div className="statValue">{stats.exerciciosFitos}</div>
-                <div className="statLabel">Exerc?cios Feitos</div>
+                <div className="statLabel">Exercícios Feitos</div>
               </div>
             </div>
 
             <div className="statCard">
-              <div className="statIcon">?</div>
+              <div className="statIcon">⭐</div>
               <div className="statInfo">
                 <div className="statValue">{stats.notaMedia.toFixed(1)}/10</div>
-                <div className="statLabel">Nota M?dia</div>
+                <div className="statLabel">Nota Média</div>
               </div>
             </div>
 
             <div className="statCard">
-              <div className="statIcon">??</div>
+              <div className="statIcon">👥</div>
               <div className="statInfo">
                 <div className="statValue">{stats.turmasInscritas}</div>
                 <div className="statLabel">Turmas Inscritas</div>
@@ -419,10 +419,10 @@ export default function PerfilPage() {
             </div>
 
             <div className="statCard">
-              <div className="statIcon">??</div>
+              <div className="statIcon">🔥</div>
               <div className="statInfo">
                 <div className="statValue">{stats.diasSequencia}</div>
-                <div className="statLabel">Dias de Sequ?ncia</div>
+                <div className="statLabel">Dias de Sequência</div>
               </div>
             </div>
           </div>
@@ -436,19 +436,19 @@ export default function PerfilPage() {
 
           {turmas.length === 0 ? (
             <div className="emptyState">
-              <div className="emptyIcon">??</div>
-              <p>Voc? n?o est? inscrito em nenhuma turma</p>
+              <div className="emptyIcon">📚</div>
+              <p>Você não está inscrito em nenhuma turma</p>
             </div>
           ) : (
             <div className="turmasList">
               {turmas.map((turma) => (
                 <div key={turma.id} className="turmaItem">
-                  <div className="turmaIcon">{turma.tipo === "turma" ? "??" : "??"}</div>
+                  <div className="turmaIcon">{turma.tipo === "turma" ? "👥" : "👤"}</div>
                   <div className="turmaInfo">
                     <h3 className="turmaNome">{turma.nome}</h3>
                     <div className="turmaMeta">
                       <span className="badge badgeCategoria">
-                        {turma.categoria === "programacao" ? "?? Programa??o" : "??? Inform?tica"}
+                        {turma.categoria === "programacao" ? "💻 Programação" : "🖥️ Informática"}
                       </span>
                       <span className="badge badgeTipo">
                         {turma.tipo === "turma" ? "Grupo" : "Particular"}
