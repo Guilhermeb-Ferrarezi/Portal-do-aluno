@@ -3,7 +3,7 @@
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  background: #fff;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 12px;
   margin-top: 24px;
@@ -56,7 +56,7 @@
   padding: 8px 12px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--card);
   color: #111827;
   cursor: pointer;
   font-size: 14px;
@@ -87,7 +87,7 @@
   padding: 8px 14px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--card);
   color: #111827;
   cursor: pointer;
   font-size: 13px;
@@ -118,7 +118,7 @@
   padding: 6px 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: var(--card);
   color: #111827;
   cursor: pointer;
   font-size: 13px;

@@ -693,7 +693,7 @@ export default function TurmaDetailPage() {
                                     justifyContent: "space-between",
                                     alignItems: "center",
                                     padding: "8px 12px",
-                                    background: "white",
+                                    background: "var(--card)",
                                     border: "1px solid var(--border)",
                                     borderRadius: "4px",
                                   }}

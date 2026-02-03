@@ -541,7 +541,7 @@ export default function ExerciciosPage() {
                         </p>
 
                         {multiplaQuestoes.map((questao, qIndex) => (
-                          <div key={qIndex} style={{ background: "white", padding: "12px", borderRadius: "6px", marginBottom: "12px", border: "1px solid #fde68a" }}>
+                          <div key={qIndex} style={{ background: "var(--card)", padding: "12px", borderRadius: "6px", marginBottom: "12px", border: "1px solid #fde68a" }}>
                             <h4 style={{ margin: "0 0 8px 0", fontSize: 13 }}>Questão {qIndex + 1}</h4>
 
                             <div style={{ marginBottom: "8px" }}>
@@ -794,8 +794,8 @@ export default function ExerciciosPage() {
                       {/* Loop através de cada questão */}
                       {multiplaQuestoes.map((questao, qIndex) => (
                         <div key={qIndex} style={{
-                          background: "#ffffff",
-                          border: "1px solid #d1d5db",
+                          background: "var(--card)",
+                          border: "1px solid var(--line)",
                           borderRadius: "8px",
                           padding: "16px",
                           marginBottom: "16px",
@@ -941,8 +941,8 @@ export default function ExerciciosPage() {
                       {/* PREVIEW DINÂMICO DA PRIMEIRA QUESTÃO */}
                       {multiplaQuestoes.length > 0 && multiplaQuestoes[0].pergunta && (
                         <div style={{
-                          background: "#ffffff",
-                          border: "2px solid #bfdbfe",
+                          background: "var(--card)",
+                          border: "2px solid var(--line)",
                           borderRadius: "8px",
                           padding: "16px",
                           marginTop: "16px",

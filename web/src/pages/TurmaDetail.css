@@ -45,7 +45,7 @@
 
 /* INFO CARD */
 .turmaInfoCard {
-  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
+  background: linear-gradient(135deg, var(--card) 0%, #fafbfc 100%);
   border: 1px solid rgba(225, 29, 46, 0.1);
   border-radius: 20px;
   padding: 32px;

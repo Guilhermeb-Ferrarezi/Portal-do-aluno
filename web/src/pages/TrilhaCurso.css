@@ -160,7 +160,7 @@
 
 .moduloCard.concluido {
   border-color: var(--green);
-  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+  background: linear-gradient(135deg, #f0fdf4, var(--card));
 }
 
 .moduloCard.concluido:hover {
