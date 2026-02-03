@@ -504,6 +504,12 @@ export default function PerfilPage() {
                   onChange={(e) => setNovaSenha(e.target.value)}
                   autoComplete="new-password"
                 />
+                {novaSenha && novaSenha.length < 6 && (
+                  <small className="formHint error">❌ Mínimo 6 caracteres</small>
+                )}
+                {novaSenha && novaSenha.length >= 6 && (
+                  <small className="formHint success">✅ Senha forte</small>
+                )}
               </div>
 
               <div className="formGroup">
@@ -516,9 +522,27 @@ export default function PerfilPage() {
                   onChange={(e) => setConfirmarSenha(e.target.value)}
                   autoComplete="new-password"
                 />
-                {confirmarSenha && novaSenha !== confirmarSenha && (
-                  <small className="formHint error">As senhas não coincidem</small>
+                {confirmarSenha && novaSenha === confirmarSenha && (
+                  <small className="formHint success">✅ Senhas coincidem</small>
                 )}
+                {confirmarSenha && novaSenha !== confirmarSenha && (
+                  <small className="formHint error">❌ As senhas não coincidem</small>
+                )}
+              </div>
+
+              <div style={{ marginTop: "16px", padding: "12px", borderRadius: "8px", backgroundColor: "rgba(0,0,0,0.05)", border: "1px solid var(--line)" }}>
+                <p style={{ margin: "0 0 8px 0", fontSize: "13px", fontWeight: "600", color: "var(--text)" }}>Requisitos:</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px", fontSize: "12px" }}>
+                  <div style={{ color: senhaAtual ? "#16a34a" : "var(--muted)" }}>
+                    {senhaAtual ? "✅" : "○"} Senha atual preenchida
+                  </div>
+                  <div style={{ color: novaSenha && novaSenha.length >= 6 ? "#16a34a" : "var(--muted)" }}>
+                    {novaSenha && novaSenha.length >= 6 ? "✅" : "○"} Nova senha com 6+ caracteres
+                  </div>
+                  <div style={{ color: confirmarSenha && novaSenha === confirmarSenha ? "#16a34a" : "var(--muted)" }}>
+                    {confirmarSenha && novaSenha === confirmarSenha ? "✅" : "○"} Confirmação igual
+                  </div>
+                </div>
               </div>
 
               <div className="modalActions">

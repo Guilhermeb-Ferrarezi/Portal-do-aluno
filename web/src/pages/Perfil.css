@@ -109,6 +109,10 @@
   color: var(--red);
 }
 
+.formHint.success {
+  color: #16a34a;
+}
+
 .formLabel {
   font-weight: 700;
   font-size: 13px;
