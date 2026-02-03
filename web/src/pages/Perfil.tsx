@@ -201,12 +201,6 @@ export default function PerfilPage() {
     setFeedback({ type: "success", message: "Configurações restauradas." });
   };
 
-  const senhaInvalida =
-    !senhaAtual ||
-    !novaSenha ||
-    !confirmarSenha ||
-    novaSenha.length < 6 ||
-    novaSenha !== confirmarSenha;
 
   if (loading) {
     return (
@@ -539,8 +533,7 @@ export default function PerfilPage() {
                   type="button"
                   className="btnConfirm"
                   onClick={handleChangeSenha}
-                  disabled={savingSenha || senhaInvalida}
-                  title={senhaInvalida ? "Preencha todos os campos corretamente" : ""}
+                  disabled={savingSenha}
                 >
                   {savingSenha ? "⏳ Alterando..." : "✅ Alterar Senha"}
                 </button>
