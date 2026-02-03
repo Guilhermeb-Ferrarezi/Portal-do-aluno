@@ -111,12 +111,6 @@ export default function DashboardLayout({
             </span>
             Exercícios
           </Link>
-          <Link className={`sbItem ${isTemplates ? "active" : ""}`} to="/dashboard/templates">
-            <span className="sbIcon" aria-hidden="true">
-              📦
-            </span>
-            Templates
-          </Link>
           <Link className={`sbItem ${isMateriais ? "active" : ""}`} to="/dashboard/materiais">
             <span className="sbIcon" aria-hidden="true">
               📄
@@ -147,6 +141,13 @@ export default function DashboardLayout({
 
           {canCreateUser && (
             <>
+              <Link className={`sbItem ${isTemplates ? "active" : ""}`} to="/dashboard/templates">
+                <span className="sbIcon" aria-hidden="true">
+                  📦
+                </span>
+                Templates
+              </Link>
+
               <div className="sideSection">
                 <button
                   className="sideSectionHeader"
