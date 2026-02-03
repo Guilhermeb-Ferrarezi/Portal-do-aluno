@@ -160,6 +160,12 @@ export default function PerfilPage() {
     try {
       setSavingSettings(true);
       localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+
+      // Disparar evento customizado para atualizar tema na mesma aba
+      window.dispatchEvent(
+        new CustomEvent('perfil-settings-changed', { detail: settings })
+      );
+
       setFeedback({ type: "success", message: "Configura??es salvas com sucesso!" });
     } catch {
       setFeedback({ type: "error", message: "N?o foi poss?vel salvar as configura??es." });

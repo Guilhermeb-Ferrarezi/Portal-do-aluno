@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { useTheme } from "./hooks/useTheme";
 import ProtectedRoute from "./auth/ProtectedRoute";
 
 import Login from "./components/Login/Login";
@@ -14,11 +15,12 @@ import MateriaisPage from "./pages/Materiais";
 import VideoaulaBonusPage from "./pages/VideoaulaBonus";
 import PerfilPage from "./pages/Perfil";
 
-export default function App() {
+function AppContent() {
+  useTheme();
+
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
+    <Routes>
+      <Route path="/login" element={<Login />} />
 
         {/* logado */}
         <Route element={<ProtectedRoute />}>
@@ -78,6 +80,13 @@ export default function App() {
 
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
     </BrowserRouter>
   );
 }

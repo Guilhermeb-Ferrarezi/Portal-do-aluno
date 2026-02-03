@@ -1,0 +1,103 @@
+/* TEMA CLARO (padrão) */
+:root {
+  --primary: #e11d2e;
+  --red: #e11d2e;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --background: #ffffff;
+  --background-secondary: #f9fafb;
+  --background-hover: #f3f4f6;
+  --line: #e5e7eb;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --r: 12px;
+}
+
+/* TEMA ESCURO */
+:root[data-theme="dark"] {
+  --primary: #e11d2e;
+  --red: #f87171;
+  --text: #f3f4f6;
+  --muted: #9ca3af;
+  --background: #111827;
+  --background-secondary: #1f2937;
+  --background-hover: #2a3748;
+  --line: #374151;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Aplicar tema escuro ao body e elementos */
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root {
+  background-color: var(--background);
+  color: var(--text);
+}
+
+/* Cards e backgrounds */
+:root[data-theme="dark"] .perfilCard,
+:root[data-theme="dark"] .turmaCard,
+:root[data-theme="dark"] .materialCard,
+:root[data-theme="dark"] .videoaulaCard,
+:root[data-theme="dark"] .exerciseCard {
+  background: var(--background-secondary);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+/* Inputs e selects */
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] select {
+  background-color: var(--background-secondary);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] input:focus,
+:root[data-theme="dark"] textarea:focus,
+:root[data-theme="dark"] select:focus {
+  background-color: var(--background);
+}
+
+/* Modal */
+:root[data-theme="dark"] .modalContent {
+  background: var(--background-secondary);
+  color: var(--text);
+}
+
+/* Botões */
+:root[data-theme="dark"] .btnCancel {
+  background: var(--background-secondary);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .btnCancel:hover {
+  background: var(--background-hover);
+}
+
+/* Stat cards específicos */
+:root[data-theme="dark"] .statCard {
+  background: linear-gradient(135deg, #1f2937, #111827) !important;
+  border-color: rgba(225, 29, 46, 0.2);
+}
+
+:root[data-theme="dark"] .statCard:hover {
+  background: linear-gradient(135deg, #2a3748, #1a202c) !important;
+}
+
+/* Sidebar */
+:root[data-theme="dark"] .sidebar {
+  background: var(--background-secondary);
+  border-right-color: var(--line);
+}
+
+/* Topbar */
+:root[data-theme="dark"] .topbar {
+  background: var(--background-secondary);
+  border-bottom-color: var(--line);
+}
+
+/* Main content */
+:root[data-theme="dark"] .content {
+  background: var(--background);
+}
