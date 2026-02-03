@@ -293,7 +293,7 @@ export default function VideoaulaBonusPage() {
                           className="assistirBtn"
                           onClick={() => handleAssistir(videoaula)}
                         >
-                          {videoaula.tipo === "youtube" ? "▶️ Assistir" : "📥 Download"}
+                          ▶️ Assistir
                         </button>
                         {canUpload && (
                           <button
