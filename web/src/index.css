@@ -19,11 +19,11 @@
   --text: #f3f4f6;
   --muted: #9ca3af;
   --background: #111827;
-  --background-secondary: #181818;
+  --background-secondary: #1f2937;
+  --sidebar-color: #1f1f1f;
   --background-hover: #2a3748;
-  --line: #181818;
+  --line: #374151;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-
   /* Dashboard.css variables */
   --bg: #111827;
   --card: #1f2937;
@@ -92,7 +92,7 @@
 
 /* Sidebar */
 :root[data-theme="dark"] .sidebar {
-  background: var(--background-secondary);
+  background: var(--sidebar-color);
   border-right-color: var(--line);
 }
 

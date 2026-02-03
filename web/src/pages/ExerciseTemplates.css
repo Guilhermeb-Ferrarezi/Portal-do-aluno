@@ -62,7 +62,6 @@
 .templateEmpty {
   text-align: center;
   padding: 60px 24px;
-  background: var(--ring);
   border: 2px dashed #d1d5db;
   border-radius: 14px;
 }
@@ -75,7 +74,7 @@
 .templateEmpty h3 {
   margin: 0 0 8px 0;
   font-size: 20px;
-  color: #111827;
+  color: #ffffff;
 }
 
 .templateEmpty p {
