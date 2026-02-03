@@ -524,7 +524,7 @@ export default function ExerciciosPage() {
                         language={gabaritoLang}
                         onLanguageChange={setGabaritoLang}
                         height="240px"
-                        theme="light"
+                        theme="dark"
                       />
                       <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
                         Esse texto sera usado para comparar se a resposta do aluno esta parecida com o esperado.
