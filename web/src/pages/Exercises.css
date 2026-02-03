@@ -131,7 +131,6 @@
 
 /* SEÇÃO DE CRIAR EXERCÍCIO */
 .createExerciseCard {
-  background: linear-gradient(135deg, var(--card) 0%, #fafbfc 100%);
   border: 1.5px solid rgba(225, 29, 46, 0.14);
   border-radius: 20px;
   padding: 40px;
@@ -739,7 +738,6 @@
 
 /* FILTROS */
 .filtersSection {
-  background: linear-gradient(135deg, #f9f9fb, #f5f6f8);
   border: 1px solid var(--line);
   border-radius: var(--r);
   padding: 16px;
