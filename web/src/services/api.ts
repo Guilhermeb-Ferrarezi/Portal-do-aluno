@@ -1,7 +1,7 @@
 // src/services/api.ts
 type Role = "admin" | "professor" | "aluno";
 
-const DEFAULT_PROD = VITE_API_URL
+const DEFAULT_PROD = "https://portaldoaluno.santos-tech.com/api";
 const DEFAULT_DEV = "http://localhost:3000/api";
 
 export const API_BASE_URL =
