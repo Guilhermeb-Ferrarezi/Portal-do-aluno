@@ -35,6 +35,7 @@ export function authRouter(jwtSecret: string) {
     const { usuario, senha } = parsed.data;
 
     try {
+      console.log("🔐 Tentativa de login:", usuario);
       const result = await pool.query<DbUserRow>(
         `SELECT id, usuario, nome, senha_hash, role, ativo
          FROM users
@@ -45,13 +46,28 @@ export function authRouter(jwtSecret: string) {
 
       const user = result.rows[0];
       if (!user || user.ativo === false) {
+        console.log("❌ Usuário não encontrado ou inativo:", usuario);
+        return res.status(401).json({ message: "Usuário ou senha inválidos" });
+      }
+
+      console.log("👤 Usuário encontrado:", user.usuario);
+      console.log("🔒 Tipo de senha_hash:", typeof user.senha_hash);
+      console.log("📏 Comprimento de senha_hash:", user.senha_hash?.length);
+
+      // Validar que a senha_hash existe e não é vazia
+      if (!user.senha_hash || user.senha_hash.trim() === "") {
+        console.error("⚠️ ERRO: Usuário sem senha_hash:", user.usuario);
         return res.status(401).json({ message: "Usuário ou senha inválidos" });
       }
 
       const ok = await bcrypt.compare(senha, user.senha_hash);
+      console.log("✅ Comparação bcrypt resultado:", ok);
       if (!ok) {
+        console.log("❌ Senha incorreta para:", usuario);
         return res.status(401).json({ message: "Usuário ou senha inválidos" });
       }
+
+      console.log("✅ Login bem-sucedido:", usuario);
 
       const token = jwt.sign(
         { sub: user.id, usuario: user.usuario, role: user.role },
