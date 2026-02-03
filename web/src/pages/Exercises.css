@@ -596,9 +596,9 @@
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
-  background: #f9f9fb;
   padding: 12px 14px;
   border-radius: 8px;
+  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 1);
   border-left: 3px solid var(--red);
   margin-top: 12px;
   position: relative;
