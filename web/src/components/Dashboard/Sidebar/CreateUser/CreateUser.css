@@ -110,7 +110,7 @@
 
 .cuSide {
   padding: 22px;
-  background: linear-gradient(160deg, var(--card) 0%, #f8f6f7 60%, #f2f4f7 100%);
+  background: var(--card);
 }
 
 .cuUser {

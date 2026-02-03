@@ -273,7 +273,7 @@
   padding: 60px 20px;
   text-align: center;
   color: var(--muted);
-  background: linear-gradient(135deg, #fafbfc, #f5f6f8);
+  background: var(--background-secondary);
   border-radius: var(--r);
   border: 2px dashed var(--line);
 }

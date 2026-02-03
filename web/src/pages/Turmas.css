@@ -443,8 +443,8 @@
 }
 
 .turmaManageBtn {
-  background: #f0f9ff;
-  color: #0369a1;
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
   border-color: rgba(59, 130, 246, 0.2);
 }
 
@@ -457,8 +457,8 @@
 }
 
 .turmaViewBtn {
-  background: #fef2f2;
-  color: #dc2626;
+  background: rgba(225, 29, 46, 0.1);
+  color: var(--red);
   border-color: rgba(225, 29, 46, 0.2);
 }
 
@@ -500,7 +500,7 @@
   padding: 40px 20px;
   text-align: center;
   color: var(--muted);
-  background: linear-gradient(135deg, #fafbfc, #f5f6f8);
+  background: var(--background-secondary);
   border-radius: var(--r);
   border: 2px dashed var(--line);
 }
@@ -650,14 +650,14 @@
   gap: 12px;
   padding: 12px;
   border-radius: 10px;
-  background: #f9fafb;
+  background: var(--background-secondary);
   border: 1px solid var(--line);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .alunoCheckboxItem:hover {
-  background: #f3f4f6;
+  background: var(--background-hover);
   border-color: var(--red);
 }
 
@@ -721,12 +721,12 @@
 }
 
 .modalBtnCancel {
-  background: #f3f4f6;
-  color: #6b7280;
+  background: var(--background-secondary);
+  color: var(--muted);
 }
 
 .modalBtnCancel:hover:not(:disabled) {
-  background: #e5e7eb;
+  background: var(--background-hover);
 }
 
 .modalBtnConfirm {
