@@ -460,7 +460,7 @@ export default function Dashboard() {
                 padding: "12px 16px",
                 borderRadius: "10px",
                 border: "1px solid var(--line)",
-                background: "white",
+                background: "var(--card)",
                 cursor: "pointer",
                 fontWeight: "600",
                 fontSize: "14px",
@@ -476,7 +476,7 @@ export default function Dashboard() {
                 const target = e.currentTarget as HTMLButtonElement;
                 target.style.borderColor = "var(--line)";
                 target.style.color = "var(--text)";
-                target.style.background = "white";
+                target.style.background = "var(--card)";
               }}
             >
               ✍️ Exercícios
@@ -488,7 +488,7 @@ export default function Dashboard() {
                 padding: "12px 16px",
                 borderRadius: "10px",
                 border: "1px solid var(--line)",
-                background: "white",
+                background: "var(--card)",
                 cursor: "pointer",
                 fontWeight: "600",
                 fontSize: "14px",
@@ -504,7 +504,7 @@ export default function Dashboard() {
                 const target = e.currentTarget as HTMLButtonElement;
                 target.style.borderColor = "var(--line)";
                 target.style.color = "var(--text)";
-                target.style.background = "white";
+                target.style.background = "var(--card)";
               }}
             >
               🏫 Turmas
@@ -518,7 +518,7 @@ export default function Dashboard() {
                     padding: "12px 16px",
                     borderRadius: "10px",
                     border: "1px solid var(--line)",
-                    background: "white",
+                    background: "var(--card)",
                     cursor: "pointer",
                     fontWeight: "600",
                     fontSize: "14px",
@@ -534,7 +534,7 @@ export default function Dashboard() {
                     const target = e.currentTarget as HTMLButtonElement;
                     target.style.borderColor = "var(--line)";
                     target.style.color = "var(--text)";
-                    target.style.background = "white";
+                    target.style.background = "var(--card)";
                   }}
                 >
                   ➕ Criar Usuário
@@ -546,7 +546,7 @@ export default function Dashboard() {
                     padding: "12px 16px",
                     borderRadius: "10px",
                     border: "1px solid var(--line)",
-                    background: "white",
+                    background: "var(--card)",
                     cursor: "pointer",
                     fontWeight: "600",
                     fontSize: "14px",
@@ -562,7 +562,7 @@ export default function Dashboard() {
                     const target = e.currentTarget as HTMLButtonElement;
                     target.style.borderColor = "var(--line)";
                     target.style.color = "var(--text)";
-                    target.style.background = "white";
+                    target.style.background = "var(--card)";
                   }}
                 >
                   📦 Templates
