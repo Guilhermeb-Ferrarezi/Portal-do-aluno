@@ -37,11 +37,12 @@
 
 /* CARD BASE */
 .edCard {
-  background: white;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r);
   padding: 20px;
   box-shadow: var(--shadow);
+  color: var(--text);
 }
 
 .edSubtitle {
@@ -66,7 +67,7 @@
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   padding: 12px;
-  background: #f9f9fb;
+  background: var(--ring);
   border-radius: 10px;
   border: 1px solid var(--line);
 }
@@ -101,7 +102,7 @@
   white-space: pre-wrap;
   word-break: break-word;
   padding: 16px;
-  background: #fafbfc;
+  background: var(--ring);
   border-radius: 10px;
   border-left: 4px solid var(--red);
 }
@@ -119,7 +120,7 @@
 
 .tentativaItem {
   padding: 14px;
-  background: #f9f9fb;
+  background: var(--ring);
   border: 1px solid var(--line);
   border-radius: 10px;
   display: flex;
@@ -180,7 +181,7 @@
 .tentativaResposta {
   margin-top: 8px;
   padding: 10px 12px;
-  background: white;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 6px;
   font-family: "Fira Code", monospace;
@@ -188,7 +189,7 @@
   overflow-x: auto;
   max-height: 200px;
   overflow-y: auto;
-  color: #333;
+  color: var(--text);
 }
 
 .tentativaResposta pre,
@@ -221,7 +222,7 @@
   font-family: "Fira Code", monospace;
   font-size: 14px;
   resize: vertical;
-  background: white;
+  background: var(--card);
   color: var(--text);
   transition: all 0.2s ease;
 }
@@ -259,7 +260,7 @@
   font-size: 12px;
   color: var(--muted);
   padding: 10px 12px;
-  background: #fafbfc;
+  background: var(--ring);
   border-radius: 8px;
   border-left: 3px solid var(--muted);
 }
@@ -292,8 +293,9 @@
   padding: 14px;
   border-radius: 8px;
   font-family: "Fira Code", monospace;
-  border: 1px solid;
-  background: #f9f9fb;
+  border: 1px solid var(--line);
+  background: var(--ring);
+  color: var(--text);
 }
 
 .edTestOutput.success {

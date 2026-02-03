@@ -38,8 +38,8 @@
   gap: 6px;
   padding: 6px;
   border-radius: 12px;
-  border: 1.5px solid #e5e7eb;
-  background: white;
+  border: 1.5px solid var(--line);
+  background: var(--card);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -64,8 +64,8 @@
 
 /* Form Card */
 .turmaFormCard {
-  background: linear-gradient(135deg, #ffffff 0%, #fafbfc 100%);
-  border: 1px solid rgba(225, 29, 46, 0.1);
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 20px;
   padding: 32px;
   box-shadow: 0 8px 32px rgba(225, 29, 46, 0.08);
@@ -107,11 +107,11 @@
 .turmaSelect,
 .turmaTextarea {
   padding: 14px 16px;
-  border: 1.5px solid #e5e7eb;
+  border: 1.5px solid var(--line);
   border-radius: 12px;
   font-size: 14px;
   font-family: inherit;
-  background: white;
+  background: var(--card);
   color: var(--text);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -119,7 +119,7 @@
 .turmaInput:hover,
 .turmaSelect:hover,
 .turmaTextarea:hover {
-  border-color: #d1d5db;
+  border-color: var(--muted);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
@@ -129,7 +129,7 @@
   outline: 0;
   border-color: var(--red);
   box-shadow: 0 0 0 4px rgba(225, 29, 46, 0.12), 0 4px 12px rgba(225, 29, 46, 0.15);
-  background: #fafbfc;
+  background: var(--ring);
 }
 
 .turmaTextarea {
@@ -192,14 +192,14 @@
 }
 
 .turmaCancelBtn {
-  background: #f3f4f6;
-  color: #6b7280;
-  border: 1.5px solid #e5e7eb;
+  background: var(--ring);
+  color: var(--muted);
+  border: 1.5px solid var(--line);
 }
 
 .turmaCancelBtn:hover:not(:disabled) {
-  background: #e5e7eb;
-  border-color: #d1d5db;
+  background: var(--background-hover);
+  border-color: var(--muted);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -217,8 +217,8 @@
 }
 
 .turmaCard {
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 18px;
   padding: 24px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);

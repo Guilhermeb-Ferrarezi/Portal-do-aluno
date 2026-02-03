@@ -37,7 +37,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-family: inherit;
-  background: white;
+  background: var(--card);
   color: var(--text);
   transition: all 0.2s ease;
 }
@@ -46,7 +46,7 @@
   outline: 0;
   border-color: var(--red);
   box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
-  background: #fafbfc;
+  background: var(--ring);
 }
 
 .filterSelect {
@@ -55,7 +55,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-family: inherit;
-  background: white;
+  background: var(--card);
   color: var(--text);
   cursor: pointer;
   transition: all 0.2s ease;
@@ -66,7 +66,7 @@
   outline: 0;
   border-color: var(--red);
   box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
-  background: #fafbfc;
+  background: var(--ring);
 }
 
 .filterSelect:hover {
@@ -104,7 +104,7 @@
 }
 
 .videoaulaCard {
-  background: white;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: 14px;
   overflow: hidden;
@@ -312,7 +312,7 @@
 }
 
 .modalContent {
-  background: white;
+  background: var(--card);
   padding: 28px;
   border-radius: 14px;
   max-width: 500px;
@@ -443,7 +443,7 @@
   border-radius: 10px;
   font-size: 14px;
   font-family: inherit;
-  background: white;
+  background: var(--card);
   color: var(--text);
   transition: all 0.2s ease;
 }
@@ -452,7 +452,7 @@
   outline: 0;
   border-color: var(--red);
   box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
-  background: #fafbfc;
+  background: var(--ring);
 }
 
 textarea.formInput {
@@ -489,7 +489,7 @@ textarea.formInput {
   border: 2px dashed var(--line);
   border-radius: 10px;
   padding: 12px 14px;
-  background: #f9fafb;
+  background: var(--ring);
   cursor: pointer;
   transition: all 0.2s ease;
   overflow: hidden;
@@ -541,12 +541,12 @@ textarea.formInput {
 }
 
 .btnCancel {
-  background: #f3f4f6;
+  background: var(--ring);
   color: #6b7280;
 }
 
 .btnCancel:hover {
-  background: #e5e7eb;
+  background: var(--line);
 }
 
 .btnConfirm {

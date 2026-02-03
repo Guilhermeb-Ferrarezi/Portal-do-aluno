@@ -4,7 +4,7 @@
   gap: 16px;
   padding: 16px;
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--line);
   border-radius: 12px;
   margin-top: 24px;
   align-items: center;
@@ -54,7 +54,7 @@
 
 .itemsPerPageSelect {
   padding: 8px 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
   color: #111827;
@@ -85,7 +85,7 @@
 
 .paginationBtn {
   padding: 8px 14px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
   color: #111827;
@@ -97,7 +97,7 @@
 }
 
 .paginationBtn:hover:not(:disabled) {
-  background: #f9fafb;
+  background: var(--ring);
   border-color: #d1d5db;
   box-shadow: 0 2px 8px rgba(17, 24, 39, 0.06);
 }
@@ -116,7 +116,7 @@
 
 .pageNumber {
   padding: 6px 10px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
   color: #111827;
@@ -129,7 +129,7 @@
 }
 
 .pageNumber:hover:not(:disabled) {
-  background: #f9fafb;
+  background: var(--ring);
   border-color: #d1d5db;
 }
 

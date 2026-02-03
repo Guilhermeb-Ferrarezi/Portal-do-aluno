@@ -23,6 +23,11 @@
   --background-hover: #2a3748;
   --line: #374151;
   --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+  /* Dashboard.css variables */
+  --bg: #111827;
+  --card: #1f2937;
+  --ring: #2a3748;
 }
 
 /* Aplicar tema escuro ao body e elementos */

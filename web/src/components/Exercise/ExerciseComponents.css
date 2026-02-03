@@ -2,8 +2,8 @@
 .mcqContainer {
   margin: 20px 0;
   padding: 20px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--ring);
+  border: 1px solid var(--line);
   border-radius: 12px;
 }
 
@@ -33,7 +33,7 @@
 }
 
 .mcqOption:hover {
-  background: #f3f4f6;
+  background: var(--ring);
   border-color: #e11d2e;
 }
 
@@ -74,8 +74,8 @@
 .mouseBoxContainer {
   margin: 20px 0;
   padding: 20px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--ring);
+  border: 1px solid var(--line);
   border-radius: 12px;
 }
 
@@ -225,8 +225,8 @@
 .mouseEventHistory {
   margin-top: 16px;
   padding: 12px;
-  background: white;
-  border: 1px solid #e5e7eb;
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 8px;
 }
 
@@ -249,7 +249,7 @@
   display: flex;
   gap: 12px;
   padding: 8px;
-  background: #f9fafb;
+  background: var(--ring);
   border-radius: 6px;
   font-size: 13px;
   align-items: center;

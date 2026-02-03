@@ -64,7 +64,7 @@
 }
 
 .proximoModuloCard {
-  background: white;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r);
   padding: 28px;
@@ -123,7 +123,7 @@
 }
 
 .moduloCard {
-  background: white;
+  background: var(--card);
   border: 1px solid var(--line);
   border-radius: var(--r);
   padding: 24px;
@@ -293,7 +293,7 @@
   display: inline-flex;
   padding: 5px 12px;
   border-radius: 6px;
-  background: #f3f4f6;
+  background: var(--ring);
   color: var(--text);
   font-size: 12px;
   font-weight: 600;
