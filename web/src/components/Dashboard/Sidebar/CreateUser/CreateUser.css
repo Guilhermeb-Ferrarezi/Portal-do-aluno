@@ -70,7 +70,6 @@
   border-radius: 12px;
   border: 1px solid rgba(225, 29, 46, 0.25);
   background: rgba(225, 29, 46, 0.08);
-  color: #111827;
   font-weight: 600;
 }
 
@@ -132,7 +131,6 @@
   font-weight: 900;
   background: rgba(225, 29, 46, 0.1);
   border: 1px solid rgba(225, 29, 46, 0.25);
-  color: #111827;
 }
 
 .cuUserName {
@@ -171,7 +169,6 @@
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  color: #111827;
   background: rgba(17, 24, 39, 0.04);
   border: 1px solid rgba(17, 24, 39, 0.08);
 }
@@ -181,7 +178,6 @@
   border-radius: 12px;
   background: rgba(225, 29, 46, 0.08);
   border: 1px solid rgba(225, 29, 46, 0.18);
-  color: #111827;
   font-size: 13px;
 }
 
