@@ -3,9 +3,10 @@ import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import { getRole } from "../auth/auth";
 import {
   alterarMinhaSenha,
-  atualizarMeuPerfil,
   obterUsuarioAtual,
+  listarTurmas,
   type UserMe,
+  type Turma,
 } from "../services/api";
 import "./Perfil.css";
 
@@ -49,12 +50,10 @@ export default function PerfilPage() {
   const roleLocal = getRole();
 
   // Estados
-  const [editMode, setEditMode] = React.useState(false);
   const [modalSenha, setModalSenha] = React.useState(false);
   const [userInfo, setUserInfo] = React.useState<UserMe | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [erro, setErro] = React.useState<string | null>(null);
-  const [savingProfile, setSavingProfile] = React.useState(false);
   const [savingSenha, setSavingSenha] = React.useState(false);
   const [savingSettings, setSavingSettings] = React.useState(false);
   const [feedback, setFeedback] = React.useState<
@@ -68,6 +67,7 @@ export default function PerfilPage() {
   const [novaSenha, setNovaSenha] = React.useState("");
   const [confirmarSenha, setConfirmarSenha] = React.useState("");
   const [settings, setSettings] = React.useState<ProfileSettings>(() => loadSettings());
+  const [turmas, setTurmas] = React.useState<Turma[]>([]);
 
   const role = userInfo?.role ?? roleLocal;
   React.useEffect(() => {
@@ -82,6 +82,24 @@ export default function PerfilPage() {
           usuario: data.usuario,
         });
         localStorage.setItem("nome", data.nome ?? "");
+
+        // Carregar turmas
+        try {
+          const todasTurmas = await listarTurmas();
+          if (role === "aluno" || data.role === "aluno") {
+            // Alunos veem apenas suas turmas
+            setTurmas(todasTurmas);
+          } else if (role === "professor" || data.role === "professor") {
+            // Professores veem apenas as turmas que eles têm aula
+            const turmasDoProf = todasTurmas.filter((t) => t.professorId === data.id);
+            setTurmas(turmasDoProf);
+          } else {
+            // Admin vê todas
+            setTurmas(todasTurmas);
+          }
+        } catch (e) {
+          console.error("Erro ao carregar turmas:", e);
+        }
       } catch (error) {
         setErro(error instanceof Error ? error.message : "Erro ao carregar usu?rio");
       } finally {
@@ -98,57 +116,6 @@ export default function PerfilPage() {
     diasSequencia: 12,
   };
 
-  // Turmas (exemplo)
-  const turmas = [
-    {
-      id: "1",
-      nome: "Turma A 2024",
-      categoria: "programacao",
-      tipo: "turma",
-    },
-    {
-      id: "2",
-      nome: "Jo?o Silva - Particular",
-      categoria: "informatica",
-      tipo: "particular",
-    },
-  ];
-
-  const handleEditChange = (field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
-  const handleSaveEdit = async () => {
-    const nomeLimpo = formData.nome.trim();
-    if (nomeLimpo.length < 2) {
-      setFeedback({ type: "error", message: "Informe um nome v?lido." });
-      return;
-    }
-
-    try {
-      setSavingProfile(true);
-      setFeedback(null);
-      const result = await atualizarMeuPerfil({ nome: nomeLimpo });
-      setUserInfo(result.user);
-      setFormData({
-        nome: result.user.nome,
-        usuario: result.user.usuario,
-      });
-      localStorage.setItem("nome", result.user.nome ?? "");
-      setEditMode(false);
-      setFeedback({ type: "success", message: result.message });
-    } catch (error) {
-      setFeedback({
-        type: "error",
-        message: error instanceof Error ? error.message : "Erro ao atualizar perfil",
-      });
-    } finally {
-      setSavingProfile(false);
-    }
-  };
 
   const handleChangeSenha = async () => {
     if (!senhaAtual || !novaSenha || !confirmarSenha) {
@@ -248,74 +215,28 @@ export default function PerfilPage() {
         <section className="perfilCard">
           <div className="cardHeader">
             <h2>Minhas Informa??es</h2>
-            {!editMode && (
-              <button className="editBtn" onClick={() => setEditMode(true)}>
-                ?? Editar
-              </button>
-            )}
           </div>
 
-          {editMode ? (
-            <div className="editForm">
-              <div className="formGroup">
-                <label className="formLabel">Nome Completo</label>
-                <input
-                  type="text"
-                  value={formData.nome}
-                  onChange={(e) => handleEditChange("nome", e.target.value)}
-                  className="formInput"
-                  autoComplete="name"
-                />
-              </div>
-
-              <div className="formGroup">
-                <label className="formLabel">Usu?rio</label>
-                <input
-                  type="text"
-                  value={formData.usuario}
-                  onChange={(e) => handleEditChange("usuario", e.target.value)}
-                  className="formInput"
-                  disabled
-                  style={{ opacity: 0.6 }}
-                  autoComplete="username"
-                />
-              </div>
-
-              <div className="formActions">
-                <button className="btnCancel" onClick={() => setEditMode(false)}>
-                  Cancelar
-                </button>
-                <button
-                  className="btnSalvar"
-                  onClick={handleSaveEdit}
-                  disabled={savingProfile || formData.nome.trim().length < 2}
-                >
-                  {savingProfile ? "Salvando..." : "Salvar Altera??es"}
-                </button>
+          <div className="infoGrid">
+            <div className="infoItem">
+              <div className="infoLabel">Nome</div>
+              <div className="infoValue">{formData.nome}</div>
+            </div>
+            <div className="infoItem">
+              <div className="infoLabel">Usu?rio</div>
+              <div className="infoValue">@{formData.usuario}</div>
+            </div>
+            <div className="infoItem">
+              <div className="infoLabel">Fun??o</div>
+              <div className="infoValue">
+                {role === "admin"
+                  ? "Administrador"
+                  : role === "professor"
+                  ? "Professor"
+                  : "Aluno"}
               </div>
             </div>
-          ) : (
-            <div className="infoGrid">
-              <div className="infoItem">
-                <div className="infoLabel">Nome</div>
-                <div className="infoValue">{formData.nome}</div>
-              </div>
-              <div className="infoItem">
-                <div className="infoLabel">Usu?rio</div>
-                <div className="infoValue">@{formData.usuario}</div>
-              </div>
-              <div className="infoItem">
-                <div className="infoLabel">Fun??o</div>
-                <div className="infoValue">
-                  {role === "admin"
-                    ? "Administrador"
-                    : role === "professor"
-                    ? "Professor"
-                    : "Aluno"}
-                </div>
-              </div>
-            </div>
-          )}
+          </div>
         </section>
 
         {/* SECTION 2: SEGURAN?A */}

@@ -255,7 +255,12 @@ export default function DashboardLayout({
             <button className="iconBtn" aria-label="Notificações" type="button">
               🔔 <span className="dot" />
             </button>
-            <button className="iconBtn" aria-label="Configurações" type="button">
+            <button
+              className="iconBtn"
+              aria-label="Configurações"
+              type="button"
+              onClick={() => navigate("/dashboard/perfil")}
+            >
               ⚙️
             </button>
           </div>
