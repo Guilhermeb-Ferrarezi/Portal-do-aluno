@@ -107,6 +107,31 @@ export async function runMigrations() {
 
     console.log("✅ Sistema de cronograma criado!");
 
+    // Migração: Garantir que usuario é único (case-insensitive)
+    console.log("🔐 Criando índice único case-insensitive para usuario...");
+    try {
+      // Tentar remover constraint antiga se existir
+      await pool.query(`
+        ALTER TABLE users DROP CONSTRAINT IF EXISTS unique_usuario_lower;
+      `).catch(() => null);
+
+      // Criar índice único case-insensitive
+      await pool.query(`
+        CREATE UNIQUE INDEX IF NOT EXISTS unique_usuario_lower
+        ON users (LOWER(usuario));
+      `);
+
+      console.log("✅ Índice único para usuario criado!");
+    } catch (err: any) {
+      if (err.code === '23505') {
+        // Duplicate key - há usuários duplicados
+        console.warn("⚠️  Aviso: Existem usuários com nomes duplicados (diferindo em maiúscula/minúscula)");
+        console.warn("   Por favor, renomeie um deles para evitar conflitos de login");
+      } else {
+        console.error("⚠️  Erro ao criar índice único:", (err as Error).message);
+      }
+    }
+
     console.log("✅ Migrações completadas com sucesso!");
   } catch (error) {
     console.error("⚠️  Aviso: Não foi possível executar migrações do banco de dados.");
