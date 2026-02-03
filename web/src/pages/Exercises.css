@@ -598,7 +598,7 @@
   word-break: break-word;
   padding: 12px 14px;
   border-radius: 8px;
-  box-shadow: 0 0 10px 10px rgba(0, 0, 0, 1);
+  box-shadow: 0 0 50px 5px rgba(0, 0, 0, 1);
   border-left: 3px solid var(--red);
   margin-top: 12px;
   position: relative;
