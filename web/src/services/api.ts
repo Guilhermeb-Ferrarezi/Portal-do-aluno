@@ -344,6 +344,22 @@ export async function listarAlunos() {
   return apiFetch<User[]>("/users?role=aluno");
 }
 
+export async function atualizarUsuario(
+  id: string,
+  dados: { nome?: string; usuario?: string; role?: Role; ativo?: boolean }
+) {
+  return apiFetch<{ message: string; user: UserMe }>(`/users/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(dados),
+  });
+}
+
+export async function deletarUsuario(id: string) {
+  return apiFetch<{ message: string }>(`/users/${id}`, {
+    method: "DELETE",
+  });
+}
+
 export function getRole(): Role | null {
   const r = localStorage.getItem("role");
   return r === "admin" || r === "professor" || r === "aluno" ? r : null;

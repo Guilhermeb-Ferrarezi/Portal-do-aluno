@@ -27,6 +27,13 @@ const updateMeSchema = z.object({
   nome: z.string().min(2, "Nome obrigatório"),
 });
 
+const updateUserSchema = z.object({
+  nome: z.string().min(2, "Nome obrigatório").optional(),
+  usuario: z.string().min(3, "Usuário muito curto").optional(),
+  role: z.enum(["admin", "professor", "aluno"]).optional(),
+  ativo: z.boolean().optional(),
+});
+
 const changePasswordSchema = z.object({
   senhaAtual: z.string().min(1, "Senha atual obrigatória"),
   novaSenha: z.string().min(6, "Senha muito curta"),
@@ -227,6 +234,126 @@ export function usersRouter(jwtSecret: string) {
         }
         console.error(err);
         return res.status(500).json({ message: "Erro interno" });
+      }
+    }
+  );
+
+  // Atualizar usuário (admin)
+  router.put(
+    "/users/:id",
+    authGuard(jwtSecret),
+    requireRole(["admin"]),
+    async (req: AuthRequest, res) => {
+      const { id } = req.params;
+      const parsed = updateUserSchema.safeParse(req.body);
+
+      if (!parsed.success) {
+        return res.status(400).json({
+          message: "Dados inválidos",
+          issues: parsed.error.flatten().fieldErrors,
+        });
+      }
+
+      try {
+        const { nome, usuario, role, ativo } = parsed.data;
+
+        // Construir query dinamicamente
+        const updates: string[] = [];
+        const params: any[] = [];
+        let paramIndex = 1;
+
+        if (nome !== undefined) {
+          updates.push(`nome = $${paramIndex++}`);
+          params.push(nome.trim());
+        }
+
+        if (usuario !== undefined) {
+          updates.push(`usuario = $${paramIndex++}`);
+          params.push(usuario.trim());
+        }
+
+        if (role !== undefined) {
+          updates.push(`role = $${paramIndex++}`);
+          params.push(role);
+        }
+
+        if (ativo !== undefined) {
+          updates.push(`ativo = $${paramIndex++}`);
+          params.push(ativo);
+        }
+
+        if (updates.length === 0) {
+          return res
+            .status(400)
+            .json({ message: "Nenhum campo para atualizar" });
+        }
+
+        params.push(id);
+
+        const updated = await pool.query<DbUserRow>(
+          `UPDATE users
+           SET ${updates.join(", ")}
+           WHERE id = $${paramIndex}
+           RETURNING id, usuario, nome, role, ativo, created_at`,
+          params
+        );
+
+        if (!updated.rowCount) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        const u = updated.rows[0];
+        return res.json({
+          message: "Usuário atualizado com sucesso!",
+          user: {
+            id: u.id,
+            usuario: u.usuario,
+            nome: u.nome,
+            role: u.role,
+            ativo: u.ativo,
+            createdAt: u.created_at,
+          },
+        });
+      } catch (err: any) {
+        // unique violation (usuario)
+        if (err?.code === "23505") {
+          return res.status(409).json({ message: "Usuário já existe" });
+        }
+        console.error(err);
+        return res.status(500).json({ message: "Erro ao atualizar usuário" });
+      }
+    }
+  );
+
+  // Deletar usuário (admin)
+  router.delete(
+    "/users/:id",
+    authGuard(jwtSecret),
+    requireRole(["admin"]),
+    async (req: AuthRequest, res) => {
+      const { id } = req.params;
+
+      try {
+        // Não deixar deletar a si mesmo
+        if (id === req.user!.sub) {
+          return res.status(400).json({
+            message: "Você não pode deletar sua própria conta",
+          });
+        }
+
+        const deleted = await pool.query<DbUserRow>(
+          `DELETE FROM users WHERE id = $1 RETURNING id`,
+          [id]
+        );
+
+        if (!deleted.rowCount) {
+          return res.status(404).json({ message: "Usuário não encontrado" });
+        }
+
+        return res.json({ message: "Usuário deletado com sucesso!" });
+      } catch (err) {
+        console.error(err);
+        return res.status(500).json({ message: "Erro ao deletar usuário" });
       }
     }
   );

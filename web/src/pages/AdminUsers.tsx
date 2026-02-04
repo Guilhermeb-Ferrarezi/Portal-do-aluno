@@ -1,7 +1,13 @@
 import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import Pagination from "../components/Pagination";
-import { listarAlunos, listarProfessores, type User } from "../services/api";
+import {
+  listarAlunos,
+  listarProfessores,
+  atualizarUsuario,
+  deletarUsuario,
+  type User,
+} from "../services/api";
 import "./AdminUsers.css";
 
 export default function AdminUsersPage() {
@@ -114,11 +120,10 @@ export default function AdminUsersPage() {
     }
 
     try {
-      // TODO: Implementar endpoint de atualização no backend
-      console.log("Atualizando usuário:", {
-        id: editandoUsuario.id,
-        nome: editNome,
-        usuario: editUsuario,
+      // Chamar API para atualizar usuário
+      await atualizarUsuario(editandoUsuario.id, {
+        nome: editNome.trim(),
+        usuario: editUsuario.trim(),
       });
 
       // Atualizar na lista local
@@ -149,8 +154,8 @@ export default function AdminUsersPage() {
     try {
       setDeletando(true);
 
-      // TODO: Implementar endpoint de deleção no backend
-      console.log("Deletando usuário:", usuarioDeletar.id);
+      // Chamar API para deletar usuário
+      await deletarUsuario(usuarioDeletar.id);
 
       // Remover da lista local
       setUsuarios(usuarios.filter((u) => u.id !== usuarioDeletar.id));
