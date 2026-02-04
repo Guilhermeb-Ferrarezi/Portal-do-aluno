@@ -125,7 +125,7 @@ export default function DashboardLayout({
             Videoaulas Bônus
           </Link>
           {/* Turmas e Minhas Turmas */}
-          {role !== "aluno" || turmas.length > 0 ? (
+          {(role === "admin" || role === "professor" || turmas.length > 0) ? (
             <button
               className="sbItem"
               onClick={handleMinhasTurmas}
