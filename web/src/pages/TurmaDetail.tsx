@@ -552,7 +552,7 @@ export default function TurmaDetailPage() {
               </div>
             ) : (
               <>
-                <div style={{ padding: "16px", border: "2px solid white", boxShadow: "0px 0px 10px 2.5px rgb(255, 255, 255)", background: "#0c1320", opacity: 0.8, borderRadius: "8px", marginBottom: "20px" }}>
+                <div className="cronogramaInfoBox">
                   <p style={{ margin: "8px 0", fontSize: "14px" }}>
                     <strong>📌 Início:</strong> {new Date(turma.dataInicio).toLocaleDateString("pt-BR")}
                   </p>
@@ -572,13 +572,7 @@ export default function TurmaDetailPage() {
                   <>
                     {/* Seletor para adicionar template - apenas para admins */}
                     {role === "admin" ? (
-                    <div style={{
-                      padding: "16px",
-                      border: "1px solid var(--border)",
-                      borderRadius: "8px",
-                      marginBottom: "20px",
-                      background: "var(--bg-light)"
-                    }}>
+                    <div className="addTemplateBox">
                       <h3 style={{ marginTop: 0, fontSize: "16px" }}>➕ Adicionar Template a uma Semana</h3>
 
                       <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
