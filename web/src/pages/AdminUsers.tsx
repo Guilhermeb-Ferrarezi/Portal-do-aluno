@@ -21,6 +21,12 @@ export default function AdminUsersPage() {
   const [usuarioDeletar, setUsuarioDeletar] = React.useState<User | null>(null);
   const [deletando, setDeletando] = React.useState(false);
 
+  // Estados para feedback
+  const [feedback, setFeedback] = React.useState<{
+    tipo: "sucesso" | "erro";
+    mensagem: string;
+  } | null>(null);
+
   // Paginação
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
@@ -29,6 +35,16 @@ export default function AdminUsersPage() {
   React.useEffect(() => {
     carregarUsuarios();
   }, []);
+
+  // Auto-dismiss feedback após 3 segundos
+  React.useEffect(() => {
+    if (feedback) {
+      const timer = setTimeout(() => {
+        setFeedback(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [feedback]);
 
   const carregarUsuarios = async () => {
     try {
@@ -90,7 +106,10 @@ export default function AdminUsersPage() {
     if (!editandoUsuario) return;
 
     if (!editNome.trim() || !editUsuario.trim()) {
-      alert("Nome e usuário são obrigatórios");
+      setFeedback({
+        tipo: "erro",
+        mensagem: "Nome e usuário são obrigatórios",
+      });
       return;
     }
 
@@ -112,9 +131,15 @@ export default function AdminUsersPage() {
       );
 
       fecharEditar();
-      alert("Usuário atualizado com sucesso!");
+      setFeedback({
+        tipo: "sucesso",
+        mensagem: "Usuário atualizado com sucesso!",
+      });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao atualizar usuário");
+      setFeedback({
+        tipo: "erro",
+        mensagem: err instanceof Error ? err.message : "Erro ao atualizar usuário",
+      });
     }
   };
 
@@ -131,9 +156,15 @@ export default function AdminUsersPage() {
       setUsuarios(usuarios.filter((u) => u.id !== usuarioDeletar.id));
       setUsuarioDeletar(null);
 
-      alert("Usuário deletado com sucesso!");
+      setFeedback({
+        tipo: "sucesso",
+        mensagem: "Usuário deletado com sucesso!",
+      });
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao deletar usuário");
+      setFeedback({
+        tipo: "erro",
+        mensagem: err instanceof Error ? err.message : "Erro ao deletar usuário",
+      });
     } finally {
       setDeletando(false);
     }
@@ -172,6 +203,25 @@ export default function AdminUsersPage() {
       subtitle="Gerencie alunos, professores e admins"
     >
       <div className="adminUsersContainer">
+        {/* FEEDBACK DE NOTIFICAÇÃO */}
+        {feedback && (
+          <div className={`feedbackNotification feedback-${feedback.tipo}`}>
+            <div className="feedbackContent">
+              <span className="feedbackIcon">
+                {feedback.tipo === "sucesso" ? "✓" : "!"}
+              </span>
+              <span className="feedbackMessage">{feedback.mensagem}</span>
+            </div>
+            <button
+              className="feedbackClose"
+              onClick={() => setFeedback(null)}
+              title="Fechar"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {/* HEADER COM FILTROS */}
         <div className="adminHeader">
           <div className="filterRow">
