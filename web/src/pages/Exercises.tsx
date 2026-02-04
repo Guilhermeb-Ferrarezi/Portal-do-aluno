@@ -6,7 +6,7 @@ import Pagination from "../components/Pagination";
 import MonacoEditor from "../components/MonacoEditor";
 import MouseInteractiveBox from "../components/Exercise/MouseInteractiveBox";
 import MultipleChoiceQuestion from "../components/Exercise/MultipleChoiceQuestion";
-import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, listarTurmas, getRole, type Exercicio, type Turma } from "../services/api";
+import { criarExercicio, atualizarExercicio, deletarExercicio, listarExercicios, listarTurmas, listarAlunos, getRole, type Exercicio, type Turma, type User } from "../services/api";
 import "./Exercises.css";
 
 export default function ExerciciosPage() {
@@ -62,6 +62,8 @@ export default function ExerciciosPage() {
     respostaCorreta: ""
   }]);
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
+  const [modoAtribuicao, setModoAtribuicao] = React.useState<"turma" | "aluno">("turma");
+  const [alunosSelecionados, setAlunosSelecionados] = React.useState<string[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [okMsg, setOkMsg] = React.useState<string | null>(null);
   const [editandoId, setEditandoId] = React.useState<string | null>(null);
@@ -74,6 +76,9 @@ export default function ExerciciosPage() {
   // Turmas
   const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
   const [turmaFiltro, setTurmaFiltro] = React.useState("todas");
+
+  // Alunos
+  const [alunosDisponiveis, setAlunosDisponiveis] = React.useState<User[]>([]);
 
   // Paginação
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -103,11 +108,15 @@ export default function ExerciciosPage() {
   React.useEffect(() => {
     load();
 
-    // Carregar turmas disponíveis se for professor/admin
+    // Carregar turmas e alunos disponíveis se for professor/admin
     if (canCreate) {
       listarTurmas()
         .then(setTurmasDisponiveis)
         .catch((e) => console.error("Erro ao carregar turmas:", e));
+
+      listarAlunos()
+        .then(setAlunosDisponiveis)
+        .catch((e) => console.error("Erro ao carregar alunos:", e));
     }
   }, []);
 
@@ -157,8 +166,10 @@ export default function ExerciciosPage() {
         } : {}),
       };
 
-      if (turmasSelecionadas.length > 0) {
+      if (modoAtribuicao === "turma" && turmasSelecionadas.length > 0) {
         dados.turma_ids = turmasSelecionadas;
+      } else if (modoAtribuicao === "aluno" && alunosSelecionados.length > 0) {
+        dados.aluno_ids = alunosSelecionados;
       }
 
       if (editandoId) {
@@ -185,6 +196,9 @@ export default function ExerciciosPage() {
       setComponenteInterativo("");
       setDiaNumero(1);
       setMouseRegras({ clicksSimples: 0, duplosClicks: 0, clicksDireitos: 0 });
+      setTurmasSelecionadas([]);
+      setAlunosSelecionados([]);
+      setModoAtribuicao("turma");
       setMultiplaQuestoes([{
         pergunta: "",
         opcoes: [
@@ -1032,30 +1046,94 @@ export default function ExerciciosPage() {
                 </div>
               )}
 
-              {canCreate && turmasDisponiveis.length > 0 && (
-                <div className="exInputGroup">
-                  <label className="exLabel">Turmas</label>
-                  <select
-                    className="exSelect"
-                    multiple
-                    value={turmasSelecionadas}
-                    onChange={(e) =>
-                      setTurmasSelecionadas(
-                        Array.from(e.target.selectedOptions, (opt) => opt.value)
-                      )
-                    }
-                    size={3}
-                  >
-                    {turmasDisponiveis.map((turma) => (
-                      <option key={turma.id} value={turma.id}>
-                        {turma.nome}
-                      </option>
-                    ))}
-                  </select>
-                  <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                    Segure Ctrl/Cmd para selecionar múltiplas turmas
-                  </small>
-                </div>
+              {canCreate && (turmasDisponiveis.length > 0 || alunosDisponiveis.length > 0) && (
+                <>
+                  <div className="exInputGroup">
+                    <label className="exLabel">Atribuição</label>
+                    <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
+                      <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontSize: "14px" }}>
+                        <input
+                          type="radio"
+                          name="modoAtribuicao"
+                          value="turma"
+                          checked={modoAtribuicao === "turma"}
+                          onChange={() => {
+                            setModoAtribuicao("turma");
+                            setAlunosSelecionados([]);
+                          }}
+                          style={{ marginRight: "6px", cursor: "pointer" }}
+                        />
+                        👥 Turma Específica
+                      </label>
+                      <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontSize: "14px" }}>
+                        <input
+                          type="radio"
+                          name="modoAtribuicao"
+                          value="aluno"
+                          checked={modoAtribuicao === "aluno"}
+                          onChange={() => {
+                            setModoAtribuicao("aluno");
+                            setTurmasSelecionadas([]);
+                          }}
+                          style={{ marginRight: "6px", cursor: "pointer" }}
+                        />
+                        👤 Aluno Específico
+                      </label>
+                    </div>
+                  </div>
+
+                  {modoAtribuicao === "turma" && turmasDisponiveis.length > 0 && (
+                    <div className="exInputGroup">
+                      <label className="exLabel">Turmas</label>
+                      <select
+                        className="exSelect"
+                        multiple
+                        value={turmasSelecionadas}
+                        onChange={(e) =>
+                          setTurmasSelecionadas(
+                            Array.from(e.target.selectedOptions, (opt) => opt.value)
+                          )
+                        }
+                        size={3}
+                      >
+                        {turmasDisponiveis.map((turma) => (
+                          <option key={turma.id} value={turma.id}>
+                            {turma.nome}
+                          </option>
+                        ))}
+                      </select>
+                      <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                        Segure Ctrl/Cmd para selecionar múltiplas turmas. Deixe vazio para "Todos".
+                      </small>
+                    </div>
+                  )}
+
+                  {modoAtribuicao === "aluno" && alunosDisponiveis.length > 0 && (
+                    <div className="exInputGroup">
+                      <label className="exLabel">Alunos</label>
+                      <select
+                        className="exSelect"
+                        multiple
+                        value={alunosSelecionados}
+                        onChange={(e) =>
+                          setAlunosSelecionados(
+                            Array.from(e.target.selectedOptions, (opt) => opt.value)
+                          )
+                        }
+                        size={3}
+                      >
+                        {alunosDisponiveis.map((aluno) => (
+                          <option key={aluno.id} value={aluno.id}>
+                            {aluno.nome} ({aluno.usuario})
+                          </option>
+                        ))}
+                      </select>
+                      <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                        Segure Ctrl/Cmd para selecionar múltiplos alunos
+                      </small>
+                    </div>
+                  )}
+                </>
               )}
 
               <div style={{ display: "flex", gap: "12px" }}>

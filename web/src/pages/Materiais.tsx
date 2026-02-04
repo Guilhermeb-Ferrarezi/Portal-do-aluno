@@ -8,8 +8,10 @@ import {
   deletarMaterial,
   type Material,
   listarTurmas,
+  listarAlunos,
   atribuirMaterialTurmas,
   type Turma,
+  type User,
 } from "../services/api";
 import "./Materiais.css";
 
@@ -37,6 +39,9 @@ export default function MateriaisPage() {
   const [formArquivo, setFormArquivo] = React.useState<File | null>(null);
   const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
   const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
+  const [modoAtribuicao, setModoAtribuicao] = React.useState<"turma" | "aluno">("turma");
+  const [alunosSelecionados, setAlunosSelecionados] = React.useState<string[]>([]);
+  const [alunosDisponiveis, setAlunosDisponiveis] = React.useState<User[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [feedback, setFeedback] = React.useState<{
@@ -56,12 +61,16 @@ export default function MateriaisPage() {
     carregarMateriais();
   }, []);
 
-  // Carregar turmas quando puder fazer upload
+  // Carregar turmas e alunos quando puder fazer upload
   React.useEffect(() => {
     if (canUpload) {
       listarTurmas()
         .then(setTurmasDisponiveis)
         .catch((err) => console.error("Erro ao carregar turmas:", err));
+
+      listarAlunos()
+        .then(setAlunosDisponiveis)
+        .catch((err) => console.error("Erro ao carregar alunos:", err));
     }
   }, [canUpload]);
 
@@ -110,6 +119,8 @@ export default function MateriaisPage() {
     setFormUrl("");
     setFormArquivo(null);
     setTurmasSelecionadas([]);
+    setAlunosSelecionados([]);
+    setModoAtribuicao("turma");
     setFormError(null);
   };
 
@@ -150,9 +161,11 @@ export default function MateriaisPage() {
         formData.append("url", formUrl);
       }
 
-      // Adicionar turma_ids
-      if (turmasSelecionadas.length > 0) {
+      // Adicionar turma_ids ou aluno_ids
+      if (modoAtribuicao === "turma" && turmasSelecionadas.length > 0) {
         formData.append("turma_ids", JSON.stringify(turmasSelecionadas));
+      } else if (modoAtribuicao === "aluno" && alunosSelecionados.length > 0) {
+        formData.append("aluno_ids", JSON.stringify(alunosSelecionados));
       }
 
       const resultado = await criarMaterial(formData);
@@ -593,30 +606,93 @@ export default function MateriaisPage() {
                 </div>
 
                 <div className="formGroup">
-                  <label className="formLabel">Turmas (opcional)</label>
-                  <select
-                    className="formInput"
-                    multiple
-                    value={turmasSelecionadas}
-                    onChange={(e) =>
-                      setTurmasSelecionadas(
-                        Array.from(e.target.selectedOptions, (opt) => opt.value)
-                      )
-                    }
-                    size={4}
-                    style={{ minHeight: "100px" }}
-                  >
-                    {turmasDisponiveis.map((turma) => (
-                      <option key={turma.id} value={turma.id}>
-                        {turma.nome} ({turma.tipo})
-                      </option>
-                    ))}
-                  </select>
-                  <small className="formHint">
-                    Segure Ctrl/Cmd para selecionar múltiplas. Deixe vazio para
-                    "Todos".
-                  </small>
+                  <label className="formLabel">Atribuição</label>
+                  <div style={{ display: "flex", gap: "16px", marginTop: "8px" }}>
+                    <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontSize: "14px" }}>
+                      <input
+                        type="radio"
+                        name="modoAtribuicao"
+                        value="turma"
+                        checked={modoAtribuicao === "turma"}
+                        onChange={() => {
+                          setModoAtribuicao("turma");
+                          setAlunosSelecionados([]);
+                        }}
+                        style={{ marginRight: "6px", cursor: "pointer" }}
+                      />
+                      👥 Turma Específica
+                    </label>
+                    <label style={{ display: "flex", alignItems: "center", cursor: "pointer", fontSize: "14px" }}>
+                      <input
+                        type="radio"
+                        name="modoAtribuicao"
+                        value="aluno"
+                        checked={modoAtribuicao === "aluno"}
+                        onChange={() => {
+                          setModoAtribuicao("aluno");
+                          setTurmasSelecionadas([]);
+                        }}
+                        style={{ marginRight: "6px", cursor: "pointer" }}
+                      />
+                      👤 Aluno Específico
+                    </label>
+                  </div>
                 </div>
+
+                {modoAtribuicao === "turma" && (
+                  <div className="formGroup">
+                    <label className="formLabel">Turmas (opcional)</label>
+                    <select
+                      className="formInput"
+                      multiple
+                      value={turmasSelecionadas}
+                      onChange={(e) =>
+                        setTurmasSelecionadas(
+                          Array.from(e.target.selectedOptions, (opt) => opt.value)
+                        )
+                      }
+                      size={4}
+                      style={{ minHeight: "100px" }}
+                    >
+                      {turmasDisponiveis.map((turma) => (
+                        <option key={turma.id} value={turma.id}>
+                          {turma.nome} ({turma.tipo})
+                        </option>
+                      ))}
+                    </select>
+                    <small className="formHint">
+                      Segure Ctrl/Cmd para selecionar múltiplas. Deixe vazio para
+                      "Todos".
+                    </small>
+                  </div>
+                )}
+
+                {modoAtribuicao === "aluno" && (
+                  <div className="formGroup">
+                    <label className="formLabel">Alunos</label>
+                    <select
+                      className="formInput"
+                      multiple
+                      value={alunosSelecionados}
+                      onChange={(e) =>
+                        setAlunosSelecionados(
+                          Array.from(e.target.selectedOptions, (opt) => opt.value)
+                        )
+                      }
+                      size={4}
+                      style={{ minHeight: "100px" }}
+                    >
+                      {alunosDisponiveis.map((aluno) => (
+                        <option key={aluno.id} value={aluno.id}>
+                          {aluno.nome} ({aluno.usuario})
+                        </option>
+                      ))}
+                    </select>
+                    <small className="formHint">
+                      Segure Ctrl/Cmd para selecionar múltiplos alunos
+                    </small>
+                  </div>
+                )}
 
                 {/* Input dinâmico baseado no tipo */}
                 {formTipo === "arquivo" ? (
