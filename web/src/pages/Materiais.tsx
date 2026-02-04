@@ -314,50 +314,7 @@ export default function MateriaisPage() {
           )}
         </div>
 
-        {/* SEÇÃO DE MÓDULOS DE EXERCÍCIOS */}
-        {exerciseModulos.length > 0 && (
-          <div style={{ marginTop: "32px", marginBottom: "32px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 600, marginBottom: "16px", color: "var(--text)" }}>
-              📋 Módulos com Exercícios
-            </h3>
-            <div style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "8px"
-            }}>
-              {exerciseModulos.map((modulo) => (
-                <button
-                  key={modulo}
-                  onClick={() => setFiltroModulo(modulo)}
-                  style={{
-                    padding: "8px 16px",
-                    background: filtroModulo === modulo ? "var(--primary)" : "var(--background-secondary)",
-                    color: filtroModulo === modulo ? "#fff" : "var(--text)",
-                    border: filtroModulo === modulo ? "1px solid var(--primary)" : "1px solid var(--border)",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontSize: "13px",
-                    fontWeight: 500,
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (filtroModulo !== modulo) {
-                      (e.target as HTMLButtonElement).style.background = "var(--background-hover)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (filtroModulo !== modulo) {
-                      (e.target as HTMLButtonElement).style.background = "var(--background-secondary)";
-                    }
-                  }}
-                >
-                  {modulo}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
+        
         {/* LISTA DE MATERIAIS */}
         <div>
           {materiaisFiltrados.length === 0 ? (
