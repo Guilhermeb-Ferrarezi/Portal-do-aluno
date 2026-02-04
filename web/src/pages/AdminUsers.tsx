@@ -63,8 +63,9 @@ export default function AdminUsersPage() {
     return matchTipo && matchBusca;
   });
 
+  const totalItems = usuariosFiltrados.length;
+
   // Paginação
-  const totalPages = Math.ceil(usuariosFiltrados.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
   const usuariosPaginados = usuariosFiltrados.slice(
     startIdx,
@@ -258,13 +259,13 @@ export default function AdminUsersPage() {
               </table>
             </div>
 
-            {totalPages > 1 && (
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            )}
+            <Pagination
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={totalItems}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemsPerPage}
+            />
           </>
         )}
 
