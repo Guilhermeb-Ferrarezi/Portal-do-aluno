@@ -1303,15 +1303,74 @@ export default function ExerciciosPage() {
 
                   <div className="exerciseDescription">{ex.descricao}</div>
 
-                  {ex.turmas && ex.turmas.length > 0 && (
-                    <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {ex.turmas.map((turma) => (
-                        <span key={turma.id} className={`turmaBadge ${turma.tipo}`}>
-                          {turma.nome}
+                  {/* Badges de acesso/turmas */}
+                  <div style={{ marginTop: 12, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {ex.turmas && ex.turmas.length > 0 ? (
+                      <>
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "4px 10px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            borderRadius: "12px",
+                            background: "rgba(59, 130, 246, 0.15)",
+                            color: "#1e40af",
+                            border: "1px solid rgba(59, 130, 246, 0.3)",
+                          }}
+                        >
+                          🏛️ {ex.turmas.length} turma{ex.turmas.length > 1 ? "s" : ""}
                         </span>
-                      ))}
-                    </div>
-                  )}
+                        {ex.turmas.map((turma) => (
+                          <span
+                            key={turma.id}
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "4px 10px",
+                              fontSize: "10px",
+                              fontWeight: 600,
+                              borderRadius: "12px",
+                              background:
+                                turma.tipo === "turma"
+                                  ? "rgba(59, 130, 246, 0.1)"
+                                  : "rgba(168, 85, 247, 0.1)",
+                              color:
+                                turma.tipo === "turma" ? "#2563eb" : "#a855f7",
+                              border:
+                                turma.tipo === "turma"
+                                  ? "1px solid rgba(59, 130, 246, 0.2)"
+                                  : "1px solid rgba(168, 85, 247, 0.2)",
+                            }}
+                            title={`${turma.tipo}: ${turma.nome}`}
+                          >
+                            {turma.nome}
+                          </span>
+                        ))}
+                      </>
+                    ) : (
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          padding: "4px 10px",
+                          fontSize: "11px",
+                          fontWeight: 700,
+                          borderRadius: "12px",
+                          background: "rgba(34, 197, 94, 0.15)",
+                          color: "#15803d",
+                          border: "1px solid rgba(34, 197, 94, 0.3)",
+                        }}
+                        title="Disponível para todos os alunos"
+                      >
+                        🌐 Para Todos
+                      </span>
+                    )}
+                  </div>
                 </div>
                         ))}
                       </div>

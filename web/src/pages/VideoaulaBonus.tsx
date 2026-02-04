@@ -321,37 +321,81 @@ export default function VideoaulaBonusPage() {
                     <h3 className="videoaulaTitulo">{videoaula.titulo}</h3>
                     <p className="videoaulaDescricao">{videoaula.descricao}</p>
 
-                    {/* Badges de turmas */}
-                    {videoaula.turmas && videoaula.turmas.length > 0 && (
-                      <div
-                        style={{
-                          marginTop: "8px",
-                          display: "flex",
-                          flexWrap: "wrap",
-                          gap: "6px",
-                        }}
-                      >
-                        {videoaula.turmas.map((turma) => (
+                    {/* Badges de acesso/turmas */}
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "6px",
+                      }}
+                    >
+                      {videoaula.turmas && videoaula.turmas.length > 0 ? (
+                        <>
                           <span
-                            key={turma.id}
                             style={{
-                              padding: "3px 8px",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                              padding: "4px 10px",
                               fontSize: "11px",
                               fontWeight: 700,
-                              borderRadius: "6px",
-                              background:
-                                turma.tipo === "turma"
-                                  ? "rgba(59, 130, 246, 0.1)"
-                                  : "rgba(168, 85, 247, 0.1)",
-                              color:
-                                turma.tipo === "turma" ? "#2563eb" : "#a855f7",
+                              borderRadius: "12px",
+                              background: "rgba(59, 130, 246, 0.15)",
+                              color: "#1e40af",
+                              border: "1px solid rgba(59, 130, 246, 0.3)",
                             }}
                           >
-                            {turma.nome}
+                            🏛️ {videoaula.turmas.length} turma{videoaula.turmas.length > 1 ? "s" : ""}
                           </span>
-                        ))}
-                      </div>
-                    )}
+                          {videoaula.turmas.map((turma) => (
+                            <span
+                              key={turma.id}
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                padding: "4px 10px",
+                                fontSize: "10px",
+                                fontWeight: 600,
+                                borderRadius: "12px",
+                                background:
+                                  turma.tipo === "turma"
+                                    ? "rgba(59, 130, 246, 0.1)"
+                                    : "rgba(168, 85, 247, 0.1)",
+                                color:
+                                  turma.tipo === "turma" ? "#2563eb" : "#a855f7",
+                                border:
+                                  turma.tipo === "turma"
+                                    ? "1px solid rgba(59, 130, 246, 0.2)"
+                                    : "1px solid rgba(168, 85, 247, 0.2)",
+                              }}
+                              title={`${turma.tipo}: ${turma.nome}`}
+                            >
+                              {turma.nome}
+                            </span>
+                          ))}
+                        </>
+                      ) : (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "4px",
+                            padding: "4px 10px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            borderRadius: "12px",
+                            background: "rgba(34, 197, 94, 0.15)",
+                            color: "#15803d",
+                            border: "1px solid rgba(34, 197, 94, 0.3)",
+                          }}
+                          title="Disponível para todos os alunos"
+                        >
+                          🌐 Para Todos
+                        </span>
+                      )}
+                    </div>
 
                     <div className="videoaulaFooter">
                       <span className="dataBadge">
