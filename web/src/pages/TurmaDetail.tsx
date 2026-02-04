@@ -332,7 +332,7 @@ export default function TurmaDetailPage() {
 
         {/* ABAS */}
         {(canManageTurmas || role === "aluno") && (
-          <div style={{ display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", gap: "8px", marginBottom: "20px", borderBottom: "1px solid var(--border)", justifyContent: "center" }}>
             <button
               onClick={() => setAbaSelecionada("info")}
               style={{
@@ -342,6 +342,7 @@ export default function TurmaDetailPage() {
                 border: "2px solid transparent",
                 boxShadow: "0px 0px 8px 1px rgb(255, 0, 0)",
                 borderRadius: "12px",
+                margin: "5px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "info" ? 600 : 400,
                 borderBottom: abaSelecionada === "info" ? "2px solid var(--primary)" : "none",
@@ -358,6 +359,7 @@ export default function TurmaDetailPage() {
                 border: "2px solid transparent",
                 boxShadow: "0px 0px 8px 1px rgb(255, 0, 0)",
                 borderRadius: "12px",
+                margin: "5px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "alunos" ? 600 : 400,
                 borderBottom: abaSelecionada === "alunos" ? "2px solid var(--primary)" : "none",
@@ -374,6 +376,7 @@ export default function TurmaDetailPage() {
                 border: "2px solid transparent",
                 boxShadow: "0px 0px 8px 1px rgb(255, 0, 0)",
                 borderRadius: "12px",
+                margin: "5px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "exercicios" ? 600 : 400,
                 borderBottom: abaSelecionada === "exercicios" ? "2px solid var(--primary)" : "none",
@@ -391,6 +394,7 @@ export default function TurmaDetailPage() {
                   border: "2px solid transparent",
                   boxShadow: "0px 0px 8px 1px rgb(255, 0, 0)",
                   borderRadius: "12px",
+                  margin: "5px",
                   cursor: "pointer",
                   fontWeight: abaSelecionada === "cronograma" ? 600 : 400,
                   borderBottom: abaSelecionada === "cronograma" ? "2px solid var(--primary)" : "none",
