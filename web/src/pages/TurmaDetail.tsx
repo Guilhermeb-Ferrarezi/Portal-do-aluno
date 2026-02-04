@@ -430,7 +430,7 @@ export default function TurmaDetailPage() {
             <div className="responsavelSection">
               <div className="responsavelHeader">
                 <div>
-                  <div className="responsavelLabel">ResponsÃ¡vel pela turma</div>
+                  <div className="responsavelLabel">Responsável pela turma</div>
                   <div className="responsavelValue">{responsavelAtual}</div>
                 </div>
                 <div className="responsavelControls">
@@ -470,7 +470,7 @@ export default function TurmaDetailPage() {
         {/* SEÇÃO DE ALUNOS */}
         {abaSelecionada === "alunos" && (
         <div className="turmaSection">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+          <div className="turmaSectionHeader">
             <h2 className="turmaSectionTitle">
               👥 Alunos ({turma.alunos.length})
             </h2>
@@ -551,25 +551,25 @@ export default function TurmaDetailPage() {
             <h2 className="turmaSectionTitle">📅 Cronograma Semanal</h2>
 
             {!turma.dataInicio ? (
-              <div style={{ padding: "16px", background: "#fef3c7", borderRadius: "8px", marginBottom: "16px" }}>
+              <div className="cronogramaWarning">
                 ⚠️ Configure a data de início da turma para usar o cronograma
               </div>
             ) : (
               <>
                 <div className="cronogramaInfoBox">
-                  <p style={{ margin: "8px 0", fontSize: "14px" }}>
+                  <p className="cronogramaInfoLine">
                     <strong>📌 Início:</strong> {new Date(turma.dataInicio).toLocaleDateString("pt-BR")}
                   </p>
-                  <p style={{ margin: "8px 0", fontSize: "14px" }}>
+                  <p className="cronogramaInfoLine">
                     <strong>⏱️ Duração:</strong> {turma.duracaoSemanas} semanas
                   </p>
-                  <p style={{ margin: "8px 0", fontSize: "14px" }}>
+                  <p className="cronogramaInfoLine">
                     <strong>🔄 Status:</strong> {turma.cronogramaAtivo ? "✅ Cronograma Ativo" : "⏸️ Cronograma Pausado"}
                   </p>
                 </div>
 
                 {carregandoCronograma ? (
-                  <div style={{ textAlign: "center", padding: "20px", color: "var(--muted)" }}>
+                  <div className="cronogramaLoading">
                     Carregando cronograma...
                   </div>
                 ) : (
@@ -577,23 +577,17 @@ export default function TurmaDetailPage() {
                     {/* Seletor para adicionar template - apenas para admins */}
                     {role === "admin" ? (
                     <div className="addTemplateBox">
-                      <h3 style={{ marginTop: 0, fontSize: "16px" }}>➕ Adicionar Template a uma Semana</h3>
+                      <h3 className="templateBoxTitle">➕ Adicionar Template a uma Semana</h3>
 
-                      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "flex-end" }}>
-                        <div style={{ flex: 1, minWidth: "150px" }}>
-                          <label style={{ display: "block", marginBottom: "6px", fontSize: "13px", fontWeight: 600 }}>
+                      <div className="templateBoxControls">
+                        <div className="templateBoxField">
+                          <label className="templateBoxLabel">
                             Semana
                           </label>
                           <select
                             value={semanaSelecionada}
                             onChange={(e) => setSemanaSelecionada(Number(e.target.value))}
-                            style={{
-                              width: "100%",
-                              padding: "8px",
-                              border: "1px solid var(--border)",
-                              borderRadius: "8px",
-                              fontSize: "14px"
-                            }}
+                            className="templateBoxSelect"
                           >
                             {Array.from({ length: turma.duracaoSemanas || 12 }, (_, i) => i + 1).map((semana: number) => (
                               <option key={semana} value={semana}>
@@ -603,20 +597,14 @@ export default function TurmaDetailPage() {
                           </select>
                         </div>
 
-                        <div style={{ flex: 2, minWidth: "200px" }}>
-                          <label style={{ display: "block", marginBottom: "6px", fontSize: "13px", fontWeight: 600 }}>
+                        <div className="templateBoxFieldLarge">
+                          <label className="templateBoxLabel">
                             Template
                           </label>
                           <select
                             value={templateSelecionado}
                             onChange={(e) => setTemplateSelecionado(e.target.value)}
-                            style={{
-                              width: "100%",
-                              padding: "8px",
-                              border: "1px solid var(--border)",
-                              borderRadius: "8px",
-                              fontSize: "14px"
-                            }}
+                            className="templateBoxSelect"
                           >
                             <option value="">Selecione um template...</option>
                             {templates.map((template) => (
@@ -630,59 +618,36 @@ export default function TurmaDetailPage() {
                         <button
                           onClick={() => handleAdicionarTemplateSemana(semanaSelecionada)}
                           disabled={salvandoCronograma || !templateSelecionado}
-                          style={{
-                            padding: "8px 16px",
-                            background: "var(--primary)",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "8px",
-                            cursor: salvandoCronograma ? "wait" : "pointer",
-                            fontWeight: 600,
-                            opacity: (salvandoCronograma || !templateSelecionado) ? 0.6 : 1,
-                          }}
+                          className="btnAdicionarTemplate"
                         >
                           {salvandoCronograma ? "Adicionando..." : "Adicionar"}
                         </button>
                       </div>
                     </div>
                     ) : (
-                    <div style={{
-                      padding: "16px",
-                      background: "#fef3c7",
-                      borderRadius: "8px",
-                      marginBottom: "20px",
-                      border: "1px solid #fcd34d"
-                    }}>
-                      <p style={{ margin: 0, fontSize: "14px" }}>
+                    <div className="cronogramaAdminOnly">
+                      <p className="cronogramaAdminOnlyText">
                         ℹ️ Apenas administradores podem adicionar templates ao cronograma.
                       </p>
                     </div>
                     )}
 
                     {/* Visualização do cronograma */}
-                    <div>
-                      <h3 style={{ fontSize: "16px", marginBottom: "16px" }}>Cronograma por Semana</h3>
+                    <div className="cronogramaVisualization">
+                      <h3 className="cronogramaVizTitle">Cronograma por Semana</h3>
 
                       {Array.from({ length: turma.duracaoSemanas || 12 }, (_, i) => i + 1).map((semana: number) => {
                         const exerciciosDaSemana = cronograma[semana] || [];
                         return (
                         <div
                           key={semana}
-                          style={{
-                            border: "1px solid var(--border)",
-                            borderRadius: "8px",
-                            padding: "16px",
-                            marginBottom: "12px",
-                            background: exerciciosDaSemana.length > 0
-                              ? "#f0fdf4"
-                              : "var(--bg-light)"
-                          }}
+                          className={`cronogramaSemanaCard ${exerciciosDaSemana.length > 0 ? "hasExercicios" : ""}`}
                         >
-                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                            <h4 style={{ margin: 0, fontSize: "15px", fontWeight: 600 }}>
+                          <div className="cronogramaSemanaHeader">
+                            <h4 className="cronogramaSemanaTitle">
                               Semana {semana}
                               {exerciciosDaSemana.length > 0 && (
-                                <span style={{ color: "var(--muted)", fontSize: "13px", fontWeight: 400, marginLeft: "8px" }}>
+                                <span className="cronogramaSemanaCount">
                                   ({exerciciosDaSemana.length} exercício{exerciciosDaSemana.length > 1 ? "s" : ""})
                                 </span>
                               )}
@@ -690,38 +655,22 @@ export default function TurmaDetailPage() {
                           </div>
 
                           {exerciciosDaSemana.length > 0 ? (
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                            <div className="cronogramaExerciciosList">
                               {exerciciosDaSemana.map((exercicio: any) => (
                                 <div
                                   key={exercicio.id}
-                                  style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    padding: "8px 12px",
-                                    background: "var(--card)",
-                                    border: "1px solid var(--border)",
-                                    borderRadius: "8px",
-                                  }}
+                                  className="cronogramaExercicioItem"
                                 >
-                                  <div>
-                                    <div style={{ fontWeight: 500 }}>{exercicio.titulo}</div>
-                                    <div style={{ fontSize: "12px", color: "var(--muted)" }}>
+                                  <div className="cronogramaExercicioInfo">
+                                    <div className="cronogramaExercicioTitulo">{exercicio.titulo}</div>
+                                    <div className="cronogramaExercicioModulo">
                                       {exercicio.modulo || "Sem módulo"}
                                     </div>
                                   </div>
                                   <button
                                     onClick={() => handleRemoverExercicioSemana(semana, exercicio.id)}
                                     disabled={salvandoCronograma}
-                                    style={{
-                                      padding: "4px 8px",
-                                      background: "#fee2e2",
-                                      color: "#991b1b",
-                                      border: "none",
-                                      borderRadius: "8px",
-                                      cursor: salvandoCronograma ? "wait" : "pointer",
-                                      fontSize: "12px",
-                                    }}
+                                    className="btnRemoverExercicio"
                                   >
                                     🗑️ Remover
                                   </button>

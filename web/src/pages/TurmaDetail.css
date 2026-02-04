@@ -273,6 +273,15 @@
   backdrop-filter: blur(5px);
 }
 
+.turmaSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
 .turmaSectionTitle {
   font-size: 20px;
   font-weight: 800;
@@ -281,6 +290,20 @@
   padding-bottom: 14px;
   border-bottom: 2px solid var(--line);
   letter-spacing: -0.3px;
+}
+
+/* CRONOGRAMA WARNING */
+.cronogramaWarning {
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg,
+    rgba(217, 119, 6, 0.08) 0%,
+    rgba(217, 119, 6, 0.04) 100%);
+  border: 1.5px solid rgba(217, 119, 6, 0.2);
+  color: var(--text);
+  font-weight: 500;
+  font-size: 14px;
 }
 
 /* CRONOGRAMA INFO BOX */
@@ -298,6 +321,24 @@
   color: var(--text);
 }
 
+.cronogramaInfoLine {
+  margin: 8px 0;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.cronogramaInfoLine strong {
+  font-weight: 600;
+  margin-right: 4px;
+}
+
+.cronogramaLoading {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
 /* ADD TEMPLATE BOX */
 .addTemplateBox {
   padding: 16px;
@@ -308,6 +349,213 @@
     rgba(59, 130, 246, 0.05) 0%,
     rgba(168, 85, 247, 0.04) 100%);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.templateBoxTitle {
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.templateBoxControls {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.templateBoxField {
+  flex: 1;
+  min-width: 150px;
+}
+
+.templateBoxFieldLarge {
+  flex: 2;
+  min-width: 200px;
+}
+
+.templateBoxLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.templateBoxSelect {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 14px;
+  background: var(--card);
+  color: var(--text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.templateBoxSelect:hover {
+  border-color: var(--red);
+  box-shadow: 0 2px 8px rgba(225, 29, 46, 0.1);
+}
+
+.templateBoxSelect:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
+}
+
+/* TEMPLATE BUTTON */
+.btnAdicionarTemplate {
+  padding: 8px 16px;
+  background: linear-gradient(135deg, var(--red), #d41c28);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(225, 29, 46, 0.2);
+}
+
+.btnAdicionarTemplate:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(225, 29, 46, 0.3);
+}
+
+.btnAdicionarTemplate:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* CRONOGRAMA ADMIN ONLY */
+.cronogramaAdminOnly {
+  padding: 16px;
+  background: linear-gradient(135deg,
+    rgba(217, 119, 6, 0.08) 0%,
+    rgba(217, 119, 6, 0.04) 100%);
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.cronogramaAdminOnlyText {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* CRONOGRAMA VISUALIZATION */
+.cronogramaVisualization {
+  margin-top: 20px;
+}
+
+.cronogramaVizTitle {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.cronogramaSemanaCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  background: var(--card);
+  transition: all 0.2s ease;
+}
+
+.cronogramaSemanaCard.hasExercicios {
+  background: linear-gradient(135deg,
+    rgba(34, 197, 94, 0.04) 0%,
+    rgba(34, 197, 94, 0.02) 100%);
+  border-color: rgba(34, 197, 94, 0.15);
+}
+
+.cronogramaSemanaHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.cronogramaSemanaTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cronogramaSemanaCount {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+  margin-left: 8px;
+}
+
+.cronogramaExerciciosList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cronogramaExercicioItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--background-secondary);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.cronogramaExercicioItem:hover {
+  border-color: var(--red);
+  box-shadow: 0 2px 8px rgba(225, 29, 46, 0.1);
+}
+
+.cronogramaExercicioInfo {
+  flex: 1;
+}
+
+.cronogramaExercicioTitulo {
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.cronogramaExercicioModulo {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.btnRemoverExercicio {
+  padding: 4px 8px;
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(220, 53, 69, 0.1));
+  color: var(--red);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btnRemoverExercicio:not(:disabled):hover {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.3), rgba(220, 53, 69, 0.2));
+  border-color: var(--red);
+}
+
+.btnRemoverExercicio:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .emptySection {
