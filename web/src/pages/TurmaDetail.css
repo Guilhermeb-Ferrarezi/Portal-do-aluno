@@ -19,31 +19,7 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.turmaDetailContainer::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -10%;
-  width: 300px;
-  height: 300px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-.turmaDetailContainer::after {
-  content: '';
-  position: absolute;
-  bottom: -50%;
-  left: -10%;
-  width: 250px;
-  height: 250px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: -1;
-}
+/* Removido pseudo-elementos para evitar contexto de posicionamento */
 
 /* MESSAGES */
 .message {
