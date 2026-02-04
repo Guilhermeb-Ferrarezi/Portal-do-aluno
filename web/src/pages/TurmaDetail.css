@@ -6,6 +6,44 @@
   gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  position: relative;
+  padding: 40px 20px;
+  border-radius: 24px;
+  background: linear-gradient(135deg,
+    rgba(225, 29, 46, 0.03) 0%,
+    rgba(59, 130, 246, 0.03) 50%,
+    rgba(168, 85, 247, 0.03) 100%);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(225, 29, 46, 0.08);
+  box-shadow:
+    0 8px 32px rgba(225, 29, 46, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.turmaDetailContainer::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.turmaDetailContainer::after {
+  content: '';
+  position: absolute;
+  bottom: -50%;
+  left: -10%;
+  width: 250px;
+  height: 250px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 /* MESSAGES */
@@ -45,12 +83,30 @@
 
 /* INFO CARD */
 .turmaInfoCard {
-  background: var(--card);
-  border: 1px solid rgba(225, 29, 46, 0.1);
+  background: linear-gradient(135deg,
+    var(--card) 0%,
+    rgba(225, 29, 46, 0.02) 100%);
+  border: 1.5px solid rgba(225, 29, 46, 0.15);
   border-radius: 20px;
   padding: 32px;
-  box-shadow: 0 8px 32px rgba(225, 29, 46, 0.08);
+  box-shadow:
+    0 8px 32px rgba(225, 29, 46, 0.1),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.turmaInfoCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -50%;
+  width: 300px;
+  height: 300px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(225, 29, 46, 0.08) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .turmaInfoHeader {
@@ -211,6 +267,13 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  padding: 24px;
+  background: linear-gradient(135deg,
+    rgba(var(--card-rgb, 255, 255, 255), 0.5) 0%,
+    rgba(225, 29, 46, 0.01) 100%);
+  border: 1px solid rgba(225, 29, 46, 0.08);
+  border-radius: 16px;
+  backdrop-filter: blur(5px);
 }
 
 .turmaSectionTitle {
