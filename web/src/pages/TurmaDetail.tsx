@@ -552,7 +552,7 @@ export default function TurmaDetailPage() {
               </div>
             ) : (
               <>
-                <div style={{ padding: "16px", background: "#f0f9ff", borderRadius: "8px", marginBottom: "20px" }}>
+                <div style={{ padding: "16px", border: "2px solid white", boxShadow: "0px 0px 30px 5px rgb(255, 255, 255)", background: "#0c1320", opacity: 0.8, borderRadius: "8px", marginBottom: "20px" }}>
                   <p style={{ margin: "8px 0", fontSize: "14px" }}>
                     <strong>📌 Início:</strong> {new Date(turma.dataInicio).toLocaleDateString("pt-BR")}
                   </p>
