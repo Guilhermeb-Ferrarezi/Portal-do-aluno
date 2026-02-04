@@ -482,33 +482,35 @@ export default function Dashboard() {
               ✍️ Exercícios
             </button>
 
-            <button
-              onClick={() => navigate("/dashboard/turmas")}
-              style={{
-                padding: "12px 16px",
-                borderRadius: "10px",
-                border: "1px solid var(--line)",
-                background: "var(--card)",
-                cursor: "pointer",
-                fontWeight: "600",
-                fontSize: "14px",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                const target = e.currentTarget as HTMLButtonElement;
-                target.style.borderColor = "var(--red)";
-                target.style.color = "var(--red)";
-                target.style.background = "rgba(225, 29, 46, 0.05)";
-              }}
-              onMouseLeave={(e) => {
-                const target = e.currentTarget as HTMLButtonElement;
-                target.style.borderColor = "var(--line)";
-                target.style.color = "var(--text)";
-                target.style.background = "var(--card)";
-              }}
-            >
-              🏫 Turmas
-            </button>
+            {(role === "admin" || role === "professor" || turmas.length > 0) && (
+              <button
+                onClick={() => navigate("/dashboard/turmas")}
+                style={{
+                  padding: "12px 16px",
+                  borderRadius: "10px",
+                  border: "1px solid var(--line)",
+                  background: "var(--card)",
+                  cursor: "pointer",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                  transition: "all 0.2s ease",
+                }}
+                onMouseEnter={(e) => {
+                  const target = e.currentTarget as HTMLButtonElement;
+                  target.style.borderColor = "var(--red)";
+                  target.style.color = "var(--red)";
+                  target.style.background = "rgba(225, 29, 46, 0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  const target = e.currentTarget as HTMLButtonElement;
+                  target.style.borderColor = "var(--line)";
+                  target.style.color = "var(--text)";
+                  target.style.background = "var(--card)";
+                }}
+              >
+                🏫 Turmas
+              </button>
+            )}
 
             {canCreateUser && (
               <>
