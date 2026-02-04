@@ -42,6 +42,7 @@ export default function MateriaisPage() {
   const [modoAtribuicao, setModoAtribuicao] = React.useState<"turma" | "aluno">("turma");
   const [alunosSelecionados, setAlunosSelecionados] = React.useState<string[]>([]);
   const [alunosDisponiveis, setAlunosDisponiveis] = React.useState<User[]>([]);
+  const [alunoFiltro, setAlunoFiltro] = React.useState<string>("");
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [feedback, setFeedback] = React.useState<{
@@ -668,30 +669,50 @@ export default function MateriaisPage() {
                 )}
 
                 {modoAtribuicao === "aluno" && (
-                  <div className="formGroup">
-                    <label className="formLabel">Alunos</label>
-                    <select
-                      className="formInput"
-                      multiple
-                      value={alunosSelecionados}
-                      onChange={(e) =>
-                        setAlunosSelecionados(
-                          Array.from(e.target.selectedOptions, (opt) => opt.value)
-                        )
-                      }
-                      size={4}
-                      style={{ minHeight: "100px" }}
-                    >
-                      {alunosDisponiveis.map((aluno) => (
-                        <option key={aluno.id} value={aluno.id}>
-                          {aluno.nome} ({aluno.usuario})
-                        </option>
-                      ))}
-                    </select>
-                    <small className="formHint">
-                      Segure Ctrl/Cmd para selecionar múltiplos alunos
-                    </small>
-                  </div>
+                  <>
+                    <div className="formGroup">
+                      <label className="formLabel">Pesquisar Alunos</label>
+                      <input
+                        type="text"
+                        className="formInput"
+                        placeholder="🔍 Digite nome ou usuário..."
+                        value={alunoFiltro}
+                        onChange={(e) => setAlunoFiltro(e.target.value)}
+                      />
+                    </div>
+
+                    <div className="formGroup">
+                      <label className="formLabel">Alunos</label>
+                      <select
+                        className="formInput"
+                        multiple
+                        value={alunosSelecionados}
+                        onChange={(e) =>
+                          setAlunosSelecionados(
+                            Array.from(e.target.selectedOptions, (opt) => opt.value)
+                          )
+                        }
+                        size={4}
+                        style={{ minHeight: "100px" }}
+                      >
+                        {alunosDisponiveis
+                          .filter(
+                            (aluno) =>
+                              alunoFiltro === "" ||
+                              aluno.nome.toLowerCase().includes(alunoFiltro.toLowerCase()) ||
+                              aluno.usuario.toLowerCase().includes(alunoFiltro.toLowerCase())
+                          )
+                          .map((aluno) => (
+                            <option key={aluno.id} value={aluno.id}>
+                              {aluno.nome} ({aluno.usuario})
+                            </option>
+                          ))}
+                      </select>
+                      <small className="formHint">
+                        Segure Ctrl/Cmd para selecionar múltiplos alunos
+                      </small>
+                    </div>
+                  </>
                 )}
 
                 {/* Input dinâmico baseado no tipo */}

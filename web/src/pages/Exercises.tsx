@@ -79,6 +79,7 @@ export default function ExerciciosPage() {
 
   // Alunos
   const [alunosDisponiveis, setAlunosDisponiveis] = React.useState<User[]>([]);
+  const [alunoFiltro, setAlunoFiltro] = React.useState("");
 
   // Paginação
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -1109,29 +1110,50 @@ export default function ExerciciosPage() {
                   )}
 
                   {modoAtribuicao === "aluno" && alunosDisponiveis.length > 0 && (
-                    <div className="exInputGroup">
-                      <label className="exLabel">Alunos</label>
-                      <select
-                        className="exSelect"
-                        multiple
-                        value={alunosSelecionados}
-                        onChange={(e) =>
-                          setAlunosSelecionados(
-                            Array.from(e.target.selectedOptions, (opt) => opt.value)
-                          )
-                        }
-                        size={3}
-                      >
-                        {alunosDisponiveis.map((aluno) => (
-                          <option key={aluno.id} value={aluno.id}>
-                            {aluno.nome} ({aluno.usuario})
-                          </option>
-                        ))}
-                      </select>
-                      <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
-                        Segure Ctrl/Cmd para selecionar múltiplos alunos
-                      </small>
-                    </div>
+                    <>
+                      <div className="exInputGroup">
+                        <label className="exLabel">Pesquisar Alunos</label>
+                        <input
+                          type="text"
+                          className="exInput"
+                          placeholder="🔍 Digite nome ou usuário..."
+                          value={alunoFiltro}
+                          onChange={(e) => setAlunoFiltro(e.target.value)}
+                          style={{ width: "100%" }}
+                        />
+                      </div>
+
+                      <div className="exInputGroup">
+                        <label className="exLabel">Alunos</label>
+                        <select
+                          className="exSelect"
+                          multiple
+                          value={alunosSelecionados}
+                          onChange={(e) =>
+                            setAlunosSelecionados(
+                              Array.from(e.target.selectedOptions, (opt) => opt.value)
+                            )
+                          }
+                          size={3}
+                        >
+                          {alunosDisponiveis
+                            .filter(
+                              (aluno) =>
+                                alunoFiltro === "" ||
+                                aluno.nome.toLowerCase().includes(alunoFiltro.toLowerCase()) ||
+                                aluno.usuario.toLowerCase().includes(alunoFiltro.toLowerCase())
+                            )
+                            .map((aluno) => (
+                              <option key={aluno.id} value={aluno.id}>
+                                {aluno.nome} ({aluno.usuario})
+                              </option>
+                            ))}
+                        </select>
+                        <small style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+                          Segure Ctrl/Cmd para selecionar múltiplos alunos
+                        </small>
+                      </div>
+                    </>
                   )}
                 </>
               )}
