@@ -14,7 +14,7 @@
 .templatesDescription {
   margin: 0 0 16px 0;
   font-size: 15px;
-  color: #ffffff;
+  color: var(--text);
   line-height: 1.6;
 }
 
@@ -74,7 +74,7 @@
 .templateEmpty h3 {
   margin: 0 0 8px 0;
   font-size: 20px;
-  color: #ffffff;
+  color: var(--text);
 }
 
 .templateEmpty p {
