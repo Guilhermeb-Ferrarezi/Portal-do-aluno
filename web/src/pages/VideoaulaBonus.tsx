@@ -3,11 +3,7 @@ import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import Pagination from "../components/Pagination";
 import { hasRole } from "../auth/auth";
 import {
-  listarVideoaulas,
-  criarVideoaula,
-  deletarVideoaula,
   listarTurmas,
-  atribuirVideoaulaTurmas,
   type Turma,
 } from "../services/api";
 import "./VideoaulaBonus.css";
