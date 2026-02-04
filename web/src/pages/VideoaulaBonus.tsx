@@ -2,6 +2,14 @@ import React from "react";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import Pagination from "../components/Pagination";
 import { hasRole } from "../auth/auth";
+import {
+  listarVideoaulas,
+  criarVideoaula,
+  deletarVideoaula,
+  listarTurmas,
+  atribuirVideoaulaTurmas,
+  type Turma,
+} from "../services/api";
 import "./VideoaulaBonus.css";
 
 type Videoaula = {
@@ -9,12 +17,14 @@ type Videoaula = {
   titulo: string;
   descricao: string;
   modulo: string;
-  duracao: string;
-  tipo: "youtube" | "local";
+  duracao?: string;
+  tipo: "youtube" | "vimeo" | "arquivo";
   url?: string;
   arquivo?: string;
   thumbnail?: string;
-  dataAdicionada: string;
+  dataAdicionada?: string;
+  createdAt?: string;
+  turmas?: Turma[];
 };
 
 export default function VideoaulaBonusPage() {
@@ -24,8 +34,11 @@ export default function VideoaulaBonusPage() {
   const [videoaulas, setVideoaulas] = React.useState<Videoaula[]>([]);
   const [filtroModulo, setFiltroModulo] = React.useState<string>("todos");
   const [busca, setBusca] = React.useState<string>("");
+  const [turmaFiltro, setTurmaFiltro] = React.useState<string>("todas");
   const [modalAberto, setModalAberto] = React.useState(false);
   const [videoSelecionado, setVideoSelecionado] = React.useState<Videoaula | null>(null);
+  const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
+  const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
 
   // Paginação
   const [currentPage, setCurrentPage] = React.useState(1);
@@ -35,7 +48,7 @@ export default function VideoaulaBonusPage() {
     titulo: "",
     descricao: "",
     modulo: "",
-    tipo: "youtube",
+    tipo: "youtube" as "youtube" | "vimeo" | "arquivo",
     url: "",
     arquivo: null as File | null,
     duracao: "",
@@ -93,6 +106,15 @@ export default function VideoaulaBonusPage() {
     }
   }, []);
 
+  // Carregar turmas quando puder fazer upload
+  React.useEffect(() => {
+    if (canUpload) {
+      listarTurmas()
+        .then(setTurmasDisponiveis)
+        .catch((err) => console.error("Erro ao carregar turmas:", err));
+    }
+  }, [canUpload]);
+
   // Filtrar videoaulas
   const videoaulasFiltradas = videoaulas.filter((v) => {
     const matchModulo =
@@ -101,8 +123,13 @@ export default function VideoaulaBonusPage() {
       busca === "" ||
       v.titulo.toLowerCase().includes(busca.toLowerCase()) ||
       v.descricao.toLowerCase().includes(busca.toLowerCase());
+    const matchTurma =
+      turmaFiltro === "todas" ||
+      (v.turmas && v.turmas.some((t) => t.id === turmaFiltro)) ||
+      !v.turmas ||
+      v.turmas.length === 0; // Videoaulas sem turma visíveis para todos
 
-    return matchModulo && matchBusca;
+    return matchModulo && matchBusca && matchTurma;
   });
 
   // Obter lista única de módulos
@@ -132,12 +159,12 @@ export default function VideoaulaBonusPage() {
       return;
     }
 
-    if (formData.tipo === "youtube" && !formData.url.trim()) {
-      alert("Por favor, cole a URL do YouTube");
+    if ((formData.tipo === "youtube" || formData.tipo === "vimeo") && !formData.url.trim()) {
+      alert(`Por favor, cole a URL do ${formData.tipo === "youtube" ? "YouTube" : "Vimeo"}`);
       return;
     }
 
-    if (formData.tipo === "local" && !formData.arquivo) {
+    if (formData.tipo === "arquivo" && !formData.arquivo) {
       alert("Por favor, selecione um arquivo de vídeo");
       return;
     }
@@ -149,15 +176,15 @@ export default function VideoaulaBonusPage() {
       descricao: formData.descricao,
       modulo: formData.modulo,
       duracao: formData.duracao,
-      tipo: formData.tipo as "youtube" | "local",
+      tipo: formData.tipo,
       url:
-        formData.tipo === "youtube"
-          ? formData.url
-          : formData.arquivo
-          ? URL.createObjectURL(formData.arquivo)
-          : undefined,
+        formData.tipo === "arquivo"
+          ? formData.arquivo
+            ? URL.createObjectURL(formData.arquivo)
+            : undefined
+          : formData.url,
       arquivo:
-        formData.tipo === "local" ? formData.arquivo?.name : undefined,
+        formData.tipo === "arquivo" ? formData.arquivo?.name : undefined,
       thumbnail: "https://via.placeholder.com/320x180?text=Video",
       dataAdicionada: new Date().toISOString().split("T")[0],
     };
@@ -223,6 +250,20 @@ export default function VideoaulaBonusPage() {
                 </option>
               ))}
             </select>
+
+            {/* Filtro de Turmas */}
+            <select
+              value={turmaFiltro}
+              onChange={(e) => setTurmaFiltro(e.target.value)}
+              className="filterSelect"
+            >
+              <option value="todas">👥 Todas as turmas</option>
+              {turmasDisponiveis.map((turma) => (
+                <option key={turma.id} value={turma.id}>
+                  {turma.nome}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Botão de Upload (apenas para admin/professor) */}
@@ -283,9 +324,42 @@ export default function VideoaulaBonusPage() {
                     <div className="metaBadge">{videoaula.modulo}</div>
                     <h3 className="videoaulaTitulo">{videoaula.titulo}</h3>
                     <p className="videoaulaDescricao">{videoaula.descricao}</p>
+
+                    {/* Badges de turmas */}
+                    {videoaula.turmas && videoaula.turmas.length > 0 && (
+                      <div
+                        style={{
+                          marginTop: "8px",
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: "6px",
+                        }}
+                      >
+                        {videoaula.turmas.map((turma) => (
+                          <span
+                            key={turma.id}
+                            style={{
+                              padding: "3px 8px",
+                              fontSize: "11px",
+                              fontWeight: 700,
+                              borderRadius: "6px",
+                              background:
+                                turma.tipo === "turma"
+                                  ? "rgba(59, 130, 246, 0.1)"
+                                  : "rgba(168, 85, 247, 0.1)",
+                              color:
+                                turma.tipo === "turma" ? "#2563eb" : "#a855f7",
+                            }}
+                          >
+                            {turma.nome}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+
                     <div className="videoaulaFooter">
                       <span className="dataBadge">
-                        {new Date(videoaula.dataAdicionada).toLocaleDateString(
+                        {new Date(videoaula.dataAdicionada || videoaula.createdAt || new Date()).toLocaleDateString(
                           "pt-BR"
                         )}
                       </span>
@@ -351,6 +425,16 @@ export default function VideoaulaBonusPage() {
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                   />
+                ) : videoSelecionado.tipo === "vimeo" ? (
+                  <iframe
+                    width="100%"
+                    height="400"
+                    src={videoSelecionado.url}
+                    title={videoSelecionado.titulo}
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
                 ) : (
                   <video
                     width="100%"
@@ -377,7 +461,7 @@ export default function VideoaulaBonusPage() {
                 <div className="infoFooter">
                   <span className="data">
                     Adicionada em{" "}
-                    {new Date(videoSelecionado.dataAdicionada).toLocaleDateString(
+                    {new Date(videoSelecionado.dataAdicionada || videoSelecionado.createdAt || new Date()).toLocaleDateString(
                       "pt-BR"
                     )}
                   </span>
@@ -438,7 +522,7 @@ export default function VideoaulaBonusPage() {
                       value="youtube"
                       checked={formData.tipo === "youtube"}
                       onChange={(e) =>
-                        setFormData({ ...formData, tipo: e.target.value })
+                        setFormData({ ...formData, tipo: e.target.value as "youtube" | "vimeo" | "arquivo" })
                       }
                     />
                     <span>🎥 YouTube</span>
@@ -447,10 +531,10 @@ export default function VideoaulaBonusPage() {
                     <input
                       type="radio"
                       name="tipo"
-                      value="local"
-                      checked={formData.tipo === "local"}
+                      value="arquivo"
+                      checked={formData.tipo === "arquivo"}
                       onChange={(e) =>
-                        setFormData({ ...formData, tipo: e.target.value })
+                        setFormData({ ...formData, tipo: e.target.value as "youtube" | "vimeo" | "arquivo" })
                       }
                     />
                     <span>📁 Upload Local</span>
@@ -471,12 +555,38 @@ export default function VideoaulaBonusPage() {
                 />
               </div>
 
-              {formData.tipo === "youtube" ? (
+              <div className="formGroup">
+                <label className="formLabel">Turmas (opcional)</label>
+                <select
+                  className="formInput"
+                  multiple
+                  value={turmasSelecionadas}
+                  onChange={(e) =>
+                    setTurmasSelecionadas(
+                      Array.from(e.target.selectedOptions, (opt) => opt.value)
+                    )
+                  }
+                  size={4}
+                  style={{ minHeight: "100px" }}
+                >
+                  {turmasDisponiveis.map((turma) => (
+                    <option key={turma.id} value={turma.id}>
+                      {turma.nome} ({turma.tipo})
+                    </option>
+                  ))}
+                </select>
+                <small className="formHint">
+                  Segure Ctrl/Cmd para selecionar múltiplas. Deixe vazio para
+                  "Todos".
+                </small>
+              </div>
+
+              {formData.tipo === "youtube" || formData.tipo === "vimeo" ? (
                 <div className="formGroup">
-                  <label className="formLabel">URL do YouTube *</label>
+                  <label className="formLabel">URL do {formData.tipo === "youtube" ? "YouTube" : "Vimeo"} *</label>
                   <input
                     type="text"
-                    placeholder="https://www.youtube.com/embed/..."
+                    placeholder={formData.tipo === "youtube" ? "https://www.youtube.com/embed/..." : "https://vimeo.com/..."}
                     value={formData.url}
                     onChange={(e) =>
                       setFormData({ ...formData, url: e.target.value })

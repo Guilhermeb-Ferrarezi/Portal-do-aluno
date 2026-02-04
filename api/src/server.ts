@@ -8,6 +8,7 @@ import { exerciciosRouter } from "./routes/exercicios.route";
 import { submissoesRouter } from "./routes/submissoes.route";
 import { turmasRouter } from "./routes/turmas.route";
 import { materiaisRouter } from "./routes/materiais.route";
+import { videoaulasRouter } from "./routes/videoaulas.route";
 import { startPublishScheduledExercisesJob } from "./jobs/publishScheduledExercises";
 import { startWeeklyExerciseReleaseJob } from "./jobs/releaseWeeklyExercises";
 import { runMigrations } from "./migrations/runner";
@@ -44,6 +45,7 @@ app.use(exerciciosRouter(env.JWT_SECRET));
 app.use(submissoesRouter(env.JWT_SECRET));
 app.use(turmasRouter(env.JWT_SECRET));
 app.use(materiaisRouter(env.JWT_SECRET));
+app.use(videoaulasRouter(env.JWT_SECRET));
 
 // ===== ROTAS COM /api (pra prod/proxy) =====
 app.use("/api/auth", authRouter(env.JWT_SECRET));
@@ -57,6 +59,8 @@ app.use("/api", turmasRouter(env.JWT_SECRET));
 // (se turmasRouter registra /turmas, vira /api/turmas)
 app.use("/api", materiaisRouter(env.JWT_SECRET));
 // (se materiaisRouter registra /materiais, vira /api/materiais)
+app.use("/api", videoaulasRouter(env.JWT_SECRET));
+// (se videoaulasRouter registra /videoaulas, vira /api/videoaulas)
 
 // handler de 404 (pra você enxergar rota errada rápido)
 app.use((req, res) => {

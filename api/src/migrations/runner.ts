@@ -107,6 +107,57 @@ export async function runMigrations() {
 
     console.log("✅ Sistema de cronograma criado!");
 
+    // Migração: Criar tabela material_turma
+    console.log("📚 Criando tabela material_turma...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS material_turma (
+        material_id UUID NOT NULL REFERENCES materiais(id) ON DELETE CASCADE,
+        turma_id UUID NOT NULL REFERENCES turmas(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(material_id, turma_id)
+      );
+    `);
+
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_material_turma_material_id ON material_turma(material_id);
+      CREATE INDEX IF NOT EXISTS idx_material_turma_turma_id ON material_turma(turma_id);
+    `);
+
+    console.log("✅ Tabela material_turma criada!");
+
+    // Migração: Criar estrutura de videoaulas
+    console.log("🎬 Criando estrutura para videoaulas...");
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS videoaulas (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        titulo VARCHAR(255) NOT NULL,
+        descricao TEXT,
+        modulo VARCHAR(100) NOT NULL,
+        duracao VARCHAR(20),
+        tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('youtube', 'vimeo', 'arquivo')),
+        url TEXT,
+        created_by UUID REFERENCES users(id),
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+      );
+    `);
+
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS videoaula_turma (
+        videoaula_id UUID NOT NULL REFERENCES videoaulas(id) ON DELETE CASCADE,
+        turma_id UUID NOT NULL REFERENCES turmas(id) ON DELETE CASCADE,
+        created_at TIMESTAMP DEFAULT NOW(),
+        UNIQUE(videoaula_id, turma_id)
+      );
+    `);
+
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_videoaula_turma_videoaula_id ON videoaula_turma(videoaula_id);
+      CREATE INDEX IF NOT EXISTS idx_videoaula_turma_turma_id ON videoaula_turma(turma_id);
+    `);
+
+    console.log("✅ Estrutura de videoaulas criada!");
+
     // Migração: Garantir que usuario é único (case-insensitive)
     console.log("🔐 Criando índice único case-insensitive para usuario...");
     try {

@@ -9,16 +9,17 @@ import { uploadToR2, deleteFromR2 } from "../utils/uploadR2";
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB
+    fileSize: 500 * 1024 * 1024, // 500MB para vídeos
   },
 });
 
-type MaterialRow = {
+type VideoaulaRow = {
   id: string;
   titulo: string;
-  tipo: "arquivo" | "link";
-  modulo: string;
   descricao: string | null;
+  modulo: string;
+  duracao: string | null;
+  tipo: "youtube" | "vimeo" | "arquivo";
   url: string;
   created_by: string | null;
   created_at: string | Date;
@@ -26,29 +27,32 @@ type MaterialRow = {
   turmas?: Array<{ id: string; nome: string; tipo: string }>;
 };
 
-const createMaterialSchema = z.object({
+const createVideoaulaSchema = z.object({
   titulo: z.string().min(3, "Título deve ter no mínimo 3 caracteres"),
-  tipo: z.enum(["arquivo", "link"]),
-  modulo: z.string().min(1, "Módulo é obrigatório"),
   descricao: z.string().optional().nullable(),
-  url: z.string().optional(), // Para tipo="link"
+  modulo: z.string().min(1, "Módulo é obrigatório"),
+  duracao: z.string().optional().nullable(),
+  tipo: z.enum(["youtube", "vimeo", "arquivo"]),
+  url: z.string().optional(), // Para tipo="youtube" ou "vimeo"
 });
 
-const updateMaterialSchema = z.object({
+const updateVideoaulaSchema = z.object({
   titulo: z.string().min(3).optional(),
-  tipo: z.enum(["arquivo", "link"]).optional(),
-  modulo: z.string().min(1).optional(),
   descricao: z.string().optional().nullable(),
+  modulo: z.string().min(1).optional(),
+  duracao: z.string().optional().nullable(),
+  tipo: z.enum(["youtube", "vimeo", "arquivo"]).optional(),
   url: z.string().optional(),
 });
 
-function transformMaterial(row: MaterialRow) {
+function transformVideoaula(row: VideoaulaRow) {
   return {
     id: row.id,
     titulo: row.titulo,
-    tipo: row.tipo,
-    modulo: row.modulo,
     descricao: row.descricao,
+    modulo: row.modulo,
+    duracao: row.duracao,
+    tipo: row.tipo,
     url: row.url,
     createdBy: row.created_by,
     createdAt: row.created_at,
@@ -57,11 +61,11 @@ function transformMaterial(row: MaterialRow) {
   };
 }
 
-export function materiaisRouter(jwtSecret: string) {
+export function videoaulasRouter(jwtSecret: string) {
   const router = express.Router();
 
-  // GET /materiais - Listar todos (com filtro opcional por modulo)
-  router.get("/materiais", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+  // GET /videoaulas - Listar todas (com filtro opcional por modulo)
+  router.get("/videoaulas", authGuard(jwtSecret), async (req: AuthRequest, res) => {
     try {
       const { modulo } = req.query;
       const userRole = req.user?.role;
@@ -69,36 +73,36 @@ export function materiaisRouter(jwtSecret: string) {
 
       let query = `
         SELECT
-          m.id, m.titulo, m.tipo, m.modulo, m.descricao, m.url,
-          m.created_by, m.created_at, m.updated_at,
+          v.id, v.titulo, v.descricao, v.modulo, v.duracao, v.tipo, v.url,
+          v.created_by, v.created_at, v.updated_at,
           COALESCE(
             json_agg(
               json_build_object('id', t.id, 'nome', t.nome, 'tipo', t.tipo)
             ) FILTER (WHERE t.id IS NOT NULL),
             '[]'
           ) as turmas
-        FROM materiais m
-        LEFT JOIN material_turma mt ON m.id = mt.material_id
-        LEFT JOIN turmas t ON mt.turma_id = t.id
+        FROM videoaulas v
+        LEFT JOIN videoaula_turma vt ON v.id = vt.videoaula_id
+        LEFT JOIN turmas t ON vt.turma_id = t.id
       `;
 
       const conditions: string[] = [];
       const params: any[] = [];
 
-      // Se aluno, filtrar por turmas do aluno ou materiais sem turma (visíveis para todos)
+      // Se aluno, filtrar por turmas do aluno ou videoaulas sem turma (visíveis para todos)
       if (userRole === "aluno") {
         conditions.push(`(
-          mt.turma_id IN (
+          vt.turma_id IN (
             SELECT turma_id FROM aluno_turma WHERE aluno_id = $${params.length + 1}
           )
-          OR mt.turma_id IS NULL
+          OR vt.turma_id IS NULL
         )`);
         params.push(userId);
       }
 
       // Filtro por módulo
       if (modulo) {
-        conditions.push(`m.modulo = $${params.length + 1}`);
+        conditions.push(`v.modulo = $${params.length + 1}`);
         params.push(modulo as string);
       }
 
@@ -106,58 +110,58 @@ export function materiaisRouter(jwtSecret: string) {
         query += ` WHERE ${conditions.join(" AND ")}`;
       }
 
-      query += ` GROUP BY m.id ORDER BY m.created_at DESC`;
+      query += ` GROUP BY v.id ORDER BY v.created_at DESC`;
 
       const result = await pool.query(query, params);
-      const materiais = result.rows.map(transformMaterial);
+      const videoaulas = result.rows.map(transformVideoaula);
 
-      res.json(materiais);
+      res.json(videoaulas);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Erro ao listar materiais" });
+      res.status(500).json({ message: "Erro ao listar videoaulas" });
     }
   });
 
-  // GET /materiais/:id - Obter detalhes
-  router.get("/materiais/:id", authGuard(jwtSecret), async (req: AuthRequest, res) => {
+  // GET /videoaulas/:id - Obter detalhes
+  router.get("/videoaulas/:id", authGuard(jwtSecret), async (req: AuthRequest, res) => {
     try {
       const { id } = req.params;
 
       const query = `
         SELECT
-          m.id, m.titulo, m.tipo, m.modulo, m.descricao, m.url,
-          m.created_by, m.created_at, m.updated_at,
+          v.id, v.titulo, v.descricao, v.modulo, v.duracao, v.tipo, v.url,
+          v.created_by, v.created_at, v.updated_at,
           COALESCE(
             json_agg(
               json_build_object('id', t.id, 'nome', t.nome, 'tipo', t.tipo)
             ) FILTER (WHERE t.id IS NOT NULL),
             '[]'
           ) as turmas
-        FROM materiais m
-        LEFT JOIN material_turma mt ON m.id = mt.material_id
-        LEFT JOIN turmas t ON mt.turma_id = t.id
-        WHERE m.id = $1
-        GROUP BY m.id
+        FROM videoaulas v
+        LEFT JOIN videoaula_turma vt ON v.id = vt.videoaula_id
+        LEFT JOIN turmas t ON vt.turma_id = t.id
+        WHERE v.id = $1
+        GROUP BY v.id
       `;
 
       const result = await pool.query(query, [id]);
 
       if (result.rows.length === 0) {
-        res.status(404).json({ message: "Material não encontrado" });
+        res.status(404).json({ message: "Videoaula não encontrada" });
         return;
       }
 
-      const material = transformMaterial(result.rows[0]);
-      res.json(material);
+      const videoaula = transformVideoaula(result.rows[0]);
+      res.json(videoaula);
     } catch (error) {
       console.error(error);
-      res.status(500).json({ message: "Erro ao obter material" });
+      res.status(500).json({ message: "Erro ao obter videoaula" });
     }
   });
 
-  // POST /materiais - Criar novo
+  // POST /videoaulas - Criar nova
   router.post(
-    "/materiais",
+    "/videoaulas",
     authGuard(jwtSecret),
     requireRole(["admin", "professor"]),
     upload.single("file"),
@@ -173,7 +177,7 @@ export function materiaisRouter(jwtSecret: string) {
         // Parse body
         let data;
         try {
-          data = createMaterialSchema.parse(req.body);
+          data = createVideoaulaSchema.parse(req.body);
         } catch (error) {
           if (error instanceof z.ZodError) {
             res.status(400).json({ message: error.issues[0].message });
@@ -188,17 +192,19 @@ export function materiaisRouter(jwtSecret: string) {
         if (data.tipo === "arquivo") {
           // Fazer upload do arquivo
           if (!req.file) {
-            res
-              .status(400)
-              .json({ message: "Arquivo é obrigatório para tipo 'arquivo'" });
+            res.status(400).json({
+              message: "Arquivo é obrigatório para tipo 'arquivo'",
+            });
             return;
           }
 
           fileUrl = await uploadToR2(req.file);
-        } else if (data.tipo === "link") {
+        } else if (data.tipo === "youtube" || data.tipo === "vimeo") {
           // Validar URL
           if (!data.url) {
-            res.status(400).json({ message: "URL é obrigatória para tipo 'link'" });
+            res.status(400).json({
+              message: `URL é obrigatória para tipo '${data.tipo}'`,
+            });
             return;
           }
 
@@ -212,13 +218,21 @@ export function materiaisRouter(jwtSecret: string) {
 
         // Inserir no banco
         const result = await pool.query(
-          `INSERT INTO materiais (titulo, tipo, modulo, descricao, url, created_by, created_at, updated_at)
-           VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+          `INSERT INTO videoaulas (titulo, descricao, modulo, duracao, tipo, url, created_by, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
            RETURNING *`,
-          [data.titulo, data.tipo, data.modulo, data.descricao || null, fileUrl, userId]
+          [
+            data.titulo,
+            data.descricao || null,
+            data.modulo,
+            data.duracao || null,
+            data.tipo,
+            fileUrl,
+            userId,
+          ]
         );
 
-        const materialId = result.rows[0].id;
+        const videoaulaId = result.rows[0].id;
 
         // Processar turma_ids se fornecido
         if (req.body.turma_ids) {
@@ -227,10 +241,10 @@ export function materiaisRouter(jwtSecret: string) {
             if (Array.isArray(turmaIds) && turmaIds.length > 0) {
               for (const turmaId of turmaIds) {
                 await pool.query(
-                  `INSERT INTO material_turma (material_id, turma_id)
+                  `INSERT INTO videoaula_turma (videoaula_id, turma_id)
                    VALUES ($1, $2)
-                   ON CONFLICT (material_id, turma_id) DO NOTHING`,
-                  [materialId, turmaId]
+                   ON CONFLICT (videoaula_id, turma_id) DO NOTHING`,
+                  [videoaulaId, turmaId]
                 );
               }
             }
@@ -239,39 +253,39 @@ export function materiaisRouter(jwtSecret: string) {
           }
         }
 
-        // Buscar material com turmas para retornar
-        const materialCompleto = await pool.query(
+        // Buscar videoaula com turmas para retornar
+        const videoaulaCompleta = await pool.query(
           `
           SELECT
-            m.id, m.titulo, m.tipo, m.modulo, m.descricao, m.url,
-            m.created_by, m.created_at, m.updated_at,
+            v.id, v.titulo, v.descricao, v.modulo, v.duracao, v.tipo, v.url,
+            v.created_by, v.created_at, v.updated_at,
             COALESCE(
               json_agg(
                 json_build_object('id', t.id, 'nome', t.nome, 'tipo', t.tipo)
               ) FILTER (WHERE t.id IS NOT NULL),
               '[]'
             ) as turmas
-          FROM materiais m
-          LEFT JOIN material_turma mt ON m.id = mt.material_id
-          LEFT JOIN turmas t ON mt.turma_id = t.id
-          WHERE m.id = $1
-          GROUP BY m.id
+          FROM videoaulas v
+          LEFT JOIN videoaula_turma vt ON v.id = vt.videoaula_id
+          LEFT JOIN turmas t ON vt.turma_id = t.id
+          WHERE v.id = $1
+          GROUP BY v.id
           `,
-          [materialId]
+          [videoaulaId]
         );
 
-        const material = transformMaterial(materialCompleto.rows[0]);
-        res.status(201).json({ message: "Material criado com sucesso", material });
+        const videoaula = transformVideoaula(videoaulaCompleta.rows[0]);
+        res.status(201).json({ message: "Videoaula criada com sucesso", videoaula });
       } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Erro ao criar material" });
+        res.status(500).json({ message: "Erro ao criar videoaula" });
       }
     }
   );
 
-  // PUT /materiais/:id - Atualizar
+  // PUT /videoaulas/:id - Atualizar
   router.put(
-    "/materiais/:id",
+    "/videoaulas/:id",
     authGuard(jwtSecret),
     requireRole(["admin", "professor"]),
     upload.single("file"),
@@ -289,7 +303,7 @@ export function materiaisRouter(jwtSecret: string) {
         // Validar dados
         let data;
         try {
-          data = updateMaterialSchema.parse(req.body);
+          data = updateVideoaulaSchema.parse(req.body);
         } catch (error) {
           if (error instanceof z.ZodError) {
             res.status(400).json({ message: error.issues[0].message });
@@ -298,39 +312,41 @@ export function materiaisRouter(jwtSecret: string) {
           throw error;
         }
 
-        // Buscar material atual
-        const materialResult = await pool.query(
-          "SELECT * FROM materiais WHERE id = $1",
+        // Buscar videoaula atual
+        const videoaulaResult = await pool.query(
+          "SELECT * FROM videoaulas WHERE id = $1",
           [id]
         );
 
-        if (materialResult.rows.length === 0) {
-          res.status(404).json({ message: "Material não encontrado" });
+        if (videoaulaResult.rows.length === 0) {
+          res.status(404).json({ message: "Videoaula não encontrada" });
           return;
         }
 
-        const material = materialResult.rows[0];
+        const videoaula = videoaulaResult.rows[0];
 
         // Verificar permissão (criador ou admin)
-        if (userRole !== "admin" && material.created_by !== userId) {
-          res.status(403).json({ message: "Você não tem permissão para atualizar este material" });
+        if (userRole !== "admin" && videoaula.created_by !== userId) {
+          res.status(403).json({
+            message: "Você não tem permissão para atualizar esta videoaula",
+          });
           return;
         }
 
         // Processar arquivo se enviado
-        let fileUrl = data.url || material.url;
+        let fileUrl = data.url || videoaula.url;
 
         if (req.file) {
           // Se tinha arquivo anterior, deletar do R2
-          if (material.tipo === "arquivo") {
-            await deleteFromR2(material.url);
+          if (videoaula.tipo === "arquivo") {
+            await deleteFromR2(videoaula.url);
           }
           // Upload novo arquivo
           fileUrl = await uploadToR2(req.file);
         }
 
-        // Validar URL se for tipo link
-        if (data.tipo === "link" && data.url) {
+        // Validar URL se for tipo youtube/vimeo
+        if ((data.tipo === "youtube" || data.tipo === "vimeo") && data.url) {
           try {
             new URL(data.url);
           } catch {
@@ -341,39 +357,33 @@ export function materiaisRouter(jwtSecret: string) {
 
         // Atualizar no banco
         const result = await pool.query(
-          `UPDATE materiais
+          `UPDATE videoaulas
            SET titulo = COALESCE($1, titulo),
-               tipo = COALESCE($2, tipo),
+               descricao = COALESCE($2, descricao),
                modulo = COALESCE($3, modulo),
-               descricao = COALESCE($4, descricao),
-               url = $5,
+               duracao = COALESCE($4, duracao),
+               tipo = COALESCE($5, tipo),
+               url = $6,
                updated_at = NOW()
-           WHERE id = $6
+           WHERE id = $7
            RETURNING *`,
-          [
-            data.titulo,
-            data.tipo,
-            data.modulo,
-            data.descricao,
-            fileUrl,
-            id,
-          ]
+          [data.titulo, data.descricao, data.modulo, data.duracao, data.tipo, fileUrl, id]
         );
 
         // Processar turma_ids se fornecido
         if (req.body.turma_ids) {
           try {
             // Limpar atribuições antigas
-            await pool.query("DELETE FROM material_turma WHERE material_id = $1", [id]);
+            await pool.query("DELETE FROM videoaula_turma WHERE videoaula_id = $1", [id]);
 
             // Inserir novas atribuições
             const turmaIds = JSON.parse(req.body.turma_ids);
             if (Array.isArray(turmaIds) && turmaIds.length > 0) {
               for (const turmaId of turmaIds) {
                 await pool.query(
-                  `INSERT INTO material_turma (material_id, turma_id)
+                  `INSERT INTO videoaula_turma (videoaula_id, turma_id)
                    VALUES ($1, $2)
-                   ON CONFLICT (material_id, turma_id) DO NOTHING`,
+                   ON CONFLICT (videoaula_id, turma_id) DO NOTHING`,
                   [id, turmaId]
                 );
               }
@@ -383,39 +393,42 @@ export function materiaisRouter(jwtSecret: string) {
           }
         }
 
-        // Buscar material com turmas para retornar
-        const materialCompleto = await pool.query(
+        // Buscar videoaula com turmas para retornar
+        const videoaulaCompleta = await pool.query(
           `
           SELECT
-            m.id, m.titulo, m.tipo, m.modulo, m.descricao, m.url,
-            m.created_by, m.created_at, m.updated_at,
+            v.id, v.titulo, v.descricao, v.modulo, v.duracao, v.tipo, v.url,
+            v.created_by, v.created_at, v.updated_at,
             COALESCE(
               json_agg(
                 json_build_object('id', t.id, 'nome', t.nome, 'tipo', t.tipo)
               ) FILTER (WHERE t.id IS NOT NULL),
               '[]'
             ) as turmas
-          FROM materiais m
-          LEFT JOIN material_turma mt ON m.id = mt.material_id
-          LEFT JOIN turmas t ON mt.turma_id = t.id
-          WHERE m.id = $1
-          GROUP BY m.id
+          FROM videoaulas v
+          LEFT JOIN videoaula_turma vt ON v.id = vt.videoaula_id
+          LEFT JOIN turmas t ON vt.turma_id = t.id
+          WHERE v.id = $1
+          GROUP BY v.id
           `,
           [id]
         );
 
-        const updatedMaterial = transformMaterial(materialCompleto.rows[0]);
-        res.json({ message: "Material atualizado com sucesso", material: updatedMaterial });
+        const updatedVideoaula = transformVideoaula(videoaulaCompleta.rows[0]);
+        res.json({
+          message: "Videoaula atualizada com sucesso",
+          videoaula: updatedVideoaula,
+        });
       } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Erro ao atualizar material" });
+        res.status(500).json({ message: "Erro ao atualizar videoaula" });
       }
     }
   );
 
-  // DELETE /materiais/:id - Deletar
+  // DELETE /videoaulas/:id - Deletar
   router.delete(
-    "/materiais/:id",
+    "/videoaulas/:id",
     authGuard(jwtSecret),
     requireRole(["admin", "professor"]),
     async (req: AuthRequest, res) => {
@@ -429,44 +442,46 @@ export function materiaisRouter(jwtSecret: string) {
           return;
         }
 
-        // Buscar material
-        const materialResult = await pool.query(
-          "SELECT * FROM materiais WHERE id = $1",
+        // Buscar videoaula
+        const videoaulaResult = await pool.query(
+          "SELECT * FROM videoaulas WHERE id = $1",
           [id]
         );
 
-        if (materialResult.rows.length === 0) {
-          res.status(404).json({ message: "Material não encontrado" });
+        if (videoaulaResult.rows.length === 0) {
+          res.status(404).json({ message: "Videoaula não encontrada" });
           return;
         }
 
-        const material = materialResult.rows[0];
+        const videoaula = videoaulaResult.rows[0];
 
         // Verificar permissão (criador ou admin)
-        if (userRole !== "admin" && material.created_by !== userId) {
-          res.status(403).json({ message: "Você não tem permissão para deletar este material" });
+        if (userRole !== "admin" && videoaula.created_by !== userId) {
+          res.status(403).json({
+            message: "Você não tem permissão para deletar esta videoaula",
+          });
           return;
         }
 
         // Deletar arquivo do R2 se for tipo arquivo
-        if (material.tipo === "arquivo") {
-          await deleteFromR2(material.url);
+        if (videoaula.tipo === "arquivo") {
+          await deleteFromR2(videoaula.url);
         }
 
         // Deletar do banco
-        void await pool.query("DELETE FROM materiais WHERE id = $1", [id]);
+        void await pool.query("DELETE FROM videoaulas WHERE id = $1", [id]);
 
-        res.json({ message: "Material deletado com sucesso" });
+        res.json({ message: "Videoaula deletada com sucesso" });
       } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Erro ao deletar material" });
+        res.status(500).json({ message: "Erro ao deletar videoaula" });
       }
     }
   );
 
-  // POST /materiais/:id/turmas - Atribuir material a turmas
+  // POST /videoaulas/:id/turmas - Atribuir videoaula a turmas
   router.post(
-    "/materiais/:id/turmas",
+    "/videoaulas/:id/turmas",
     authGuard(jwtSecret),
     requireRole(["admin", "professor"]),
     async (req: AuthRequest, res) => {
@@ -481,31 +496,29 @@ export function materiaisRouter(jwtSecret: string) {
         }
 
         // Limpar atribuições antigas
-        await pool.query("DELETE FROM material_turma WHERE material_id = $1", [
-          id,
-        ]);
+        await pool.query("DELETE FROM videoaula_turma WHERE videoaula_id = $1", [id]);
 
         // Inserir novas atribuições
         for (const turmaId of turma_ids) {
           await pool.query(
-            `INSERT INTO material_turma (material_id, turma_id)
+            `INSERT INTO videoaula_turma (videoaula_id, turma_id)
              VALUES ($1, $2)
-             ON CONFLICT (material_id, turma_id) DO NOTHING`,
+             ON CONFLICT (videoaula_id, turma_id) DO NOTHING`,
             [id, turmaId]
           );
         }
 
-        res.json({ message: "Material atribuído às turmas com sucesso" });
+        res.json({ message: "Videoaula atribuída às turmas com sucesso" });
       } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Erro ao atribuir material" });
+        res.status(500).json({ message: "Erro ao atribuir videoaula" });
       }
     }
   );
 
-  // DELETE /materiais/:id/turmas/:turmaId - Remover material de uma turma
+  // DELETE /videoaulas/:id/turmas/:turmaId - Remover videoaula de uma turma
   router.delete(
-    "/materiais/:id/turmas/:turmaId",
+    "/videoaulas/:id/turmas/:turmaId",
     authGuard(jwtSecret),
     requireRole(["admin", "professor"]),
     async (req: AuthRequest, res) => {
@@ -513,14 +526,14 @@ export function materiaisRouter(jwtSecret: string) {
         const { id, turmaId } = req.params;
 
         await pool.query(
-          `DELETE FROM material_turma WHERE material_id = $1 AND turma_id = $2`,
+          `DELETE FROM videoaula_turma WHERE videoaula_id = $1 AND turma_id = $2`,
           [id, turmaId]
         );
 
-        res.json({ message: "Material removido da turma" });
+        res.json({ message: "Videoaula removida da turma" });
       } catch (error) {
         console.error(error);
-        res.status(500).json({ message: "Erro ao remover material" });
+        res.status(500).json({ message: "Erro ao remover videoaula" });
       }
     }
   );

@@ -359,6 +359,21 @@ export type Material = {
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
+  turmas?: Turma[];
+};
+
+export type Videoaula = {
+  id: string;
+  titulo: string;
+  descricao: string | null;
+  modulo: string;
+  duracao: string | null;
+  tipo: "youtube" | "vimeo" | "arquivo";
+  url: string;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  turmas?: Turma[];
 };
 
 export async function listarMateriais(modulo?: string) {
@@ -400,6 +415,76 @@ export async function atualizarMaterial(id: string, dados: FormData) {
 
 export async function deletarMaterial(id: string) {
   return apiFetch<{ message: string }>(`/materiais/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function atribuirMaterialTurmas(materialId: string, turmaIds: string[]) {
+  return apiFetch<{ message: string }>(`/materiais/${materialId}/turmas`, {
+    method: "POST",
+    body: JSON.stringify({ turma_ids: turmaIds }),
+  });
+}
+
+export async function removerMaterialDaTurma(materialId: string, turmaId: string) {
+  return apiFetch<{ message: string }>(`/materiais/${materialId}/turmas/${turmaId}`, {
+    method: "DELETE",
+  });
+}
+
+// Videoaulas
+export async function listarVideoaulas(modulo?: string) {
+  const query = modulo ? `?modulo=${encodeURIComponent(modulo)}` : "";
+  return apiFetch<Videoaula[]>(`/videoaulas${query}`);
+}
+
+export async function obterVideoaula(id: string) {
+  return apiFetch<Videoaula>(`/videoaulas/${id}`);
+}
+
+export async function criarVideoaula(dados: FormData) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_BASE_URL}/videoaulas`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: dados,
+  });
+
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json() as Promise<{ message: string; videoaula: Videoaula }>;
+}
+
+export async function atualizarVideoaula(id: string, dados: FormData) {
+  const token = localStorage.getItem("token");
+  const res = await fetch(`${API_BASE_URL}/videoaulas/${id}`, {
+    method: "PUT",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: dados,
+  });
+
+  if (!res.ok) throw new Error(await parseError(res));
+  return res.json() as Promise<{ message: string; videoaula: Videoaula }>;
+}
+
+export async function deletarVideoaula(id: string) {
+  return apiFetch<{ message: string }>(`/videoaulas/${id}`, {
+    method: "DELETE",
+  });
+}
+
+export async function atribuirVideoaulaTurmas(videoaulaId: string, turmaIds: string[]) {
+  return apiFetch<{ message: string }>(`/videoaulas/${videoaulaId}/turmas`, {
+    method: "POST",
+    body: JSON.stringify({ turma_ids: turmaIds }),
+  });
+}
+
+export async function removerVideoaulaDaTurma(videoaulaId: string, turmaId: string) {
+  return apiFetch<{ message: string }>(`/videoaulas/${videoaulaId}/turmas/${turmaId}`, {
     method: "DELETE",
   });
 }

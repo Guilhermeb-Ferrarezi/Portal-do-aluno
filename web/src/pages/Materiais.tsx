@@ -7,6 +7,9 @@ import {
   criarMaterial,
   deletarMaterial,
   type Material,
+  listarTurmas,
+  atribuirMaterialTurmas,
+  type Turma,
 } from "../services/api";
 import "./Materiais.css";
 
@@ -22,6 +25,7 @@ export default function MateriaisPage() {
   const [filtroModulo, setFiltroModulo] = React.useState<string>("todos");
   const [filtroTipo, setFiltroTipo] = React.useState<string>("todos");
   const [busca, setBusca] = React.useState<string>("");
+  const [turmaFiltro, setTurmaFiltro] = React.useState<string>("todas");
   const [modalAberto, setModalAberto] = React.useState(false);
 
   // Estados do formulário
@@ -31,6 +35,8 @@ export default function MateriaisPage() {
   const [formDescricao, setFormDescricao] = React.useState("");
   const [formUrl, setFormUrl] = React.useState("");
   const [formArquivo, setFormArquivo] = React.useState<File | null>(null);
+  const [turmasSelecionadas, setTurmasSelecionadas] = React.useState<string[]>([]);
+  const [turmasDisponiveis, setTurmasDisponiveis] = React.useState<Turma[]>([]);
   const [submitting, setSubmitting] = React.useState(false);
   const [formError, setFormError] = React.useState<string | null>(null);
   const [feedback, setFeedback] = React.useState<{
@@ -49,6 +55,15 @@ export default function MateriaisPage() {
   React.useEffect(() => {
     carregarMateriais();
   }, []);
+
+  // Carregar turmas quando puder fazer upload
+  React.useEffect(() => {
+    if (canUpload) {
+      listarTurmas()
+        .then(setTurmasDisponiveis)
+        .catch((err) => console.error("Erro ao carregar turmas:", err));
+    }
+  }, [canUpload]);
 
   const carregarMateriais = async () => {
     try {
@@ -75,8 +90,13 @@ export default function MateriaisPage() {
       m.titulo.toLowerCase().includes(busca.toLowerCase()) ||
       (m.descricao &&
         m.descricao.toLowerCase().includes(busca.toLowerCase()));
+    const matchTurma =
+      turmaFiltro === "todas" ||
+      (m.turmas && m.turmas.some((t) => t.id === turmaFiltro)) ||
+      !m.turmas ||
+      m.turmas.length === 0; // Materiais sem turma visíveis para todos
 
-    return matchModulo && matchTipo && matchBusca;
+    return matchModulo && matchTipo && matchBusca && matchTurma;
   });
 
   // Obter lista única de módulos
@@ -89,6 +109,7 @@ export default function MateriaisPage() {
     setFormDescricao("");
     setFormUrl("");
     setFormArquivo(null);
+    setTurmasSelecionadas([]);
     setFormError(null);
   };
 
@@ -129,7 +150,22 @@ export default function MateriaisPage() {
         formData.append("url", formUrl);
       }
 
-      await criarMaterial(formData);
+      // Adicionar turma_ids
+      if (turmasSelecionadas.length > 0) {
+        formData.append("turma_ids", JSON.stringify(turmasSelecionadas));
+      }
+
+      const resultado = await criarMaterial(formData);
+
+      // Atribuir turmas se houver
+      if (turmasSelecionadas.length > 0 && resultado.material?.id) {
+        try {
+          await atribuirMaterialTurmas(resultado.material.id, turmasSelecionadas);
+        } catch (err) {
+          console.error("Erro ao atribuir turmas:", err);
+        }
+      }
+
       setModalAberto(false);
       resetForm();
       setFeedback({
@@ -282,6 +318,20 @@ export default function MateriaisPage() {
                 </option>
               ))}
             </select>
+
+            {/* Filtro de Turmas */}
+            <select
+              value={turmaFiltro}
+              onChange={(e) => setTurmaFiltro(e.target.value)}
+              className="filterSelect"
+            >
+              <option value="todas">👥 Todas as turmas</option>
+              {turmasDisponiveis.map((turma) => (
+                <option key={turma.id} value={turma.id}>
+                  {turma.nome}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Botão de Upload (apenas para admin/professor) */}
@@ -349,6 +399,38 @@ export default function MateriaisPage() {
                   <p className="materialDescricao">
                     {material.descricao || "Sem descrição"}
                   </p>
+
+                  {/* Badges de turmas */}
+                  {material.turmas && material.turmas.length > 0 && (
+                    <div
+                      style={{
+                        marginTop: "8px",
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "6px",
+                      }}
+                    >
+                      {material.turmas.map((turma) => (
+                        <span
+                          key={turma.id}
+                          style={{
+                            padding: "3px 8px",
+                            fontSize: "11px",
+                            fontWeight: 700,
+                            borderRadius: "6px",
+                            background:
+                              turma.tipo === "turma"
+                                ? "rgba(59, 130, 246, 0.1)"
+                                : "rgba(168, 85, 247, 0.1)",
+                            color:
+                              turma.tipo === "turma" ? "#2563eb" : "#a855f7",
+                          }}
+                        >
+                          {turma.nome}
+                        </span>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="materialFooter">
                     <button
@@ -464,6 +546,32 @@ export default function MateriaisPage() {
                     value={formDescricao}
                     onChange={(e) => setFormDescricao(e.target.value)}
                   />
+                </div>
+
+                <div className="formGroup">
+                  <label className="formLabel">Turmas (opcional)</label>
+                  <select
+                    className="formInput"
+                    multiple
+                    value={turmasSelecionadas}
+                    onChange={(e) =>
+                      setTurmasSelecionadas(
+                        Array.from(e.target.selectedOptions, (opt) => opt.value)
+                      )
+                    }
+                    size={4}
+                    style={{ minHeight: "100px" }}
+                  >
+                    {turmasDisponiveis.map((turma) => (
+                      <option key={turma.id} value={turma.id}>
+                        {turma.nome} ({turma.tipo})
+                      </option>
+                    ))}
+                  </select>
+                  <small className="formHint">
+                    Segure Ctrl/Cmd para selecionar múltiplas. Deixe vazio para
+                    "Todos".
+                  </small>
                 </div>
 
                 {/* Input dinâmico baseado no tipo */}
