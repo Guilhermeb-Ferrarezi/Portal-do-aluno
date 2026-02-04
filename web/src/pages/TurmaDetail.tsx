@@ -411,6 +411,7 @@ export default function TurmaDetailPage() {
               <h3 className="turmaInfoTitle">{turma.nome}</h3>
               <p className="turmaInfoMeta">
                 {turma.tipo === "turma" ? "👥 Turma (Grupo)" : "🔒 Turma Particular"}
+                {turma.categoria && <> • {turma.categoria === "programacao" ? "💻 Programação" : "🖥️ Informática"}</>}
                 {turma.descricao && <> • {turma.descricao}</>}
               </p>
             </div>
