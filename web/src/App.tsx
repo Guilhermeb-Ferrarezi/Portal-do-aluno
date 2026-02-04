@@ -8,6 +8,7 @@ import CreateUser from "./components/Dashboard/Sidebar/CreateUser/CreateUser";
 import ExerciciosPage from "./pages/Exercises";
 import ExerciseDetail from "./pages/ExerciseDetail";
 import ExerciseTemplates from "./pages/ExerciseTemplates";
+import AdminUsersPage from "./pages/AdminUsers";
 import Turmas from "./pages/Turmas";
 import TurmaDetail from "./pages/TurmaDetail";
 import TrilhaCursoPage from "./pages/TrilhaCurso";
@@ -64,6 +65,11 @@ function AppContent() {
             <Route
               path="/templates"
               element={<Navigate to="/dashboard/templates" replace />}
+            />
+            <Route path="/dashboard/usuarios" element={<AdminUsersPage />} />
+            <Route
+              path="/usuarios"
+              element={<Navigate to="/dashboard/usuarios" replace />}
             />
           </Route>
 

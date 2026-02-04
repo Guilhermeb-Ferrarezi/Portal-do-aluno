@@ -48,6 +48,7 @@ export default function DashboardLayout({
   const isVideoaulas = location.pathname === "/dashboard/videoaulas";
   const isPerfil = location.pathname === "/dashboard/perfil";
   const isCreateUser = location.pathname === "/dashboard/criar-usuario";
+  const isAdminUsers = location.pathname === "/dashboard/usuarios";
 
   function handleLogout() {
     logout();
@@ -146,6 +147,13 @@ export default function DashboardLayout({
                   📦
                 </span>
                 Templates
+              </Link>
+
+              <Link className={`sbItem ${isAdminUsers ? "active" : ""}`} to="/dashboard/usuarios">
+                <span className="sbIcon" aria-hidden="true">
+                  🔑
+                </span>
+                Gerenciar Usuários
               </Link>
 
               <div className="sideSection">

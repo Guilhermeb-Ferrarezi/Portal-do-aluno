@@ -326,25 +326,7 @@ export default function PerfilPage() {
               </label>
             </div>
 
-            <div className="settingsItem">
-              <div className="settingsInfo">
-                <h3>Perfil público</h3>
-                <p>Permitir que outros alunos vejam seu progresso</p>
-              </div>
-              <label className="switch">
-                <input
-                  type="checkbox"
-                  checked={settings.perfilPublico}
-                  onChange={(e) =>
-                    setSettings((prev) => ({
-                      ...prev,
-                      perfilPublico: e.target.checked,
-                    }))
-                  }
-                />
-                <span className="slider" />
-              </label>
-            </div>
+            
 
             <div className="settingsItem">
               <div className="settingsInfo">

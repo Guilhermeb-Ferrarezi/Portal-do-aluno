@@ -1,0 +1,343 @@
+.adminUsersContainer {
+  padding: 20px;
+  background: var(--background-secondary);
+  border-radius: var(--r);
+}
+
+/* HEADER COM FILTROS */
+.adminHeader {
+  margin-bottom: 24px;
+}
+
+.filterRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.searchBox {
+  flex: 1;
+  min-width: 200px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 14px;
+  background: var(--card);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.searchInput:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
+}
+
+.filterSelect {
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: var(--red);
+}
+
+/* TABELA DE USUÁRIOS */
+.usersTableContainer {
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.usersTable {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.usersTable thead {
+  background: var(--background-secondary);
+  border-bottom: 2px solid var(--line);
+}
+
+.usersTable th {
+  padding: 14px 16px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.usersTable tbody tr {
+  border-bottom: 1px solid var(--line);
+  transition: background-color 0.2s ease;
+}
+
+.usersTable tbody tr:hover {
+  background-color: rgba(225, 29, 46, 0.02);
+}
+
+.usersTable tbody tr:last-child {
+  border-bottom: none;
+}
+
+.usersTable td {
+  padding: 14px 16px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.usuarioCell {
+  font-family: "Courier New", monospace;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* ROLE TAG */
+.roleTag {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.roleTag.role-aluno {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.roleTag.role-professor {
+  background: rgba(168, 85, 247, 0.1);
+  color: #a855f7;
+}
+
+.roleTag.role-admin {
+  background: rgba(225, 29, 46, 0.1);
+  color: var(--red);
+}
+
+/* AÇÕES NA TABELA */
+.actionCell {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px !important;
+}
+
+.btnEdit,
+.btnDelete {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+
+.btnEdit {
+  background: rgba(59, 130, 246, 0.1);
+  color: #2563eb;
+}
+
+.btnEdit:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: translateY(-2px);
+}
+
+.btnDelete {
+  background: rgba(220, 53, 69, 0.1);
+  color: #dc3545;
+}
+
+.btnDelete:hover {
+  background: rgba(220, 53, 69, 0.2);
+  transform: translateY(-2px);
+}
+
+/* EMPTY STATE */
+.emptyState {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--card);
+  border-radius: var(--r);
+  border: 2px dashed var(--line);
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 16px;
+}
+
+/* MODAL */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modalContent {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 24px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.2s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modalContent h3 {
+  margin: 0 0 20px 0;
+  font-size: 20px;
+  color: var(--text);
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.formLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.formInput {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--text);
+  background: var(--background-secondary);
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--red);
+  box-shadow: 0 0 0 3px rgba(225, 29, 46, 0.1);
+}
+
+.confirmText {
+  margin: 16px 0;
+  font-size: 14px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.btnCancel,
+.btnConfirm {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btnCancel {
+  background: var(--background-secondary);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.btnCancel:hover:not(:disabled) {
+  background: var(--line);
+}
+
+.btnConfirm {
+  background: linear-gradient(135deg, var(--red), #d41c28);
+  color: white;
+}
+
+.btnConfirm:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(225, 29, 46, 0.3);
+}
+
+.btnCancel:disabled,
+.btnConfirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .adminUsersContainer {
+    padding: 16px;
+  }
+
+  .filterRow {
+    flex-direction: column;
+  }
+
+  .searchBox,
+  .filterSelect {
+    width: 100%;
+  }
+
+  .usersTable {
+    font-size: 13px;
+  }
+
+  .usersTable th,
+  .usersTable td {
+    padding: 12px;
+  }
+
+  .actionCell {
+    padding: 12px !important;
+  }
+
+  .modalContent {
+    width: 95%;
+    max-width: none;
+  }
+}
