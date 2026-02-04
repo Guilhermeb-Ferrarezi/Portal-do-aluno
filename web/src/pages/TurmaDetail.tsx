@@ -1,4 +1,5 @@
 ﻿import React from "react";
+import { createPortal } from "react-dom";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import {
@@ -690,7 +691,7 @@ export default function TurmaDetailPage() {
         )}
 
         {/* MODAL DE ADICIONAR ALUNOS */}
-        {modalAdicionarAberto && (
+        {modalAdicionarAberto && createPortal(
           <div className="modalOverlay" onClick={() => setModalAdicionarAberto(false)}>
             <div className="modalContent" onClick={(e) => e.stopPropagation()}>
               <h3>Adicionar alunos à turma</h3>
@@ -745,7 +746,8 @@ export default function TurmaDetailPage() {
                 </button>
               </div>
             </div>
-          </div>
+          </div>,
+          document.body
         )}
       </div>
     </DashboardLayout>
