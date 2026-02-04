@@ -340,7 +340,7 @@ export default function TurmaDetailPage() {
                 background: abaSelecionada === "info" ? "var(--primary)" : "transparent",
                 color: abaSelecionada === "info" ? "white" : "var(--text)",
                 border: "2px solid transparent",
-                boxShadow: "0px 0px 40px 8px rgb(255, 0, 0)",
+                boxShadow: "0px 0px 15px 1px rgb(255, 0, 0)",
                 borderRadius: "12px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "info" ? 600 : 400,
@@ -356,7 +356,7 @@ export default function TurmaDetailPage() {
                 background: abaSelecionada === "alunos" ? "var(--primary)" : "transparent",
                 color: abaSelecionada === "alunos" ? "white" : "var(--text)",
                 border: "2px solid transparent",
-                boxShadow: "0px 0px 40px 8px rgb(255, 0, 0)",
+                boxShadow: "0px 0px 15px 1px rgb(255, 0, 0)",
                 borderRadius: "12px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "alunos" ? 600 : 400,
@@ -372,7 +372,7 @@ export default function TurmaDetailPage() {
                 background: abaSelecionada === "exercicios" ? "var(--primary)" : "transparent",
                 color: abaSelecionada === "exercicios" ? "white" : "var(--text)",
                 border: "2px solid transparent",
-                boxShadow: "0px 0px 40px 8px rgb(255, 0, 0)",
+                boxShadow: "0px 0px 15px 1px rgb(255, 0, 0)",
                 borderRadius: "12px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "exercicios" ? 600 : 400,
@@ -389,7 +389,7 @@ export default function TurmaDetailPage() {
                   background: abaSelecionada === "cronograma" ? "var(--primary)" : "transparent",
                   color: abaSelecionada === "cronograma" ? "white" : "var(--text)",
                   border: "2px solid transparent",
-                  boxShadow: "0px 0px 40px 8px rgb(255, 0, 0)",
+                  boxShadow: "0px 0px 15px 1px rgb(255, 0, 0)",
                   borderRadius: "12px",
                   cursor: "pointer",
                   fontWeight: abaSelecionada === "cronograma" ? 600 : 400,
@@ -552,7 +552,7 @@ export default function TurmaDetailPage() {
               </div>
             ) : (
               <>
-                <div style={{ padding: "16px", border: "2px solid white", boxShadow: "0px 0px 30px 5px rgb(255, 255, 255)", background: "#0c1320", opacity: 0.8, borderRadius: "8px", marginBottom: "20px" }}>
+                <div style={{ padding: "16px", border: "2px solid white", boxShadow: "0px 0px 10px 2.5px rgb(255, 255, 255)", background: "#0c1320", opacity: 0.8, borderRadius: "8px", marginBottom: "20px" }}>
                   <p style={{ margin: "8px 0", fontSize: "14px" }}>
                     <strong>📌 Início:</strong> {new Date(turma.dataInicio).toLocaleDateString("pt-BR")}
                   </p>
@@ -593,7 +593,7 @@ export default function TurmaDetailPage() {
                               width: "100%",
                               padding: "8px",
                               border: "1px solid var(--border)",
-                              borderRadius: "4px",
+                              borderRadius: "8px",
                               fontSize: "14px"
                             }}
                           >
@@ -616,7 +616,7 @@ export default function TurmaDetailPage() {
                               width: "100%",
                               padding: "8px",
                               border: "1px solid var(--border)",
-                              borderRadius: "4px",
+                              borderRadius: "8px",
                               fontSize: "14px"
                             }}
                           >
@@ -637,7 +637,7 @@ export default function TurmaDetailPage() {
                             background: "var(--primary)",
                             color: "white",
                             border: "none",
-                            borderRadius: "4px",
+                            borderRadius: "8px",
                             cursor: salvandoCronograma ? "wait" : "pointer",
                             fontWeight: 600,
                             opacity: (salvandoCronograma || !templateSelecionado) ? 0.6 : 1,
@@ -703,7 +703,7 @@ export default function TurmaDetailPage() {
                                     padding: "8px 12px",
                                     background: "var(--card)",
                                     border: "1px solid var(--border)",
-                                    borderRadius: "4px",
+                                    borderRadius: "8px",
                                   }}
                                 >
                                   <div>
@@ -720,7 +720,7 @@ export default function TurmaDetailPage() {
                                       background: "#fee2e2",
                                       color: "#991b1b",
                                       border: "none",
-                                      borderRadius: "4px",
+                                      borderRadius: "8px",
                                       cursor: salvandoCronograma ? "wait" : "pointer",
                                       fontSize: "12px",
                                     }}
