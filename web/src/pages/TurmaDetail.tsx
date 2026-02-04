@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../components/Dashboard/DashboardLayout";
 import {
@@ -339,7 +339,9 @@ export default function TurmaDetailPage() {
                 padding: "12px 16px",
                 background: abaSelecionada === "info" ? "var(--primary)" : "transparent",
                 color: abaSelecionada === "info" ? "white" : "var(--text)",
-                border: "none",
+                border: "2px solid transparent",
+                boxShadow: "0 0 40 8px rgb(255, 0, 0)",
+                borderRadius: "12px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "info" ? 600 : 400,
                 borderBottom: abaSelecionada === "info" ? "2px solid var(--primary)" : "none",
@@ -353,7 +355,9 @@ export default function TurmaDetailPage() {
                 padding: "12px 16px",
                 background: abaSelecionada === "alunos" ? "var(--primary)" : "transparent",
                 color: abaSelecionada === "alunos" ? "white" : "var(--text)",
-                border: "none",
+                border: "2px solid transparent",
+                boxShadow: "0 0 40 8px rgb(255, 0, 0)",
+                borderRadius: "12px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "alunos" ? 600 : 400,
                 borderBottom: abaSelecionada === "alunos" ? "2px solid var(--primary)" : "none",
@@ -367,7 +371,9 @@ export default function TurmaDetailPage() {
                 padding: "12px 16px",
                 background: abaSelecionada === "exercicios" ? "var(--primary)" : "transparent",
                 color: abaSelecionada === "exercicios" ? "white" : "var(--text)",
-                border: "none",
+                border: "2px solid transparent",
+                boxShadow: "0 0 40 8px rgb(255, 0, 0)",
+                borderRadius: "12px",
                 cursor: "pointer",
                 fontWeight: abaSelecionada === "exercicios" ? 600 : 400,
                 borderBottom: abaSelecionada === "exercicios" ? "2px solid var(--primary)" : "none",
@@ -382,7 +388,9 @@ export default function TurmaDetailPage() {
                   padding: "12px 16px",
                   background: abaSelecionada === "cronograma" ? "var(--primary)" : "transparent",
                   color: abaSelecionada === "cronograma" ? "white" : "var(--text)",
-                  border: "none",
+                  border: "2px solid transparent",
+                  boxShadow: "0 0 40 8px rgb(255, 0, 0)",
+                  borderRadius: "12px",
                   cursor: "pointer",
                   fontWeight: abaSelecionada === "cronograma" ? 600 : 400,
                   borderBottom: abaSelecionada === "cronograma" ? "2px solid var(--primary)" : "none",
