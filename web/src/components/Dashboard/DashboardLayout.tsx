@@ -124,7 +124,7 @@ export default function DashboardLayout({
             </span>
             Videoaulas Bônus
           </Link>
-          {/* Minha Turma - Aluno vai para Google, Admin/Professor expandem a lista */}
+          {/* Turmas e Minhas Turmas */}
           <button
             className="sbItem"
             onClick={handleMinhasTurmas}
@@ -133,6 +133,52 @@ export default function DashboardLayout({
             <span className="sbIcon" aria-hidden="true">🏫</span>
             <span>Turmas</span>
           </button>
+
+          {canCreateUser && (
+            <div className="sideSection">
+              <button
+                className="sideSectionHeader"
+                onClick={() => setExpandirTurmas(!expandirTurmas)}
+              >
+                <span className="sbIcon" aria-hidden="true">📋</span>
+                <span>Minhas Turmas</span>
+                <span className="sideExpand" aria-hidden="true">
+                  {expandirTurmas ? "▼" : "▶"}
+                </span>
+              </button>
+
+              {expandirTurmas && (
+                <div className="sideSectionContent">
+                  {turmasVinculadas.length > 0 ? (
+                    <div className="turmasListSide">
+                      {turmasVinculadas.map((turma) => (
+                        <button
+                          key={turma.id}
+                          className="sideTurmaItem"
+                          onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
+                        >
+                          <span className="sideTurmaName">{turma.nome}</span>
+                          <span className="sideTurmaBadge">
+                            {turma.tipo === "turma" ? "👥" : "👤"}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="sideSectionEmpty">Nenhuma turma vinculada a você</div>
+                  )}
+
+                  <button
+                    className="sideCreateTurmaBtn"
+                    onClick={() => navigate("/dashboard/turmas")}
+                  >
+                    <span aria-hidden="true">➕</span> Criar turma
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
           <Link className={`sbItem ${isPerfil ? "active" : ""}`} to="/dashboard/perfil">
             <span className="sbIcon" aria-hidden="true">
               👤
@@ -155,49 +201,6 @@ export default function DashboardLayout({
                 </span>
                 Gerenciar Usuários
               </Link>
-
-              <div className="sideSection">
-                <button
-                  className="sideSectionHeader"
-                  onClick={() => setExpandirTurmas(!expandirTurmas)}
-                >
-                  <span className="sbIcon" aria-hidden="true">📋</span>
-                  <span>Minha turmas</span>
-                  <span className="sideExpand" aria-hidden="true">
-                    {expandirTurmas ? "▼" : "▶"}
-                  </span>
-                </button>
-
-                {expandirTurmas && (
-                  <div className="sideSectionContent">
-                    {turmasVinculadas.length > 0 ? (
-                      <div className="turmasListSide">
-                        {turmasVinculadas.map((turma) => (
-                          <button
-                            key={turma.id}
-                            className="sideTurmaItem"
-                            onClick={() => navigate(`/dashboard/turmas/${turma.id}`)}
-                          >
-                            <span className="sideTurmaName">{turma.nome}</span>
-                            <span className="sideTurmaBadge">
-                              {turma.tipo === "turma" ? "👥" : "👤"}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="sideSectionEmpty">Nenhuma turma vinculada a você</div>
-                    )}
-
-                    <button
-                      className="sideCreateTurmaBtn"
-                      onClick={() => navigate("/dashboard/turmas")}
-                    >
-                      <span aria-hidden="true">➕</span> Criar turma
-                    </button>
-                  </div>
-                )}
-              </div>
 
               <Link
                 className={`sbItem ${isCreateUser ? "active" : ""}`}
