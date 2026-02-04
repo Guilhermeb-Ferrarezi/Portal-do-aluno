@@ -6,7 +6,6 @@ import {
   listarMateriais,
   criarMaterial,
   deletarMaterial,
-  listarExercicios,
   type Material,
 } from "../services/api";
 import "./Materiais.css";
@@ -46,25 +45,10 @@ export default function MateriaisPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
-  // Módulos de exercícios
-  const [exerciseModulos, setExerciseModulos] = React.useState<string[]>([]);
-
   // Carregar materiais ao montar
   React.useEffect(() => {
     carregarMateriais();
-    carregarModulosExercicios();
   }, []);
-
-  const carregarModulosExercicios = async () => {
-    try {
-      const exercicios = await listarExercicios();
-      const modulos = Array.from(new Set(exercicios.map((ex) => ex.modulo)))
-        .sort();
-      setExerciseModulos(modulos);
-    } catch (err) {
-      console.error("Erro ao carregar módulos de exercícios:", err);
-    }
-  };
 
   const carregarMateriais = async () => {
     try {
@@ -314,7 +298,6 @@ export default function MateriaisPage() {
           )}
         </div>
 
-        
         {/* LISTA DE MATERIAIS */}
         <div>
           {materiaisFiltrados.length === 0 ? (
