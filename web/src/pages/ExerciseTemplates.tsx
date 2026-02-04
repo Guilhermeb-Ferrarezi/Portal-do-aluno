@@ -309,8 +309,8 @@ export default function ExerciseTemplates() {
                       disabled={deletando === template.id}
                       title="Deletar template"
                       style={{
-                        background: deletando === template.id ? "#fee2e2" : "#fee2e2",
-                        color: "#991b1b",
+                        background: "rgba(225, 29, 46, 0.1)",
+                        color: "var(--red)",
                       }}
                     >
                       {deletando === template.id ? "⏳" : "🗑️"}
@@ -349,8 +349,8 @@ export default function ExerciseTemplates() {
                   {templateAtual && (
                     <span style={{
                       padding: "4px 12px",
-                      background: isInformatica ? "#dbeafe" : "#dcfce7",
-                      color: isInformatica ? "#075985" : "#166534",
+                      background: isInformatica ? "rgba(59, 130, 246, 0.15)" : "rgba(34, 197, 94, 0.15)",
+                      color: isInformatica ? "#3b82f6" : "#22c55e",
                       borderRadius: "20px",
                       fontSize: "12px",
                       fontWeight: 600,
@@ -368,7 +368,7 @@ export default function ExerciseTemplates() {
                 ) : (
                   <>
                     {erro && (
-                      <div style={{ padding: "12px", background: "#fee2e2", borderRadius: "4px", marginBottom: "16px", color: "#991b1b" }}>
+                      <div style={{ padding: "12px", background: "rgba(225, 29, 46, 0.1)", borderRadius: "4px", marginBottom: "16px", color: "var(--red)" }}>
                         ❌ {erro}
                       </div>
                     )}
@@ -384,7 +384,7 @@ export default function ExerciseTemplates() {
                     </div>
                   ) : (
                     <>
-                      <div style={{ padding: "12px", background: isInformatica ? "#f0f9ff" : "#f7fee7", borderRadius: "4px", marginBottom: "16px", fontSize: "13px", color: isInformatica ? "#075985" : "#166534" }}>
+                      <div style={{ padding: "12px", background: isInformatica ? "rgba(59, 130, 246, 0.1)" : "rgba(34, 197, 94, 0.1)", borderRadius: "4px", marginBottom: "16px", fontSize: "13px", color: isInformatica ? "#3b82f6" : "#22c55e" }}>
                         📚 Mostrando turmas de <strong>{isInformatica ? "Informática" : "Programação"}</strong> com cronograma ativo
                       </div>
 
