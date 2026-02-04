@@ -79,8 +79,6 @@ export default function ExerciciosPage() {
   const [currentPage, setCurrentPage] = React.useState(1);
   const [itemsPerPage, setItemsPerPage] = React.useState(10);
 
-  // Filtros de turma
-  const [turmaBuscaFiltro, setTurmaBuscaFiltro] = React.useState("");
 
   // Modal de confirmação
   const [modalDeletar, setModalDeletar] = React.useState<{
@@ -1088,28 +1086,31 @@ export default function ExerciciosPage() {
 
         {/* FILTROS DE EXERCÍCIOS */}
         <div className="filtersSection">
+          {/* Linha 1: Busca por título */}
           <div className="filterRow">
-            {/* Busca por titulo */}
-            <div className="filterGroup">
+            <div className="filterGroup" style={{ flex: 1 }}>
               <input
                 className="exInput"
                 type="text"
-                placeholder="Buscar por titulo..."
+                placeholder="🔍 Buscar por titulo..."
                 value={buscaFiltro}
                 onChange={(e) => setBuscaFiltro(e.target.value)}
-                style={{ minWidth: 200 }}
+                style={{ width: "100%" }}
               />
             </div>
+          </div>
 
+          {/* Linha 2: Módulo, Tipo, Turmas, Aluno */}
+          <div className="filterRow" style={{ gap: "12px" }}>
             {/* Filtro de modulo */}
             <div className="filterGroup">
               <select
                 className="exSelect"
                 value={moduloFiltro}
                 onChange={(e) => setModuloFiltro(e.target.value)}
-                style={{ minWidth: 150 }}
+                style={{ minWidth: 160 }}
               >
-                <option value="">Todos os Modulos</option>
+                <option value="">📚 Todos os Módulos</option>
                 {Array.from(new Set(items.map((ex) => ex.modulo)))
                   .sort()
                   .map((mod) => (
@@ -1126,49 +1127,33 @@ export default function ExerciciosPage() {
                 className="exSelect"
                 value={tipoFiltro}
                 onChange={(e) => setTipoFiltro(e.target.value)}
-                style={{ minWidth: 150 }}
+                style={{ minWidth: 160 }}
               >
-                <option value="">Todos os Tipos</option>
-                <option value="codigo">Codigo</option>
-                <option value="texto">Texto</option>
+                <option value="">📝 Todos os Tipos</option>
+                <option value="codigo">💻 Código</option>
+                <option value="texto">📄 Texto</option>
               </select>
             </div>
-          </div>
 
-          {/* Filtro de turmas - se aplicavel */}
-          {turmasDisponiveis.length > 0 && (
-            <div className="filterRow">
-              <div className="filterGroup">
-                <input
-                  className="exInput"
-                  type="text"
-                  placeholder="🔍 Buscar turmas..."
-                  value={turmaBuscaFiltro}
-                  onChange={(e) => setTurmaBuscaFiltro(e.target.value)}
-                  style={{ minWidth: 150 }}
-                />
-              </div>
+            {/* Filtro de turmas */}
+            {turmasDisponiveis.length > 0 && (
               <div className="filterGroup">
                 <select
                   className="exSelect"
                   value={turmaFiltro}
                   onChange={(e) => setTurmaFiltro(e.target.value)}
-                  style={{ minWidth: 200 }}
+                  style={{ minWidth: 180 }}
                 >
                   <option value="todas">👥 Todas as turmas</option>
-                  {turmasDisponiveis
-                    .filter((turma) =>
-                      turma.nome.toLowerCase().includes(turmaBuscaFiltro.toLowerCase())
-                    )
-                    .map((turma) => (
-                      <option key={turma.id} value={turma.id}>
-                        {turma.nome}
-                      </option>
-                    ))}
+                  {turmasDisponiveis.map((turma) => (
+                    <option key={turma.id} value={turma.id}>
+                      {turma.nome}
+                    </option>
+                  ))}
                 </select>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* LISTA DE EXERCÍCIOS */}
