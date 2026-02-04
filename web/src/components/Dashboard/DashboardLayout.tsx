@@ -125,14 +125,16 @@ export default function DashboardLayout({
             Videoaulas Bônus
           </Link>
           {/* Turmas e Minhas Turmas */}
-          <button
-            className="sbItem"
-            onClick={handleMinhasTurmas}
-            style={{ textAlign: "left" }}
-          >
-            <span className="sbIcon" aria-hidden="true">🏫</span>
-            <span>Turmas</span>
-          </button>
+          {role !== "aluno" || turmas.length > 0 ? (
+            <button
+              className="sbItem"
+              onClick={handleMinhasTurmas}
+              style={{ textAlign: "left" }}
+            >
+              <span className="sbIcon" aria-hidden="true">🏫</span>
+              <span>Turmas</span>
+            </button>
+          ) : null}
 
           {canCreateUser && (
             <div className="sideSection">
