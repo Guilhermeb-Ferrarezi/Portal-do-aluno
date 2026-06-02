@@ -32,7 +32,7 @@
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.922.0",
     "@types/express": "^4.17.21",
-    "@types/node": "^24.10.10",
+    "@types/node": "^25.9.1",
     "concurrently": "^9.0.0",
     "electron": "^42.3.0",
     "electron-builder": "^26.0.0",
