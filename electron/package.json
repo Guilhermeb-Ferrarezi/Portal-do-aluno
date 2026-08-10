@@ -35,7 +35,7 @@
     "@types/node": "^24.10.10",
     "concurrently": "^9.0.0",
     "electron": "^42.3.0",
-    "electron-builder": "^26.0.0",
+    "electron-builder": "^26.15.3",
     "rcedit": "^4.0.1",
     "tsx": "^4.22.3",
     "typescript": "~6.0.3",
